@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#c6c6cd",
+                        "tertiary-container": "#002109",
+                        "surface-dim": "#d8dadc",
+                        "primary-fixed-dim": "#bec6e0",
+                        "primary-fixed": "#dae2fd",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "on-tertiary-fixed-variant": "#005321",
+                        "on-tertiary-fixed": "#002109",
+                        "inverse-primary": "#bec6e0",
+                        "surface-container": "#eceef0",
+                        "outline": "#76777d",
+                        "on-error": "#ffffff",
+                        "surface-variant": "#e0e3e5",
+                        "background": "#f7f9fb",
+                        "secondary-fixed": "#d5e3fc",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "on-primary-container": "#7c839b",
+                        "tertiary-fixed": "#6bff8f",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary-fixed": "#131b2e",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface-bright": "#f7f9fb",
+                        "tertiary-fixed-dim": "#4ae176",
+                        "secondary-container": "#d5e3fc",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#000000",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#515f74",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "surface-container-low": "#f2f4f6",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#009844",
+                        "on-background": "#191c1e",
+                        "primary-container": "#131b2e",
+                        "surface": "#f7f9fb",
+                        "on-secondary-container": "#57657a",
+                        "primary": "#000000",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#45464d",
+                        "surface-container-high": "#e6e8ea",
+                        "inverse-surface": "#2d3133",
+                        "on-surface": "#191c1e",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "surface-tint": "#565e74"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface">
+<!-- SideNavBar Anchor -->
+<aside class="bg-slate-900 dark:bg-[#131B2E] h-screen w-64 fixed left-0 top-0 flex flex-col py-6 font-['Manrope'] tracking-tight z-50">
+<div class="px-6 mb-10 flex items-center gap-3">
+<div class="w-8 h-8 bg-primary-fixed rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-fixed text-xl">account_balance</span>
+</div>
+<div>
+<h1 class="text-lg font-bold text-white dark:text-[#DAE2FD]">The Sovereign Ledger</h1>
+<p class="text-[10px] uppercase tracking-[0.1em] text-slate-400">AI Project Governance</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1 px-4 overflow-y-auto no-scrollbar">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">folder_managed</span>
+<span class="text-sm">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#DAE2FD] font-semibold border-r-2 border-[#DAE2FD] bg-slate-800/50 dark:bg-[#1C253B]" href="#">
+<span class="material-symbols-outlined">view_kanban</span>
+<span class="text-sm">Kanban</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm">Templates</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">hub</span>
+<span class="text-sm">GitHub/Wiki</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">integration_instructions</span>
+<span class="text-sm">Cursor Hub</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm">Users</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="text-sm">Audit</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+</nav>
+<div class="px-4 mt-auto pt-6 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="text-sm">Help</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">policy</span>
+<span class="text-sm">Privacy</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar Anchor -->
+<header class="bg-white/70 dark:bg-[#F7F9FB]/70 backdrop-blur-xl flex justify-between items-center px-8 h-16 sticky top-0 z-40 font-['Inter'] text-sm">
+<div class="flex items-center gap-8">
+<div class="relative group">
+<span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+<span class="material-symbols-outlined text-lg">search</span>
+</span>
+<input class="bg-surface-container-low border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-primary w-64 transition-all" placeholder="Procurar templates..." type="text"/>
+</div>
+<nav class="flex gap-6">
+<a class="text-black dark:text-[#000000] font-bold border-b-2 border-black pb-1" href="#">Directives</a>
+<a class="text-slate-500 dark:text-[#45464D] hover:text-black dark:hover:text-[#000000] transition-all pb-1" href="#">Insights</a>
+</nav>
+</div>
+<div class="flex items-center gap-5">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">notifications</span></button>
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">history</span></button>
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">chat_bubble</span></button>
+<div class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="Portrait of a professional project manager in a clean minimalist style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-XLDpsWqOXQq4LzxUmQeJhQzQqfSn9vWogwxM3HgxKZP6RUC0D8N5k1PQHa2H5jD4E0piZvW-tGzeVeqvDJ4duFAH_9XBaUV3IF5d9Jyl5gb5ILJkYnJq1q-H0tCcGMr1MUowEtbhgEmQcxToYYqMZ-6O9pxTpVW7F543KUUyT0ST0vxMMFBW1A-fh-0srArfVwEMw-TB5rw_ooNI1EVJmeXTr5fdSKciz5Eu7p39-Zb1UxSUm1vZL774WRdyE2W54gCQmxZ7KKA"/>
+</div>
+</div>
+</header>
+<!-- Kanban Template Content -->
+<section class="p-8 max-w-7xl mx-auto">
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-10">
+<div>
+<span class="text-[10px] font-extrabold uppercase tracking-widest text-on-surface-variant mb-1 block">Governance Assets</span>
+<h2 class="text-4xl font-headline font-extrabold tracking-tight text-on-surface">Templates de Kanban</h2>
+<p class="text-on-surface-variant mt-2 max-w-lg">Gerencie as estruturas fundamentais dos fluxos de trabalho da organização. Padronize a governança entre equipes.</p>
+</div>
+<button class="bg-primary text-on-primary px-6 py-3 rounded-md font-semibold flex items-center gap-2 hover:opacity-90 transition-all">
+<span class="material-symbols-outlined">add_circle</span>
+                    Novo Template
+                </button>
+</div>
+<!-- Bento-style Dashboard Stats (Subtle) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+<div class="bg-surface-container-low p-4 rounded-lg">
+<p class="text-[10px] font-bold uppercase text-on-surface-variant mb-1">Total de Templates</p>
+<p class="text-2xl font-headline font-bold">12</p>
+</div>
+<div class="bg-surface-container-low p-4 rounded-lg border-l-4 border-tertiary-fixed">
+<p class="text-[10px] font-bold uppercase text-on-surface-variant mb-1">Status Ativos</p>
+<p class="text-2xl font-headline font-bold">09</p>
+</div>
+<div class="bg-surface-container-low p-4 rounded-lg">
+<p class="text-[10px] font-bold uppercase text-on-surface-variant mb-1">Projetos Govermados</p>
+<p class="text-2xl font-headline font-bold">42</p>
+</div>
+<div class="bg-surface-container-low p-4 rounded-lg">
+<p class="text-[10px] font-bold uppercase text-on-surface-variant mb-1">Última Versão</p>
+<p class="text-2xl font-headline font-bold">v3.4.0</p>
+</div>
+</div>
+<!-- Template Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl transition-all group border border-transparent hover:border-outline-variant/30">
+<div class="flex justify-between items-start mb-6">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<h3 class="text-xl font-headline font-bold text-on-surface">Agile Software Development</h3>
+<span class="bg-surface-container text-on-surface-variant text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-tighter">v2.1.0</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-2">Template padrão para times de desenvolvimento focado em Scrum/Kanban híbrido com governança de segurança integrada.</p>
+</div>
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold px-3 py-1 rounded-full uppercase">Ativo</span>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="flex items-center gap-3 text-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">architecture</span>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant font-bold uppercase">Metodologia</p>
+<p class="font-medium">Scrum Híbrido</p>
+</div>
+</div>
+<div class="flex items-center gap-3 text-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">layers</span>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant font-bold uppercase">Projetos Ativos</p>
+<p class="font-medium">14 Squads</p>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-surface-container-low">
+<div class="flex gap-2">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-md hover:bg-surface-container-low">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="text-on-surface-variant hover:text-error transition-colors p-2 rounded-md hover:bg-error-container/30">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<button class="bg-surface-container-high text-on-surface text-xs font-bold px-4 py-2 rounded-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
+                            Configurar Fluxo
+                            <span class="material-symbols-outlined text-sm">settings_input_component</span>
+</button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl transition-all group border border-transparent hover:border-outline-variant/30">
+<div class="flex justify-between items-start mb-6">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<h3 class="text-xl font-headline font-bold text-on-surface">Content Marketing Pipeline</h3>
+<span class="bg-surface-container text-on-surface-variant text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-tighter">v1.4.2</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-2">Gestão de ativos criativos, revisões editoriais e aprovações de stakeholder externo.</p>
+</div>
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold px-3 py-1 rounded-full uppercase">Ativo</span>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="flex items-center gap-3 text-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">draw</span>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant font-bold uppercase">Metodologia</p>
+<p class="font-medium">Linear / Editorial</p>
+</div>
+</div>
+<div class="flex items-center gap-3 text-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">layers</span>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant font-bold uppercase">Projetos Ativos</p>
+<p class="font-medium">6 Canais</p>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-surface-container-low">
+<div class="flex gap-2">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-md hover:bg-surface-container-low">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="text-on-surface-variant hover:text-error transition-colors p-2 rounded-md hover:bg-error-container/30">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<button class="bg-surface-container-high text-on-surface text-xs font-bold px-4 py-2 rounded-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
+                            Configurar Fluxo
+                            <span class="material-symbols-outlined text-sm">settings_input_component</span>
+</button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl transition-all group border border-transparent hover:border-outline-variant/30 opacity-75 grayscale hover:opacity-100 hover:grayscale-0">
+<div class="flex justify-between items-start mb-6">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<h3 class="text-xl font-headline font-bold text-on-surface">Data Science Governance</h3>
+<span class="bg-surface-container text-on-surface-variant text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-tighter">v0.9.0</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-2">Workflow experimental para exploração de dados, validação de modelos e deploy em shadow IT.</p>
+</div>
+<span class="bg-surface-container-high text-on-surface-variant text-[10px] font-bold px-3 py-1 rounded-full uppercase">Draft</span>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="flex items-center gap-3 text-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">query_stats</span>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant font-bold uppercase">Metodologia</p>
+<p class="font-medium">CRISP-DM Adaptado</p>
+</div>
+</div>
+<div class="flex items-center gap-3 text-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">layers</span>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant font-bold uppercase">Projetos Ativos</p>
+<p class="font-medium">0 Projetos</p>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-surface-container-low">
+<div class="flex gap-2">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-md hover:bg-surface-container-low">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="text-on-surface-variant hover:text-error transition-colors p-2 rounded-md hover:bg-error-container/30">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<button class="bg-surface-container-high text-on-surface text-xs font-bold px-4 py-2 rounded-md hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2">
+                            Configurar Fluxo
+                            <span class="material-symbols-outlined text-sm">settings_input_component</span>
+</button>
+</div>
+</div>
+<!-- Add New Placeholder -->
+<div class="border-2 border-dashed border-outline-variant/30 rounded-xl flex flex-col items-center justify-center p-8 text-on-surface-variant hover:border-primary transition-all cursor-pointer bg-transparent hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-4xl mb-3">add_box</span>
+<span class="text-sm font-bold uppercase tracking-widest">Criar novo template</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Modal: Novo Template Overlay -->
+<div class="fixed inset-0 bg-primary-container/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
+<div class="bg-surface-container-lowest w-full max-w-xl rounded-xl shadow-2xl overflow-hidden">
+<div class="px-8 py-6 border-b border-surface-container-low flex justify-between items-center">
+<h2 class="text-2xl font-headline font-extrabold text-on-surface tracking-tight">Novo Template de Governança</h2>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-8">
+<form class="space-y-6">
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Nome do Template</label>
+<input class="w-full bg-surface-container-low border-none rounded-md px-4 py-3 text-sm focus:ring-1 focus:ring-primary" placeholder="Ex: Operações Lean de Infraestrutura" type="text"/>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Descrição Executiva</label>
+<textarea class="w-full bg-surface-container-low border-none rounded-md px-4 py-3 text-sm focus:ring-1 focus:ring-primary" placeholder="Descreva o propósito e as diretrizes deste fluxo..." rows="3"></textarea>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Metodologia Base</label>
+<select class="w-full bg-surface-container-low border-none rounded-md px-4 py-3 text-sm focus:ring-1 focus:ring-primary appearance-none">
+<option>Scrum Adaptativo</option>
+<option>Kanban Clássico (Toyota style)</option>
+<option>Gestão de Ativos Criativos</option>
+<option>Auditoria de Compliance</option>
+</select>
+</div>
+<div class="flex justify-end gap-4 pt-4">
+<button class="px-6 py-2 text-sm font-bold text-on-surface-variant hover:text-primary transition-colors" type="button">Cancelar</button>
+<button class="bg-primary text-on-primary px-8 py-2 rounded-md text-sm font-bold shadow-lg shadow-primary/20" type="submit">Criar Blueprint</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+<!-- Alert Dialog: Confirmação de Exclusão (Hidden) -->
+<div class="fixed inset-0 bg-primary-container/80 backdrop-blur-md z-[70] flex items-center justify-center p-4 hidden">
+<div class="bg-surface-container-lowest max-w-sm w-full rounded-xl p-8 shadow-2xl text-center">
+<div class="w-16 h-16 bg-error-container rounded-full flex items-center justify-center mx-auto mb-6">
+<span class="material-symbols-outlined text-error text-3xl" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<h3 class="text-xl font-headline font-extrabold text-on-surface mb-2">Confirmar Exclusão?</h3>
+<p class="text-sm text-on-surface-variant mb-8">Esta ação irá remover permanentemente o template. Projetos ativos vinculados poderão perder a padronização de governança.</p>
+<div class="grid grid-cols-2 gap-4">
+<button class="bg-surface-container-high text-on-surface font-bold py-3 rounded-md hover:bg-surface-container-highest transition-colors">Abortar</button>
+<button class="bg-error text-on-error font-bold py-3 rounded-md hover:opacity-90 transition-colors">Sim, Excluir</button>
+</div>
+</div>
+</div>
+</body></html>

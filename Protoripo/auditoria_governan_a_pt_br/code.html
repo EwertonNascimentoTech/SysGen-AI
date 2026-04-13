@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Trilha de Auditoria | The Sovereign Ledger</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#e0e3e5",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "on-primary-fixed": "#131b2e",
+                    "surface-dim": "#d8dadc",
+                    "tertiary-fixed-dim": "#4ae176",
+                    "on-tertiary-fixed-variant": "#005321",
+                    "inverse-surface": "#2d3133",
+                    "secondary-container": "#d5e3fc",
+                    "on-tertiary-fixed": "#002109",
+                    "on-surface-variant": "#45464d",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#131b2e",
+                    "on-secondary-container": "#57657a",
+                    "primary-fixed-dim": "#bec6e0",
+                    "outline-variant": "#c6c6cd",
+                    "on-surface": "#191c1e",
+                    "background": "#f7f9fb",
+                    "on-tertiary-container": "#009844",
+                    "tertiary-fixed": "#6bff8f",
+                    "surface-container": "#eceef0",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "on-primary-container": "#7c839b",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "tertiary-container": "#002109",
+                    "on-background": "#191c1e",
+                    "primary": "#000000",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "inverse-on-surface": "#eff1f3",
+                    "error-container": "#ffdad6",
+                    "surface": "#f7f9fb",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-error-container": "#93000a",
+                    "surface-container-high": "#e6e8ea",
+                    "inverse-primary": "#bec6e0",
+                    "error": "#ba1a1a",
+                    "outline": "#76777d",
+                    "secondary-fixed": "#d5e3fc",
+                    "surface-tint": "#565e74",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "secondary": "#515f74",
+                    "primary-fixed": "#dae2fd",
+                    "surface-container-low": "#f2f4f6",
+                    "tertiary": "#000000"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+        .font-headline { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- SideNavBar (Shared Component) -->
+<aside class="bg-slate-900 dark:bg-[#131B2E] h-screen w-64 fixed left-0 top-0 flex flex-col py-6 font-['Manrope'] tracking-tight z-50">
+<div class="px-6 mb-8">
+<h1 class="text-lg font-bold text-white dark:text-[#DAE2FD]">The Sovereign Ledger</h1>
+<p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Governança de Projetos IA</p>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150 rounded group" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150 rounded group" href="#">
+<span class="material-symbols-outlined mr-3">folder_managed</span>
+<span class="text-sm">Projetos</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150 rounded group" href="#">
+<span class="material-symbols-outlined mr-3">view_kanban</span>
+<span class="text-sm">Kanban</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150 rounded group" href="#">
+<span class="material-symbols-outlined mr-3">description</span>
+<span class="text-sm">Modelos</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150 rounded group" href="#">
+<span class="material-symbols-outlined mr-3">hub</span>
+<span class="text-sm">GitHub/Wiki</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150 rounded group" href="#">
+<span class="material-symbols-outlined mr-3">integration_instructions</span>
+<span class="text-sm">Cursor Hub</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150 rounded group" href="#">
+<span class="material-symbols-outlined mr-3">group</span>
+<span class="text-sm">Usuários</span>
+</a>
+<a class="flex items-center px-3 py-2 text-[#DAE2FD] font-semibold border-r-2 border-[#DAE2FD] bg-slate-800/50 dark:bg-[#1C253B] transition-colors scale-95 duration-150 rounded group" href="#">
+<span class="material-symbols-outlined mr-3">security</span>
+<span class="text-sm">Auditoria</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150 rounded group" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+<span class="text-sm">Configurações</span>
+</a>
+</nav>
+<div class="px-3 pt-6 mt-6 border-t border-slate-800 dark:border-slate-800/50">
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150 rounded group" href="#">
+<span class="material-symbols-outlined mr-3">help_outline</span>
+<span class="text-sm">Ajuda</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150 rounded group" href="#">
+<span class="material-symbols-outlined mr-3">policy</span>
+<span class="text-sm">Privacidade</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar (Shared Component) -->
+<header class="bg-white/70 dark:bg-[#F7F9FB]/70 backdrop-blur-xl docked full-width top-0 sticky z-40 flex justify-between items-center px-8 h-16 ml-64 font-['Inter'] text-sm">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-md focus:ring-1 focus:ring-primary text-on-surface" placeholder="Buscar logs de governança..." type="text"/>
+</div>
+</div>
+<div class="flex items-center space-x-6">
+<nav class="flex space-x-6 mr-6">
+<a class="text-slate-500 dark:text-[#45464D] hover:text-black dark:hover:text-[#000000] transition-all ease-in-out" href="#">Diretrizes</a>
+<a class="text-slate-500 dark:text-[#45464D] hover:text-black dark:hover:text-[#000000] transition-all ease-in-out" href="#">Insights</a>
+</nav>
+<div class="flex items-center space-x-4 border-l border-outline-variant/30 pl-6">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">history</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">chat_bubble</button>
+<div class="w-8 h-8 rounded-full overflow-hidden ml-2 bg-surface-container-high border border-outline-variant/20">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqs-ir-rMNrXlyzxz4xmO7LtZR8oGKScn1zW_xdStvdlCcd3kDIvyg4Affkf3NUh9TFASS5H8heH2bkmBi13kOt5jRexI0aOt3bNNBPaAYczP516oYYWnJ2K1W0Hh0ZEAS8Dv68Fz_O8iwxQg3d3AGq50wlFKvB6ixTCBV7evjqmSctnzH2-gKM5yLVb1jg6nDMhD64Yv1Qzcj1kqI_qtnxf1AGcv1YOFxW8qtFmZiCtR393YlYDDV4bVtDXQOm-jgAp-BIXeE-4U"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 p-8 min-h-screen">
+<!-- Header Section -->
+<div class="mb-10 flex justify-between items-end">
+<div>
+<span class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant mb-2 block">Integridade do Sistema</span>
+<h2 class="text-4xl font-headline font-extrabold tracking-tight text-on-surface">Trilha de Auditoria</h2>
+</div>
+<div class="flex space-x-3">
+<button class="px-4 py-2 bg-surface-container-high text-on-surface text-sm font-semibold rounded-md flex items-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-sm mr-2">download</span>
+                    Exportar PDF
+                </button>
+<button class="px-4 py-2 bg-primary text-on-primary text-sm font-semibold rounded-md flex items-center shadow-lg shadow-black/5">
+<span class="material-symbols-outlined text-sm mr-2">refresh</span>
+                    Atualização em Tempo Real
+                </button>
+</div>
+</div>
+<!-- Filter Bar -->
+<section class="mb-8 p-6 bg-surface-container-low rounded-xl flex flex-wrap items-center gap-6">
+<div class="flex flex-col">
+<label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Intervalo de Datas</label>
+<div class="flex items-center bg-surface-container-lowest px-3 py-2 rounded-md shadow-sm">
+<span class="material-symbols-outlined text-sm text-outline mr-2">calendar_today</span>
+<span class="text-sm font-medium">12 Out, 2023 - 19 Out, 2023</span>
+</div>
+</div>
+<div class="flex flex-col">
+<label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Acesso do Usuário</label>
+<select class="bg-surface-container-lowest border-none text-sm font-medium py-2 px-3 rounded-md shadow-sm min-w-[160px] focus:ring-1 focus:ring-primary">
+<option>Todos os Colaboradores</option>
+<option>Adriana Lima</option>
+<option>Marcus Aurelius</option>
+<option>IA do Sistema</option>
+</select>
+</div>
+<div class="flex flex-col">
+<label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Módulo</label>
+<select class="bg-surface-container-lowest border-none text-sm font-medium py-2 px-3 rounded-md shadow-sm min-w-[160px] focus:ring-1 focus:ring-primary">
+<option>Todos os Módulos</option>
+<option>Quadro Kanban</option>
+<option>Configurações de Projeto</option>
+<option>Gateway de API</option>
+</select>
+</div>
+<div class="flex flex-col">
+<label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Tipo de Ação</label>
+<select class="bg-surface-container-lowest border-none text-sm font-medium py-2 px-3 rounded-md shadow-sm min-w-[160px] focus:ring-1 focus:ring-primary">
+<option>Tudo</option>
+<option>Criações</option>
+<option>Modificações</option>
+<option>Exclusões</option>
+</select>
+</div>
+<div class="flex-1 flex justify-end items-end h-full">
+<button class="bg-surface-container-highest text-on-surface p-2.5 rounded-md hover:bg-outline-variant/40 transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</section>
+<!-- Audit Log Table -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden">
+<table class="w-full text-left border-separate border-spacing-0">
+<thead>
+<tr class="bg-surface-container-low">
+<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-b border-outline-variant/10">Data e Hora</th>
+<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-b border-outline-variant/10">Responsável</th>
+<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-b border-outline-variant/10">Ação</th>
+<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-b border-outline-variant/10">Entidade de Recurso</th>
+<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-b border-outline-variant/10">Detalhes de Telemetria</th>
+<th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-b border-outline-variant/10 text-right">Estado</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-5 align-top">
+<div class="text-sm font-bold text-on-surface">19-10-2023</div>
+<div class="text-xs text-on-surface-variant mt-0.5">14:22:08 UTC</div>
+</td>
+<td class="px-6 py-5 align-top">
+<div class="flex items-center">
+<div class="w-7 h-7 rounded-full bg-primary-container text-[10px] flex items-center justify-center text-primary-fixed mr-3">AL</div>
+<div class="text-sm font-semibold">Adriana Lima</div>
+</div>
+</td>
+<td class="px-6 py-5 align-top">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface text-[11px] font-medium">
+<span class="material-symbols-outlined text-sm mr-1">move_item</span>
+                                Movimentou Kanban
+                            </span>
+</td>
+<td class="px-6 py-5 align-top">
+<div class="text-xs font-mono bg-surface-container-low px-2 py-1 rounded w-fit text-on-surface-variant">PRJ-992-ALPHA</div>
+</td>
+<td class="px-6 py-5 align-top">
+<p class="text-xs text-on-surface-variant leading-relaxed max-w-xs">
+                                Alterou status do cartão <span class="text-on-surface font-medium">#TAS-104</span> de <span class="text-on-surface-variant italic">Em Progresso</span> para <span class="text-on-surface-variant italic">Concluído</span>.
+                            </p>
+</td>
+<td class="px-6 py-5 align-top text-right">
+<span class="px-2.5 py-1 rounded-full bg-tertiary-container text-on-tertiary-container text-[10px] font-bold uppercase tracking-tight">Verificado</span>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-5 align-top">
+<div class="text-sm font-bold text-on-surface">19-10-2023</div>
+<div class="text-xs text-on-surface-variant mt-0.5">13:45:12 UTC</div>
+</td>
+<td class="px-6 py-5 align-top">
+<div class="flex items-center">
+<div class="w-7 h-7 rounded-full bg-tertiary-fixed text-[10px] flex items-center justify-center text-on-tertiary-fixed mr-3">
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="text-sm font-semibold">IA do Sistema</div>
+</div>
+</td>
+<td class="px-6 py-5 align-top">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface text-[11px] font-medium">
+<span class="material-symbols-outlined text-sm mr-1">update</span>
+                                Atualizou Diretrizes
+                            </span>
+</td>
+<td class="px-6 py-5 align-top">
+<div class="text-xs font-mono bg-surface-container-low px-2 py-1 rounded w-fit text-on-surface-variant">GOV-GLOBAL-01</div>
+</td>
+<td class="px-6 py-5 align-top">
+<p class="text-xs text-on-surface-variant leading-relaxed max-w-xs">
+                                Ajustou automaticamente as pontuações de prioridade para 14 tarefas ativas baseando-se na mudança do roadmap trimestral.
+                            </p>
+</td>
+<td class="px-6 py-5 align-top text-right">
+<span class="px-2.5 py-1 rounded-full bg-tertiary-container text-on-tertiary-container text-[10px] font-bold uppercase tracking-tight">Verificado</span>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-5 align-top">
+<div class="text-sm font-bold text-on-surface">19-10-2023</div>
+<div class="text-xs text-on-surface-variant mt-0.5">12:10:55 UTC</div>
+</td>
+<td class="px-6 py-5 align-top">
+<div class="flex items-center">
+<div class="w-7 h-7 rounded-full bg-secondary-fixed text-[10px] flex items-center justify-center text-on-secondary-fixed mr-3">MA</div>
+<div class="text-sm font-semibold">Marcus Aurelius</div>
+</div>
+</td>
+<td class="px-6 py-5 align-top">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-error-container text-error text-[11px] font-medium">
+<span class="material-symbols-outlined text-sm mr-1">delete</span>
+                                Exclusão
+                            </span>
+</td>
+<td class="px-6 py-5 align-top">
+<div class="text-xs font-mono bg-surface-container-low px-2 py-1 rounded w-fit text-on-surface-variant">PRJ-881-OMEGA</div>
+</td>
+<td class="px-6 py-5 align-top">
+<p class="text-xs text-on-surface-variant leading-relaxed max-w-xs">
+                                Excluiu link de repositório obsoleto da Wiki do Projeto. Cópia de arquivo salva no Histórico do Ledger.
+                            </p>
+</td>
+<td class="px-6 py-5 align-top text-right">
+<span class="px-2.5 py-1 rounded-full bg-surface-container-high text-on-surface-variant text-[10px] font-bold uppercase tracking-tight">Aguardando Aprovação</span>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-5 align-top">
+<div class="text-sm font-bold text-on-surface">19-10-2023</div>
+<div class="text-xs text-on-surface-variant mt-0.5">09:30:11 UTC</div>
+</td>
+<td class="px-6 py-5 align-top">
+<div class="flex items-center">
+<div class="w-7 h-7 rounded-full bg-primary-container text-[10px] flex items-center justify-center text-primary-fixed mr-3">AL</div>
+<div class="text-sm font-semibold">Adriana Lima</div>
+</div>
+</td>
+<td class="px-6 py-5 align-top">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface text-[11px] font-medium">
+<span class="material-symbols-outlined text-sm mr-1">add_circle</span>
+                                Novo Projeto
+                            </span>
+</td>
+<td class="px-6 py-5 align-top">
+<div class="text-xs font-mono bg-surface-container-low px-2 py-1 rounded w-fit text-on-surface-variant">PRJ-1022-SIGMA</div>
+</td>
+<td class="px-6 py-5 align-top">
+<p class="text-xs text-on-surface-variant leading-relaxed max-w-xs">
+                                Inicializou contêiner de governança para "Projeto Sigma: Orquestração de IA". Aplicou Modelo de Diretriz Padrão.
+                            </p>
+</td>
+<td class="px-6 py-5 align-top text-right">
+<span class="px-2.5 py-1 rounded-full bg-tertiary-container text-on-tertiary-container text-[10px] font-bold uppercase tracking-tight">Verificado</span>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Table Footer / Pagination -->
+<div class="px-6 py-4 bg-surface-container-low flex justify-between items-center border-t border-outline-variant/10">
+<div class="text-xs text-on-surface-variant font-medium">
+                    Exibindo <span class="text-on-surface">1 - 25</span> de <span class="text-on-surface">1.482</span> eventos
+                </div>
+<div class="flex space-x-2">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 hover:bg-surface-container text-on-surface-variant transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary font-bold text-xs">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 hover:bg-surface-container text-on-surface text-xs">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 hover:bg-surface-container text-on-surface text-xs">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 hover:bg-surface-container text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- AI Governance Summary -->
+<div class="mt-12 grid grid-cols-12 gap-6">
+<div class="col-span-12 md:col-span-8 p-8 bg-surface-container-lowest border-l-4 border-tertiary-fixed rounded-r-xl shadow-sm">
+<div class="flex items-start justify-between">
+<div>
+<h3 class="text-lg font-headline font-bold text-on-surface mb-2">Insight de Integridade</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-6">
+                            O mecanismo de auditoria detectou uma <span class="text-on-tertiary-container font-semibold">alta pontuação de alinhamento (98,4%)</span> para a sprint atual. Movimentações de tarefas orientadas por IA aumentaram a eficiência em 12% comparado a intervenções manuais no ciclo anterior.
+                        </p>
+<div class="flex space-x-6">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold uppercase tracking-widest text-outline">Anomalias</span>
+<span class="text-xl font-headline font-bold">0 Detectadas</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold uppercase tracking-widest text-outline">Score de Governança</span>
+<span class="text-xl font-headline font-bold text-on-tertiary-container">AAA</span>
+</div>
+</div>
+</div>
+<div class="hidden lg:block w-32 h-32 opacity-20">
+<img alt="Security Shield Aesthetic" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAHNKGKFZ6xt35enWo-SlXzU0SBj4GCkzaqCDUlft3V4nPCX04arlfxfvLgexFCvx-O-8uERTxk78f0_cH347p26vUJG2Qd0Q1ZgytJEiIP1s67SnV08OOo-46qfAAg9vWx9QfOxheViP6kWMR_HCsikJnK4VlSOGNf-0Kg2Gp5fg1qDRrLGukmmMuBRLgExUtyPjA17zU7mLdluU-pk1Hz1PKwbp2siDLkm0FNvOXLPqlP4-SUXFeryekPxvC_BkZj6Wt8J15ZO8"/>
+</div>
+</div>
+</div>
+<div class="col-span-12 md:col-span-4 p-8 bg-primary-container text-[#DAE2FD] rounded-xl flex flex-col justify-between">
+<div>
+<h3 class="text-sm font-bold uppercase tracking-widest mb-4">Status de Conformidade</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-xs">
+<span>Prontidão SOC2</span>
+<span class="font-bold">92%</span>
+</div>
+<div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed h-full w-[92%]"></div>
+</div>
+<div class="flex justify-between items-center text-xs">
+<span>Residência de Dados</span>
+<span class="font-bold text-tertiary-fixed">Ativo</span>
+</div>
+</div>
+</div>
+<button class="mt-8 py-2 w-full bg-[#DAE2FD] text-slate-900 text-xs font-bold rounded hover:bg-white transition-colors">
+                    Solicitar Auditoria Completa
+                </button>
+</div>
+</div>
+</main>
+</body></html>

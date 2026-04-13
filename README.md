@@ -1,6 +1,6 @@
 # Plataforma de Gestão e Governança de Projetos com IA
 
-Monorepo: **FastAPI** + **Vue 3**, design **The Sovereign Ledger**.
+Monorepo: **FastAPI** + **Vue 3**, design **SysGen AI**.
 
 ## Subir tudo com Docker (recomendado)
 

@@ -51,7 +51,7 @@ onMounted(async () => {
 });
 
 function methodologyLabel(m: string) {
-  if (m === "base44") return "Base 4.4";
+  if (m === "base44") return "Base 44";
   if (m === "prd") return "PRD";
   return m;
 }
@@ -254,7 +254,7 @@ const executiveSubtitle = computed(() => {
           <div class="space-y-4">
             <div>
               <div class="flex justify-between text-xs mb-1 font-body">
-                <span class="font-semibold">Padrão Base 4.4</span>
+                <span class="font-semibold">Padrão Base 44</span>
                 <span class="font-bold">{{ methodologySplit.base44 }}%</span>
               </div>
               <div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">

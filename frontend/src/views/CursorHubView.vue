@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 import { api } from "@/api/client";
 import { useAuthStore } from "@/stores/auth";
@@ -9,6 +9,7 @@ type Art = {
   kind: string;
   name: string;
   description: string | null;
+  content: string | null;
   status: string;
   linked_projects_count?: number;
 };
@@ -20,10 +21,25 @@ const msg = ref("");
 const searchQ = ref("");
 const activeTab = ref<"rule" | "skill" | "mcp">("rule");
 const showCreatePanel = ref(false);
+const editingId = ref<number | null>(null);
+const titleInputEl = ref<HTMLInputElement | null>(null);
+type MdBlock = { name: string; content: string };
+const mdBlocks = ref<MdBlock[]>([{ name: "Documento 1", content: "" }]);
+const MD_SPLIT_MARKER = "\n\n<!-- SYSGEN_MD_SPLIT -->\n\n";
+const MD_JSON_PREFIX = "<!-- SYSGEN_MD_JSON -->";
+const draggingMdIndex = ref<number | null>(null);
+const dragOverMdIndex = ref<number | null>(null);
 
-const form = ref({ kind: "rule" as "rule" | "skill" | "mcp", name: "", description: "" });
+const form = ref({
+  kind: "rule" as "rule" | "skill" | "mcp",
+  name: "",
+  description: "",
+  status: "ativo" as "ativo" | "inativo",
+});
 const linkProjectId = ref<number | null>(null);
 const linkArtifactId = ref<number | null>(null);
+const pendingDeleteArt = ref<Art | null>(null);
+const showDeleteModal = ref(false);
 
 const tabs = [
   { id: "rule" as const, label: "Regras" },
@@ -45,7 +61,7 @@ const filtered = computed(() => {
   return list;
 });
 
-const publishedCount = computed(() => items.value.filter((a) => a.status === "publicado").length);
+const activeCount = computed(() => items.value.filter((a) => a.status === "ativo").length);
 
 onMounted(async () => {
   await auth.fetchMe();
@@ -63,20 +79,56 @@ async function reload() {
 
 async function createArt() {
   msg.value = "";
-  await api("/cursor-artifacts", {
-    method: "POST",
-    body: JSON.stringify({ ...form.value, content: "# rascunho" }),
-  });
-  form.value = { kind: form.value.kind, name: "", description: "" };
+  err.value = "";
+  const isEditing = editingId.value != null;
+  const normalizedBlocks = mdBlocks.value
+    .map((b, i) => ({
+      name: (b.name || "").trim() || `Documento ${i + 1}`,
+      content: (b.content || "").trim(),
+    }))
+    .filter((b) => b.content);
+  const joinedContent = `${MD_JSON_PREFIX}${JSON.stringify(normalizedBlocks)}`;
+  const payload = {
+    ...form.value,
+    name: form.value.name.trim(),
+    description: form.value.description.trim(),
+    content: joinedContent,
+  };
+  if (!payload.name) {
+    err.value = "Informe o título.";
+    return;
+  }
+  if (isEditing) {
+    await api(`/cursor-artifacts/${editingId.value}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  } else {
+    await api("/cursor-artifacts", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+  form.value = {
+    kind: form.value.kind,
+    name: "",
+    description: "",
+    status: "ativo",
+  };
+  mdBlocks.value = [{ name: "Documento 1", content: "" }];
+  editingId.value = null;
   await reload();
-  msg.value = "Artefato criado como rascunho.";
+  msg.value = isEditing ? "Cadastro atualizado." : "Artefato cadastrado.";
   showCreatePanel.value = false;
 }
 
-async function publish(id: number) {
-  await api(`/cursor-artifacts/${id}/publish`, { method: "POST" });
+async function setStatus(id: number, status: "ativo" | "inativo") {
+  await api(`/cursor-artifacts/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
   await reload();
-  msg.value = "Artefato publicado.";
+  msg.value = status === "ativo" ? "Artefato ativado." : "Artefato inativado.";
 }
 
 async function link() {
@@ -102,8 +154,146 @@ function authorInitials(name: string) {
 }
 
 function openCreateForTab(tab: typeof activeTab.value) {
-  form.value.kind = tab;
+  editingId.value = null;
+  form.value = {
+    kind: tab,
+    name: "",
+    description: "",
+    status: "ativo",
+  };
+  mdBlocks.value = [{ name: "Documento 1", content: "" }];
   showCreatePanel.value = true;
+}
+
+function parseLegacyMdBlocks(raw: string): MdBlock[] {
+  const split = raw
+    .split(MD_SPLIT_MARKER)
+    .map((x) => x.trim())
+    .filter(Boolean);
+  if (split.length) {
+    return split.map((content, i) => ({ name: `Documento ${i + 1}`, content }));
+  }
+  const one = raw.trim();
+  if (!one) return [{ name: "Documento 1", content: "" }];
+  return [{ name: "Documento 1", content: one }];
+}
+
+function openEdit(art: Art) {
+  editingId.value = art.id;
+  form.value = {
+    kind: art.kind as "rule" | "skill" | "mcp",
+    name: art.name,
+    description: art.description ?? "",
+    status: art.status === "ativo" ? "ativo" : "inativo",
+  };
+  const raw = art.content ?? "";
+  if (raw.startsWith(MD_JSON_PREFIX)) {
+    const jsonRaw = raw.slice(MD_JSON_PREFIX.length);
+    try {
+      const parsed = JSON.parse(jsonRaw) as { name?: string; content?: string }[];
+      if (Array.isArray(parsed)) {
+        const blocks = parsed
+          .map((b, i) => ({
+            name: (b.name || "").trim() || `Documento ${i + 1}`,
+            content: (b.content || "").trim(),
+          }))
+          .filter((b) => b.content || b.name);
+        mdBlocks.value = blocks.length ? blocks : [{ name: "Documento 1", content: "" }];
+      } else {
+        mdBlocks.value = parseLegacyMdBlocks(raw);
+      }
+    } catch {
+      mdBlocks.value = parseLegacyMdBlocks(raw);
+    }
+  } else {
+    mdBlocks.value = parseLegacyMdBlocks(raw);
+  }
+  showCreatePanel.value = true;
+  void nextTick(() => {
+    titleInputEl.value?.focus();
+    titleInputEl.value?.select();
+  });
+}
+
+function removeArt(art: Art) {
+  pendingDeleteArt.value = art;
+  showDeleteModal.value = true;
+}
+
+function closeDeleteModal() {
+  showDeleteModal.value = false;
+  pendingDeleteArt.value = null;
+}
+
+async function confirmDeleteArt() {
+  const art = pendingDeleteArt.value;
+  if (!art) return;
+  await api(`/cursor-artifacts/${art.id}`, { method: "DELETE" });
+  await reload();
+  msg.value = "Cadastro excluído.";
+  closeDeleteModal();
+}
+
+async function onMdFileChange(idx: number, ev: Event) {
+  const input = ev.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  const lower = file.name.toLowerCase();
+  if (!lower.endsWith(".md")) {
+    err.value = "Selecione um arquivo .md";
+    input.value = "";
+    return;
+  }
+  mdBlocks.value[idx].content = await file.text();
+  if (!mdBlocks.value[idx].name?.trim()) {
+    mdBlocks.value[idx].name = file.name.replace(/\.md$/i, "");
+  }
+  input.value = "";
+}
+
+function addMdBlock() {
+  mdBlocks.value.push({
+    name: `Documento ${mdBlocks.value.length + 1}`,
+    content: "",
+  });
+}
+
+function removeMdBlock(idx: number) {
+  if (mdBlocks.value.length <= 1) {
+    mdBlocks.value[0] = { name: "Documento 1", content: "" };
+    return;
+  }
+  mdBlocks.value.splice(idx, 1);
+}
+
+function onMdDragStart(idx: number, ev: DragEvent) {
+  draggingMdIndex.value = idx;
+  if (ev.dataTransfer) ev.dataTransfer.effectAllowed = "move";
+}
+
+function onMdDragOver(idx: number, ev: DragEvent) {
+  ev.preventDefault();
+  dragOverMdIndex.value = idx;
+}
+
+function onMdDrop(idx: number) {
+  const from = draggingMdIndex.value;
+  if (from == null || from === idx) {
+    draggingMdIndex.value = null;
+    dragOverMdIndex.value = null;
+    return;
+  }
+  const next = mdBlocks.value.slice();
+  const [moved] = next.splice(from, 1);
+  next.splice(idx, 0, moved);
+  mdBlocks.value = next;
+  draggingMdIndex.value = null;
+  dragOverMdIndex.value = null;
+}
+
+function onMdDragEnd() {
+  draggingMdIndex.value = null;
+  dragOverMdIndex.value = null;
 }
 </script>
 
@@ -164,8 +354,15 @@ function openCreateForTab(tab: typeof activeTab.value) {
       class="bg-surface-container-low rounded-xl p-6 border border-outline-variant/10 space-y-4 max-w-3xl"
     >
       <div class="flex justify-between items-center gap-4">
-        <h3 class="font-headline font-bold text-lg">Novo artefato</h3>
-        <button type="button" class="text-on-surface-variant hover:text-on-surface text-sm font-body" @click="showCreatePanel = false">
+        <h3 class="font-headline font-bold text-lg">{{ editingId != null ? "Editar cadastro" : "Novo cadastro" }}</h3>
+        <button
+          type="button"
+          class="text-on-surface-variant hover:text-on-surface text-sm font-body"
+          @click="
+            showCreatePanel = false;
+            editingId = null;
+          "
+        >
           Fechar
         </button>
       </div>
@@ -179,8 +376,12 @@ function openCreateForTab(tab: typeof activeTab.value) {
           </select>
         </label>
         <label class="space-y-1 block text-xs font-bold text-on-surface-variant uppercase tracking-wider font-label">
-          Nome
-          <input v-model="form.name" class="w-full rounded-lg bg-surface-container-lowest px-3 py-2 text-sm font-body border border-outline-variant/10 outline-none" />
+          Título
+          <input
+            ref="titleInputEl"
+            v-model="form.name"
+            class="w-full rounded-lg bg-surface-container-lowest px-3 py-2 text-sm font-body border border-outline-variant/10 outline-none"
+          />
         </label>
       </div>
       <label class="space-y-1 block text-xs font-bold text-on-surface-variant uppercase tracking-wider font-label">
@@ -190,8 +391,75 @@ function openCreateForTab(tab: typeof activeTab.value) {
           class="w-full rounded-lg bg-surface-container-lowest px-3 py-2 text-sm font-body border border-outline-variant/10 outline-none"
         />
       </label>
+      <label class="space-y-1 block text-xs font-bold text-on-surface-variant uppercase tracking-wider font-label">
+        Status
+        <select
+          v-model="form.status"
+          class="w-full rounded-lg bg-surface-container-lowest px-3 py-2 text-sm font-body border border-outline-variant/10"
+        >
+          <option value="ativo">Ativo</option>
+          <option value="inativo">Inativo</option>
+        </select>
+      </label>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider font-label">
+            Conteúdo Markdown (.md)
+          </label>
+          <button
+            type="button"
+            class="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline font-label"
+            @click="addMdBlock"
+          >
+            <span class="material-symbols-outlined text-base">add_circle</span>
+            Adicionar MD
+          </button>
+        </div>
+        <div
+          v-for="(block, idx) in mdBlocks"
+          :key="idx"
+          class="rounded-lg border bg-surface-container-low p-3 space-y-2 transition-colors"
+          :class="dragOverMdIndex === idx ? 'border-primary/40' : 'border-outline-variant/10'"
+          draggable="true"
+          @dragstart="onMdDragStart(idx, $event)"
+          @dragover="onMdDragOver(idx, $event)"
+          @drop="onMdDrop(idx)"
+          @dragend="onMdDragEnd"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <div class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-label">
+              <span class="material-symbols-outlined text-sm cursor-grab">drag_indicator</span>
+              <span>MD {{ idx + 1 }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-primary cursor-pointer font-label">
+                <input type="file" accept=".md,text/markdown" class="hidden" @change="onMdFileChange(idx, $event)" />
+                Importar .md
+              </label>
+              <button
+                type="button"
+                class="text-[10px] font-bold uppercase text-error hover:underline font-label"
+                @click="removeMdBlock(idx)"
+              >
+                Remover
+              </button>
+            </div>
+          </div>
+          <input
+            v-model="mdBlocks[idx].name"
+            class="w-full rounded-lg bg-surface-container-lowest px-3 py-2 text-sm font-body border border-outline-variant/10 outline-none"
+            placeholder="Nome do documento MD"
+          />
+          <textarea
+            v-model="mdBlocks[idx].content"
+            rows="6"
+            class="w-full rounded-lg bg-surface-container-lowest px-3 py-2 text-sm font-body border border-outline-variant/10 outline-none"
+            placeholder="# Título&#10;&#10;Descrição em Markdown..."
+          />
+        </div>
+      </div>
       <button type="button" class="px-4 py-2 bg-primary text-on-primary rounded-md text-sm font-semibold font-body" @click="createArt">
-        Salvar rascunho
+        {{ editingId != null ? "Salvar alterações" : "Salvar cadastro" }}
       </button>
     </div>
 
@@ -199,7 +467,7 @@ function openCreateForTab(tab: typeof activeTab.value) {
       v-if="auth.hasRole('admin', 'coordenador') && !showCreatePanel"
       class="bg-surface-container-low/80 rounded-xl p-4 flex flex-wrap gap-4 items-end max-w-3xl border border-outline-variant/10"
     >
-      <h3 class="w-full font-headline font-semibold text-sm">Vincular artefato publicado a projeto</h3>
+      <h3 class="w-full font-headline font-semibold text-sm">Vincular artefato ativo a projeto</h3>
       <input
         v-model.number="linkProjectId"
         type="number"
@@ -233,17 +501,14 @@ function openCreateForTab(tab: typeof activeTab.value) {
               kindBadge(a.kind).label
             }}</span>
             <div
-              v-if="a.status === 'publicado'"
-              class="flex items-center gap-1.5 text-on-tertiary-container bg-tertiary-container px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 font-label"
+              class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 font-label"
+              :class="
+                a.status === 'ativo'
+                  ? 'text-on-tertiary-container bg-tertiary-container'
+                  : 'text-on-surface-variant bg-surface-container-high'
+              "
             >
-              <span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1">check_circle</span>
-              PUBLICADO
-            </div>
-            <div
-              v-else
-              class="flex items-center gap-1.5 text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 font-label"
-            >
-              RASCUNHO
+              {{ a.status === "ativo" ? "ATIVO" : "INATIVO" }}
             </div>
           </div>
           <h3 class="text-xl font-bold font-headline mb-2 text-on-surface">{{ a.name }}</h3>
@@ -271,12 +536,28 @@ function openCreateForTab(tab: typeof activeTab.value) {
             <span class="text-[11px] font-medium opacity-60 font-body">ID #{{ a.id }} · gerir no painel</span>
             <div class="flex items-center gap-2">
               <button
-                v-if="auth.hasRole('admin') && a.status !== 'publicado'"
+                v-if="auth.hasRole('admin', 'coordenador', 'dev')"
+                type="button"
+                class="text-[10px] font-bold uppercase text-on-surface-variant hover:underline font-label"
+                @click="openEdit(a)"
+              >
+                Editar
+              </button>
+              <button
+                v-if="auth.hasRole('admin', 'coordenador', 'dev')"
+                type="button"
+                class="text-[10px] font-bold uppercase text-error hover:underline font-label"
+                @click="removeArt(a)"
+              >
+                Excluir
+              </button>
+              <button
+                v-if="auth.hasRole('admin', 'coordenador', 'dev')"
                 type="button"
                 class="text-[10px] font-bold uppercase text-primary hover:underline font-label"
-                @click="publish(a.id)"
+                @click="setStatus(a.id, a.status === 'ativo' ? 'inativo' : 'ativo')"
               >
-                Publicar
+                {{ a.status === "ativo" ? "Inativar" : "Ativar" }}
               </button>
               <span class="material-symbols-outlined text-sm opacity-40 group-hover:opacity-100 transition-opacity">arrow_forward</span>
             </div>
@@ -303,7 +584,7 @@ function openCreateForTab(tab: typeof activeTab.value) {
               Padronize regras antes de publicar para vários projetos.
             </h3>
             <p class="text-slate-300 mb-6 text-sm leading-relaxed font-body">
-              Artefatos em rascunho não podem ser vinculados. Publique (perfil admin), depois associe no bloco “Vincular” ou no detalhe do
+              Artefatos inativos não podem ser vinculados. Ative o registro, depois associe no bloco “Vincular” ou no detalhe do
               projeto.
             </p>
             <div class="flex flex-wrap gap-4">
@@ -368,7 +649,7 @@ function openCreateForTab(tab: typeof activeTab.value) {
           <span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed shadow-[0_0_8px_#6bff8f]" />
           <span>Gateway operacional</span>
         </div>
-        <span>{{ items.length }} artefato(s) · {{ publishedCount }} publicado(s)</span>
+        <span>{{ items.length }} artefato(s) · {{ activeCount }} ativo(s)</span>
         <span>Última sinc: painel ao vivo</span>
       </div>
       <div class="flex flex-wrap gap-4">
@@ -376,5 +657,39 @@ function openCreateForTab(tab: typeof activeTab.value) {
         <RouterLink to="/auditoria" class="hover:text-primary transition-colors">Auditoria</RouterLink>
       </div>
     </div>
+
+    <Teleport to="body">
+      <div
+        v-if="showDeleteModal"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-primary-container/40 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        @click.self="closeDeleteModal"
+      >
+        <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-2xl p-6 md:p-7 space-y-4">
+          <h3 class="text-xl font-extrabold font-headline tracking-tight text-on-surface">Excluir cadastro</h3>
+          <p class="text-sm text-on-surface-variant font-body leading-relaxed">
+            Confirma a exclusão de <strong class="text-on-surface">{{ pendingDeleteArt?.name }}</strong>? Esta ação remove também os vínculos
+            com projetos.
+          </p>
+          <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+            <button
+              type="button"
+              class="flex-1 py-2.5 px-4 rounded-md border border-outline-variant/20 text-sm font-bold hover:bg-surface-container transition-colors font-label"
+              @click="closeDeleteModal"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              class="flex-1 py-2.5 px-4 rounded-md bg-error text-white text-sm font-bold hover:opacity-90 transition-opacity font-label"
+              @click="confirmDeleteArt"
+            >
+              Excluir
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

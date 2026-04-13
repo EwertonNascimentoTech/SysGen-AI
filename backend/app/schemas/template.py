@@ -18,6 +18,7 @@ class ColumnOut(BaseModel):
     color_hex: str
     rules: ColumnRules
     applied_rule_ids: list[int] = []
+    visible_detail_tabs: list[str] = []
 
     class Config:
         from_attributes = True
@@ -48,6 +49,7 @@ class ColumnOut(BaseModel):
             color_hex=str(d.get("color_hex") or "#64748b"),
             rules=rules,
             applied_rule_ids=clean_ids,
+            visible_detail_tabs=[str(x) for x in (d.get("visible_detail_tabs") or [])],
         )
 
 
@@ -94,6 +96,7 @@ class ColumnCreate(BaseModel):
     title: str
     color_hex: str | None = None
     rules: ColumnRules | None = None
+    visible_detail_tabs: list[str] | None = None
 
 
 class ColumnPatch(BaseModel):
@@ -101,6 +104,7 @@ class ColumnPatch(BaseModel):
     color_hex: str | None = None
     rules: ColumnRules | None = None
     applied_rule_ids: list[int] | None = None
+    visible_detail_tabs: list[str] | None = None
 
 
 class ReorderColumnsBody(BaseModel):

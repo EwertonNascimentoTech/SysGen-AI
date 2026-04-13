@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Listagem de Projetos - The Sovereign Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#e0e3e5",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "on-primary-fixed": "#131b2e",
+                    "surface-dim": "#d8dadc",
+                    "tertiary-fixed-dim": "#4ae176",
+                    "on-tertiary-fixed-variant": "#005321",
+                    "inverse-surface": "#2d3133",
+                    "secondary-container": "#d5e3fc",
+                    "on-tertiary-fixed": "#002109",
+                    "on-surface-variant": "#45464d",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#131b2e",
+                    "on-secondary-container": "#57657a",
+                    "primary-fixed-dim": "#bec6e0",
+                    "outline-variant": "#c6c6cd",
+                    "on-surface": "#191c1e",
+                    "background": "#f7f9fb",
+                    "on-tertiary-container": "#009844",
+                    "tertiary-fixed": "#6bff8f",
+                    "surface-container": "#eceef0",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "on-primary-container": "#7c839b",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "tertiary-container": "#002109",
+                    "on-background": "#191c1e",
+                    "primary": "#000000",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "inverse-on-surface": "#eff1f3",
+                    "error-container": "#ffdad6",
+                    "surface": "#f7f9fb",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-error-container": "#93000a",
+                    "surface-container-high": "#e6e8ea",
+                    "inverse-primary": "#bec6e0",
+                    "error": "#ba1a1a",
+                    "outline": "#76777d",
+                    "secondary-fixed": "#d5e3fc",
+                    "surface-tint": "#565e74",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "secondary": "#515f74",
+                    "primary-fixed": "#dae2fd",
+                    "surface-container-low": "#f2f4f6",
+                    "tertiary": "#000000"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- SideNavBar Anchor -->
+<aside class="bg-slate-900 dark:bg-[#131B2E] h-screen w-64 fixed left-0 top-0 flex flex-col py-6 font-['Manrope'] tracking-tight z-50">
+<div class="px-6 mb-10 flex items-center gap-3">
+<div class="w-8 h-8 bg-primary-fixed rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-fixed" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</div>
+<div>
+<h2 class="text-lg font-bold text-white dark:text-[#DAE2FD]">The Sovereign Ledger</h2>
+<p class="text-[10px] uppercase tracking-widest text-slate-500">Governança de Projetos IA</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<!-- Active Tab: Projects -->
+<a class="flex items-center gap-3 px-3 py-2 text-[#DAE2FD] font-semibold border-r-2 border-[#DAE2FD] bg-slate-800/50 dark:bg-[#1C253B]/50 transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">folder_managed</span>
+<span class="text-sm">Projetos</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded" href="#">
+<span class="material-symbols-outlined">view_kanban</span>
+<span class="text-sm">Kanban</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm">Templates</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded" href="#">
+<span class="material-symbols-outlined">hub</span>
+<span class="text-sm">GitHub/Wiki</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded" href="#">
+<span class="material-symbols-outlined">integration_instructions</span>
+<span class="text-sm">Cursor Hub</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm">Usuários</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="text-sm">Auditoria</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors rounded" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm">Configurações</span>
+</a>
+</nav>
+<div class="px-4 mt-auto pt-6 border-t border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 transition-colors rounded mb-1" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="text-sm">Ajuda</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 transition-colors rounded" href="#">
+<span class="material-symbols-outlined">policy</span>
+<span class="text-sm">Privacidade</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar Anchor -->
+<header class="bg-white/70 dark:bg-[#F7F9FB]/70 backdrop-blur-xl flex justify-between items-center px-8 h-16 ml-64 sticky top-0 z-40 font-['Inter'] text-sm">
+<div class="flex items-center gap-8">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container-low border-none rounded-md w-64 focus:ring-1 focus:ring-primary text-sm" placeholder="Buscar diretivas..." type="text"/>
+</div>
+<nav class="flex gap-6">
+<a class="text-slate-500 dark:text-[#45464D] hover:text-black transition-all" href="#">Diretivas</a>
+<a class="text-slate-500 dark:text-[#45464D] hover:text-black transition-all" href="#">Insights</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">history</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<div class="ml-2 w-8 h-8 rounded-full overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="professional portrait of an executive male in a dark suit with a clean background and soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAex9Ktx_naNBzPGfFRZHPwK2vcJ-2lzti-S7gGoSDWe34HjopopNosTzQ8Lsi-reZ0QUglWeZsKAC6jlV98gIUsBAot3psZTLE4KBs7K1iKKcieO7JXmBIChcCxQlkc0y4QR1rV07WdffURu5fAWMh2Tu75oQtho3YyE77w2iTDkD8xd-4M9k6AzB5kt0zyJ3FXoCGQsU9o6MsWWzQ2Um-gBGqMXQxRvuyQHnjKgkjUouWcaUKMiki5IS3vISMVi0pFGRin5G4dtE"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 p-8 bg-surface min-h-screen">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+<div>
+<span class="text-[10px] font-bold tracking-[0.2em] text-on-surface-variant uppercase mb-1 block">Workspace de Governança</span>
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface">Listagem de Projetos</h1>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-md font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-lg">add</span>
+                Novo Projeto
+            </button>
+</div>
+<!-- Filters Section (Glassmorphism inspired) -->
+<div class="bg-surface-container-low rounded-xl p-4 mb-6 flex flex-wrap items-center gap-4">
+<div class="flex items-center gap-2 bg-surface-container-lowest px-3 py-2 rounded border border-outline-variant/10">
+<label class="text-[10px] font-bold text-outline uppercase tracking-wider">Diretoria</label>
+<select class="bg-transparent border-none text-xs font-semibold focus:ring-0 p-0 pr-6">
+<option>Todos os Departamentos</option>
+<option>Tecnologia</option>
+<option>Operações</option>
+<option>Produto</option>
+</select>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-lowest px-3 py-2 rounded border border-outline-variant/10">
+<label class="text-[10px] font-bold text-outline uppercase tracking-wider">PO</label>
+<select class="bg-transparent border-none text-xs font-semibold focus:ring-0 p-0 pr-6">
+<option>Qualquer Proprietário</option>
+<option>Marcus Aurelius</option>
+<option>Seneca White</option>
+</select>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-lowest px-3 py-2 rounded border border-outline-variant/10">
+<label class="text-[10px] font-bold text-outline uppercase tracking-wider">Metodologia</label>
+<select class="bg-transparent border-none text-xs font-semibold focus:ring-0 p-0 pr-6">
+<option>Todos os frameworks</option>
+<option>Agile / Scrum</option>
+<option>Waterfall</option>
+<option>Lean</option>
+</select>
+</div>
+<div class="ml-auto flex items-center gap-2">
+<button class="text-xs font-bold text-on-surface-variant hover:text-primary flex items-center gap-1 px-3 py-2">
+<span class="material-symbols-outlined text-sm">filter_list</span> Limpar
+                </button>
+<div class="h-4 w-px bg-outline-variant/30 mx-2"></div>
+<button class="text-xs font-bold text-on-surface hover:text-primary flex items-center gap-1 px-3 py-2">
+<span class="material-symbols-outlined text-sm">download</span> Exportar
+                </button>
+</div>
+</div>
+<!-- Data Table (The Ledger View) -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-separate border-spacing-y-2 px-4">
+<thead>
+<tr class="text-[10px] font-bold text-outline uppercase tracking-widest">
+<th class="py-4 pl-4">Nome &amp; ID</th>
+<th class="py-4">Diretoria</th>
+<th class="py-4">PO</th>
+<th class="py-4">Metodologia</th>
+<th class="py-4">Template</th>
+<th class="py-4">Status</th>
+<th class="py-4 text-center">Docs</th>
+<th class="py-4 text-right pr-4">Ações</th>
+</tr>
+</thead>
+<tbody class="space-y-4">
+<!-- Table Row 1 -->
+<tr class="bg-surface-container-lowest hover:bg-white transition-colors group">
+<td class="py-4 pl-4 rounded-l-lg border-l-4 border-transparent group-hover:border-primary transition-all">
+<div class="flex flex-col">
+<span class="text-sm font-bold text-on-surface">Atlas Governance Cloud</span>
+<span class="text-[10px] text-outline tracking-tighter">PRJ-2024-001</span>
+</div>
+</td>
+<td class="py-4">
+<span class="text-xs font-medium text-on-surface-variant">Tecnologia</span>
+</td>
+<td class="py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center text-[10px] font-bold">MA</div>
+<span class="text-xs font-medium">Marcus A.</span>
+</div>
+</td>
+<td class="py-4">
+<span class="text-xs px-2 py-1 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-wide">Agile</span>
+</td>
+<td class="py-4">
+<span class="text-xs text-on-surface-variant italic">Enterprise Std.</span>
+</td>
+<td class="py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-tertiary-container text-on-tertiary-container text-[10px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span> Saudável
+                                </span>
+</td>
+<td class="py-4">
+<div class="flex justify-center gap-3">
+<span class="material-symbols-outlined text-lg text-primary" title="GitHub Vinculado">hub</span>
+<span class="material-symbols-outlined text-lg text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;" title="Wiki Pronta">description</span>
+</div>
+</td>
+<td class="py-4 pr-4 text-right rounded-r-lg">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 hover:bg-surface-container-low rounded transition-colors" title="Visualizar">
+<span class="material-symbols-outlined text-lg text-outline">visibility</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container-low rounded transition-colors" title="Editar">
+<span class="material-symbols-outlined text-lg text-outline">edit</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container-low rounded transition-colors" title="Kanban">
+<span class="material-symbols-outlined text-lg text-outline">view_kanban</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Table Row 2 -->
+<tr class="bg-surface-container-lowest hover:bg-white transition-colors group">
+<td class="py-4 pl-4 rounded-l-lg border-l-4 border-transparent group-hover:border-primary transition-all">
+<div class="flex flex-col">
+<span class="text-sm font-bold text-on-surface">Projeto Hephaestus</span>
+<span class="text-[10px] text-outline tracking-tighter">PRJ-2024-042</span>
+</div>
+</td>
+<td class="py-4">
+<span class="text-xs font-medium text-on-surface-variant">Operações</span>
+</td>
+<td class="py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-primary-fixed flex items-center justify-center text-[10px] font-bold">SW</div>
+<span class="text-xs font-medium">Seneca W.</span>
+</div>
+</td>
+<td class="py-4">
+<span class="text-xs px-2 py-1 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-wide">Waterfall</span>
+</td>
+<td class="py-4">
+<span class="text-xs text-on-surface-variant italic">Legacy Core</span>
+</td>
+<td class="py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-error-container text-on-error-container text-[10px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-on-error-container"></span> Atrasado
+                                </span>
+</td>
+<td class="py-4">
+<div class="flex justify-center gap-3">
+<span class="material-symbols-outlined text-lg text-outline-variant" title="GitHub Ausente">hub</span>
+<span class="material-symbols-outlined text-lg text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;" title="Wiki Pronta">description</span>
+</div>
+</td>
+<td class="py-4 pr-4 text-right rounded-r-lg">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 hover:bg-surface-container-low rounded transition-colors" title="Visualizar">
+<span class="material-symbols-outlined text-lg text-outline">visibility</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container-low rounded transition-colors" title="Editar">
+<span class="material-symbols-outlined text-lg text-outline">edit</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container-low rounded transition-colors" title="Kanban">
+<span class="material-symbols-outlined text-lg text-outline">view_kanban</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Table Row 3 -->
+<tr class="bg-surface-container-lowest hover:bg-white transition-colors group">
+<td class="py-4 pl-4 rounded-l-lg border-l-4 border-transparent group-hover:border-primary transition-all">
+<div class="flex flex-col">
+<span class="text-sm font-bold text-on-surface">Migração Nero Fase II</span>
+<span class="text-[10px] text-outline tracking-tighter">PRJ-2024-015</span>
+</div>
+</td>
+<td class="py-4">
+<span class="text-xs font-medium text-on-surface-variant">Infraestrutura</span>
+</td>
+<td class="py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-secondary-fixed flex items-center justify-center text-[10px] font-bold">EP</div>
+<span class="text-xs font-medium">Epictetus P.</span>
+</div>
+</td>
+<td class="py-4">
+<span class="text-xs px-2 py-1 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-wide">Lean</span>
+</td>
+<td class="py-4">
+<span class="text-xs text-on-surface-variant italic">Cloud Native</span>
+</td>
+<td class="py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-on-secondary-container"></span> Em Espera
+                                </span>
+</td>
+<td class="py-4">
+<div class="flex justify-center gap-3">
+<span class="material-symbols-outlined text-lg text-primary" title="GitHub Vinculado">hub</span>
+<span class="material-symbols-outlined text-lg text-outline-variant" title="Wiki Ausente">description</span>
+</div>
+</td>
+<td class="py-4 pr-4 text-right rounded-r-lg">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 hover:bg-surface-container-low rounded transition-colors" title="Visualizar">
+<span class="material-symbols-outlined text-lg text-outline">visibility</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container-low rounded transition-colors" title="Editar">
+<span class="material-symbols-outlined text-lg text-outline">edit</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container-low rounded transition-colors" title="Kanban">
+<span class="material-symbols-outlined text-lg text-outline">view_kanban</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination & Sorting Footer -->
+<div class="px-6 py-4 flex items-center justify-between bg-surface-container-low/50">
+<div class="flex items-center gap-4">
+<span class="text-xs text-on-surface-variant">Exibindo 1 a 10 de 48 projetos</span>
+<div class="h-4 w-px bg-outline-variant/30"></div>
+<div class="flex items-center gap-2">
+<label class="text-[10px] font-bold text-outline uppercase">Exibir</label>
+<select class="bg-transparent border-none text-xs font-bold focus:ring-0 p-0">
+<option>10</option>
+<option>25</option>
+<option>50</option>
+</select>
+</div>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary font-bold text-xs">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container transition-colors font-bold text-xs">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container transition-colors font-bold text-xs">3</button>
+<span class="px-1 text-xs font-bold">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container transition-colors font-bold text-xs">5</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- AI Governance Insight (Asymmetric Layout element) -->
+<div class="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="lg:col-span-2 p-6 rounded-xl bg-gradient-to-br from-primary-container to-slate-800 text-white shadow-xl relative overflow-hidden group">
+<div class="absolute -right-12 -top-12 w-48 h-48 bg-tertiary/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-tertiary-fixed">bolt</span>
+<span class="text-[10px] font-bold uppercase tracking-[0.2em] text-tertiary-fixed">Insight de Governança IA</span>
+</div>
+<h3 class="text-xl font-bold mb-2 tracking-tight">Análise de Saúde do Portfólio Ativo</h3>
+<p class="text-sm text-primary-fixed/80 leading-relaxed max-w-xl">
+                        Sua velocidade de projeto atual na diretoria de "Tecnologia" aumentou 14% este trimestre. No entanto, 3 projetos estão sem documentação crítica na Wiki, impactando potencialmente a segurança de transferência.
+                    </p>
+<div class="mt-6 flex gap-4">
+<button class="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur rounded text-xs font-bold transition-colors">Gerar Relatório</button>
+<button class="px-4 py-2 text-tertiary-fixed text-xs font-bold hover:underline">Corrigir falhas de documentação →</button>
+</div>
+</div>
+</div>
+<div class="p-6 rounded-xl bg-surface-container-lowest shadow-sm border border-outline-variant/10 flex flex-col justify-center">
+<span class="text-[10px] font-bold uppercase text-outline mb-1">Saúde do Sistema</span>
+<div class="flex items-baseline gap-2 mb-4">
+<span class="text-4xl font-extrabold tracking-tighter">98.2%</span>
+<span class="text-xs text-on-tertiary-container font-bold">+1.4%</span>
+</div>
+<div class="w-full bg-surface-container h-1 rounded-full overflow-hidden">
+<div class="bg-on-tertiary-container h-full w-[98.2%]"></div>
+</div>
+<p class="text-[10px] text-outline-variant mt-4 leading-tight italic">
+                    O mecanismo de governança de IA está monitorando 48 fluxos de projetos ativos em 4 diretorias principais.
+                </p>
+</div>
+</div>
+</main>
+</body></html>

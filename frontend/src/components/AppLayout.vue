@@ -48,8 +48,7 @@ const headerRoleLabel = computed(() => {
       <!-- Marca -->
       <div class="px-6 mb-10">
         <div class="min-w-0 leading-tight">
-          <div class="text-[15px] font-bold text-white tracking-tight font-headline">The Sovereign</div>
-          <div class="text-[15px] font-bold text-white tracking-tight font-headline">Ledger</div>
+          <div class="text-[15px] font-bold text-white tracking-tight font-headline">SysGen AI</div>
           <p class="text-[10px] uppercase tracking-[0.12em] text-on-primary-container mt-1.5 font-label">
             Governança Projetos IA
           </p>
@@ -108,15 +107,14 @@ const headerRoleLabel = computed(() => {
             />
           </div>
         </div>
-        <div class="flex items-center gap-5 shrink-0">
-          <span class="text-sm font-medium text-on-surface font-body hidden sm:inline">{{ headerRoleLabel }}</span>
+        <div class="flex items-center gap-4 shrink-0">
+          <span class="text-[33px] font-bold leading-none text-black font-headline hidden sm:inline">{{ headerRoleLabel }}</span>
           <button
             type="button"
-            class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-full p-1.5 transition-colors"
+            class="text-black hover:text-black/85 hover:bg-surface-container-low rounded-full p-1.5 transition-colors"
             aria-label="Notificações"
-            disabled
           >
-            <span class="material-symbols-outlined text-[22px] leading-none">notifications</span>
+            <span class="material-symbols-outlined text-[30px] leading-none">notifications</span>
           </button>
         </div>
       </header>

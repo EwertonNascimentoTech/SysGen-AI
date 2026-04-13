@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sovereign Ledger | Regras de Avanço</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-primary": "#bec6e0",
+                    "tertiary-container": "#002109",
+                    "surface": "#f7f9fb",
+                    "surface-container-highest": "#e0e3e5",
+                    "tertiary": "#000000",
+                    "on-primary-container": "#7c839b",
+                    "on-secondary-container": "#57657a",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "tertiary-fixed": "#6bff8f",
+                    "primary-container": "#131b2e",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "on-primary-fixed": "#131b2e",
+                    "surface-container-low": "#f2f4f6",
+                    "primary-fixed": "#dae2fd",
+                    "tertiary-fixed-dim": "#4ae176",
+                    "surface-container": "#eceef0",
+                    "on-surface": "#191c1e",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed": "#d5e3fc",
+                    "surface-container-high": "#e6e8ea",
+                    "primary-fixed-dim": "#bec6e0",
+                    "outline-variant": "#c6c6cd",
+                    "on-tertiary-fixed": "#002109",
+                    "outline": "#76777d",
+                    "surface-tint": "#565e74",
+                    "on-surface-variant": "#45464d",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-container": "#009844",
+                    "on-background": "#191c1e",
+                    "background": "#f7f9fb",
+                    "surface-bright": "#f7f9fb",
+                    "error": "#ba1a1a",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#d8dadc",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "inverse-surface": "#2d3133",
+                    "surface-variant": "#e0e3e5",
+                    "on-tertiary-fixed-variant": "#005321",
+                    "secondary-container": "#d5e3fc",
+                    "on-primary": "#ffffff",
+                    "primary": "#000000",
+                    "inverse-on-surface": "#eff1f3",
+                    "secondary": "#515f74",
+                    "on-tertiary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .brand-font { font-family: 'Manrope', sans-serif; }
+        .glass-nav {
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- SideNavBar (Authority Source: JSON) -->
+<aside class="w-64 h-screen fixed left-0 top-0 bg-[#131B2E] flex flex-col py-6 px-4 space-y-2 z-50">
+<div class="mb-10 px-2">
+<div class="flex items-center gap-3 mb-1">
+<div class="w-8 h-8 bg-primary-fixed rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<span class="text-lg font-bold text-white font-headline">Project Governance</span>
+</div>
+<span class="text-xs text-[#C6C6CD] font-medium tracking-wider uppercase opacity-70">AI Control Center</span>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-[#C6C6CD] hover:bg-white/5 hover:text-white transition-all duration-200 ease-in-out rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-white/10 text-[#DAE2FD] rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">gavel</span>
+<span class="font-medium text-sm">Governance Rules</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#C6C6CD] hover:bg-white/5 hover:text-white transition-all duration-200 ease-in-out rounded-lg" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-medium text-sm">Project Flows</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#C6C6CD] hover:bg-white/5 hover:text-white transition-all duration-200 ease-in-out rounded-lg" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-medium text-sm">AI Insights</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#C6C6CD] hover:bg-white/5 hover:text-white transition-all duration-200 ease-in-out rounded-lg" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-medium text-sm">Audit Log</span>
+</a>
+</nav>
+<div class="pt-6 mt-6 border-t border-white/10 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-[#C6C6CD] hover:bg-white/5 hover:text-white transition-all duration-200 ease-in-out rounded-lg" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-medium text-sm">Account</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#C6C6CD] hover:bg-white/5 hover:text-white transition-all duration-200 ease-in-out rounded-lg" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-medium text-sm">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar (Authority Source: JSON) -->
+<header class="w-full h-16 flex justify-between items-center px-8 sticky top-0 z-40 bg-[#F7F9FB] bg-opacity-70 backdrop-blur-md border-none">
+<div class="flex items-center gap-4">
+<h1 class="text-xl font-black text-slate-950 font-headline tracking-tight">Sovereign Ledger</h1>
+<div class="h-4 w-[1px] bg-outline-variant/30"></div>
+<span class="text-sm font-medium text-on-surface-variant">Regras de Avanço</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-slate-500">
+<button class="hover:text-slate-950 transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="hover:text-slate-950 transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="hover:text-slate-950 transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+<div class="flex items-center gap-3 pl-4 border-l border-outline-variant/20">
+<div class="text-right">
+<p class="text-xs font-bold text-slate-900 leading-none">Admin</p>
+<p class="text-[10px] text-slate-500 uppercase tracking-tighter">Sovereign Control</p>
+</div>
+<img alt="Administrator Avatar" class="w-8 h-8 rounded-full border border-outline-variant/30 object-cover" data-alt="professional headshot of a mature businessman in a sharp navy suit looking confident against a clean corporate office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeuuP6IEnzIxttPof3zd2werjKS0cedEiyWswzmsGIFn8qajW7Sgch0NKTqK58-P0wS0MvXzu-S3yNNY08OrqpD-nMfYazNbEJwHNSnJVfAzQVXnY7XjHIgrz716Y0iVs39mOxu6fShn8pg2Fzi5m-DRHnjfWCVJ-YW2_iHkezOwZUuGUdAbVMgrDIgDrBJ2cH7d0qUo4hs9nJM4KxXUFrbmisHV8RucIaDl8W89KjxYg6JeB5b2kn6gdLSnEWjxVQEws0BXZyNCs"/>
+</div>
+</div>
+</header>
+<!-- Page Canvas -->
+<div class="p-8 space-y-8">
+<!-- Hero Header & Action -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h2 class="text-4xl font-extrabold text-slate-950 font-headline tracking-tight mb-2">Governança de Fluxo</h2>
+<p class="text-on-surface-variant max-w-2xl text-lg font-light leading-relaxed">
+                        Gerencie os critérios de validação e restrições que definem a progressão dos projetos no ecossistema Sovereign.
+                    </p>
+</div>
+<button class="bg-primary text-on-primary px-6 py-3 rounded-md font-bold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-primary/10">
+<span class="material-symbols-outlined text-lg">add</span>
+                    Nova Regra
+                </button>
+</div>
+<!-- Filters Section (Editorial Style) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-surface-container-low p-2 rounded-xl">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-4 text-outline">search</span>
+<input class="w-full bg-surface-container-lowest border-none rounded-lg pl-12 py-3 text-sm focus:ring-1 focus:ring-primary/20 placeholder:text-outline/60" placeholder="Buscar por nome ou entidade..." type="text"/>
+</div>
+<select class="bg-surface-container-lowest border-none rounded-lg py-3 px-4 text-sm focus:ring-1 focus:ring-primary/20 text-on-surface">
+<option>Todas as Entidades</option>
+<option>GitHub</option>
+<option>Anexo</option>
+<option>Product Owner</option>
+<option>Segurança</option>
+</select>
+<select class="bg-surface-container-lowest border-none rounded-lg py-3 px-4 text-sm focus:ring-1 focus:ring-primary/20 text-on-surface">
+<option>Todos os Status</option>
+<option>Ativo</option>
+<option>Inativo</option>
+</select>
+<div class="flex items-center justify-end px-4">
+<button class="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2 hover:underline">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        Filtros Avançados
+                    </button>
+</div>
+</div>
+<!-- Table Container (Editorial Modernism) -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full border-separate border-spacing-y-2 px-4">
+<thead>
+<tr class="text-left text-xs font-bold text-outline-variant uppercase tracking-widest">
+<th class="py-4 px-4">Regra e Descrição</th>
+<th class="py-4 px-4">Entidade</th>
+<th class="py-4 px-4">Validação</th>
+<th class="py-4 px-4">Status</th>
+<th class="py-4 px-4 text-right">Ações</th>
+</tr>
+</thead>
+<tbody class="text-sm">
+<!-- Row 1 -->
+<tr class="bg-surface-container-lowest hover:translate-y-[-2px] transition-transform duration-200">
+<td class="py-5 px-4 rounded-l-lg">
+<div class="flex flex-col gap-1">
+<span class="font-bold text-slate-900 text-base">Check de Vulnerabilidade Crítica</span>
+<span class="text-on-surface-variant font-normal">Exige 0 vulnerabilidades críticas no scan do GitHub Dependabot.</span>
+</div>
+</td>
+<td class="py-5 px-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">code</span>
+<span class="font-medium">GitHub</span>
+</div>
+</td>
+<td class="py-5 px-4">
+<span class="bg-error-container text-on-error-container px-3 py-1 rounded-full text-xs font-bold uppercase tracking-tight">Bloqueio</span>
+</td>
+<td class="py-5 px-4">
+<div class="flex items-center gap-1.5">
+<div class="w-2 h-2 rounded-full bg-on-tertiary-container"></div>
+<span class="text-on-tertiary-container font-semibold">Ativo</span>
+</div>
+</td>
+<td class="py-5 px-4 rounded-r-lg text-right">
+<div class="flex justify-end gap-2">
+<button class="p-2 hover:bg-surface-container text-on-surface-variant rounded transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-2 hover:bg-error-container/20 text-error rounded transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="bg-surface-container-lowest hover:translate-y-[-2px] transition-transform duration-200">
+<td class="py-5 px-4 rounded-l-lg">
+<div class="flex flex-col gap-1">
+<span class="font-bold text-slate-900 text-base">Termo de Aceite PO</span>
+<span class="text-on-surface-variant font-normal">Necessário assinatura digital do Product Owner para fechar sprint.</span>
+</div>
+</td>
+<td class="py-5 px-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">person_check</span>
+<span class="font-medium">PO</span>
+</div>
+</td>
+<td class="py-5 px-4">
+<span class="bg-primary-container text-primary-fixed px-3 py-1 rounded-full text-xs font-bold uppercase tracking-tight">Obrigatório</span>
+</td>
+<td class="py-5 px-4">
+<div class="flex items-center gap-1.5">
+<div class="w-2 h-2 rounded-full bg-on-tertiary-container"></div>
+<span class="text-on-tertiary-container font-semibold">Ativo</span>
+</div>
+</td>
+<td class="py-5 px-4 rounded-r-lg text-right">
+<div class="flex justify-end gap-2">
+<button class="p-2 hover:bg-surface-container text-on-surface-variant rounded transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-2 hover:bg-error-container/20 text-error rounded transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="bg-surface-container-lowest hover:translate-y-[-2px] transition-transform duration-200">
+<td class="py-5 px-4 rounded-l-lg">
+<div class="flex flex-col gap-1">
+<span class="font-bold text-slate-900 text-base">Anexo de Homologação</span>
+<span class="text-on-surface-variant font-normal">Recomendado anexar evidências de teste de estresse.</span>
+</div>
+</td>
+<td class="py-5 px-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">attachment</span>
+<span class="font-medium">Anexo</span>
+</div>
+</td>
+<td class="py-5 px-4">
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold uppercase tracking-tight">Aviso</span>
+</td>
+<td class="py-5 px-4">
+<div class="flex items-center gap-1.5 opacity-40">
+<div class="w-2 h-2 rounded-full bg-outline"></div>
+<span class="text-outline font-semibold">Inativo</span>
+</div>
+</td>
+<td class="py-5 px-4 rounded-r-lg text-right">
+<div class="flex justify-end gap-2">
+<button class="p-2 hover:bg-surface-container text-on-surface-variant rounded transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-2 hover:bg-error-container/20 text-error rounded transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination / Metadata -->
+<div class="px-8 py-6 flex justify-between items-center bg-surface-container-low border-t border-outline-variant/10">
+<span class="text-xs font-medium text-on-surface-variant tracking-wider uppercase">Mostrando 3 de 24 regras de governança</span>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary text-xs font-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-highest transition-colors text-xs font-bold">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-highest transition-colors text-xs font-bold">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bento Layout Insights -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Insight Card 1 -->
+<div class="col-span-1 p-6 bg-surface-container-lowest rounded-xl shadow-sm space-y-4">
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-black uppercase tracking-widest text-outline">Eficiência Operacional</span>
+<span class="material-symbols-outlined text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div class="space-y-1">
+<h4 class="text-2xl font-extrabold tracking-tight">84%</h4>
+<p class="text-sm text-on-surface-variant leading-snug">Taxa de conformidade automática nas últimas 48 horas.</p>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1">
+<div class="bg-tertiary-fixed-dim h-1 rounded-full" style="width: 84%"></div>
+</div>
+</div>
+<!-- Insight Card 2 (AI Special) -->
+<div class="col-span-2 relative overflow-hidden p-6 bg-primary-container text-white rounded-xl flex items-center gap-8">
+<div class="relative z-10 flex-1">
+<div class="flex items-center gap-2 mb-4">
+<div class="w-2 h-2 rounded-full bg-tertiary-fixed animate-pulse"></div>
+<span class="text-[10px] font-black uppercase tracking-widest text-primary-fixed">AI Governance Insight</span>
+</div>
+<h4 class="text-xl font-bold mb-2">Sugestão de Nova Regra de Segurança</h4>
+<p class="text-sm text-outline-variant leading-relaxed">
+                            Detectamos um aumento de 15% em deploys sem verificação de logs de erro. Recomendamos habilitar a regra de "Bloqueio por Log de Erros Expostos".
+                        </p>
+</div>
+<div class="relative z-10">
+<button class="bg-tertiary-fixed text-on-tertiary-fixed px-4 py-2 rounded-md font-bold text-sm whitespace-nowrap hover:scale-105 transition-transform">
+                            Implementar Agora
+                        </button>
+</div>
+<!-- Aesthetic gradient bg -->
+<div class="absolute inset-0 opacity-20 pointer-events-none" style="background: radial-gradient(circle at top right, #6bff8f, transparent)"></div>
+</div>
+</div>
+</div>
+</main>
+<!-- Modal Mockup (Hidden by Default usually, here shown as structure) -->
+<!-- This would normally be toggled via JS -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-primary-container/40 backdrop-blur-sm pointer-events-none opacity-0">
+<div class="w-full max-w-xl bg-surface-container-lowest rounded-xl shadow-2xl p-8 scale-95 transition-all">
+<div class="flex justify-between items-center mb-8">
+<h3 class="text-2xl font-black font-headline tracking-tight text-slate-950">Configurar Nova Regra</h3>
+<button class="text-outline hover:text-slate-950 transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<form class="space-y-6">
+<div class="space-y-2">
+<label class="text-[10px] font-black uppercase tracking-widest text-outline">Nome da Regra</label>
+<input class="w-full border-b border-outline-variant focus:border-primary focus:ring-0 px-0 py-2 text-base outline-none bg-transparent" placeholder="Ex: Validação de Commit Lint" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] font-black uppercase tracking-widest text-outline">Descrição</label>
+<textarea class="w-full border border-outline-variant rounded-lg focus:border-primary focus:ring-0 p-3 text-sm outline-none bg-transparent" placeholder="Descreva o propósito desta regra de governança..." rows="3"></textarea>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="text-[10px] font-black uppercase tracking-widest text-outline">Tipo de Validação</label>
+<select class="w-full border-b border-outline-variant focus:border-primary focus:ring-0 px-0 py-2 text-sm outline-none bg-transparent">
+<option>Obrigatório</option>
+<option>Aviso</option>
+<option>Bloqueio</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] font-black uppercase tracking-widest text-outline">Entidade</label>
+<select class="w-full border-b border-outline-variant focus:border-primary focus:ring-0 px-0 py-2 text-sm outline-none bg-transparent">
+<option>GitHub</option>
+<option>Anexo</option>
+<option>PO</option>
+<option>Segurança</option>
+</select>
+</div>
+</div>
+<div class="flex items-center gap-3 py-2">
+<div class="relative inline-block w-10 h-5">
+<input checked="" class="sr-only peer" id="active-toggle" type="checkbox"/>
+<label class="block bg-outline-variant w-full h-full rounded-full peer-checked:bg-on-tertiary-container transition-colors cursor-pointer" for="active-toggle"></label>
+<div class="absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition-transform peer-checked:translate-x-5"></div>
+</div>
+<span class="text-sm font-bold text-slate-900">Regra Ativa</span>
+</div>
+<div class="pt-6 flex gap-3">
+<button class="flex-1 py-3 px-4 rounded-md border border-outline-variant text-sm font-bold hover:bg-surface-container transition-colors" type="button">Cancelar</button>
+<button class="flex-1 py-3 px-4 rounded-md bg-primary text-on-primary text-sm font-bold hover:opacity-90 transition-opacity" type="submit">Salvar Regra</button>
+</div>
+</form>
+</div>
+</div>
+</body></html>

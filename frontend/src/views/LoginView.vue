@@ -40,7 +40,7 @@ function githubLogin() {
         <div class="absolute inset-0 opacity-20 pointer-events-none bg-gradient-to-br from-white/10 to-transparent" />
         <div class="relative z-10">
           <div class="mb-12">
-            <span class="text-white text-xl font-headline font-extrabold tracking-tight">The Sovereign Ledger</span>
+            <span class="text-white text-xl font-headline font-extrabold tracking-tight">SysGen AI</span>
           </div>
           <h1 class="text-white text-4xl md:text-5xl font-headline font-extrabold tracking-tight leading-tight max-w-lg mb-6">
             Inteligência Corporativa

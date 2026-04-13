@@ -8,6 +8,18 @@ from typing import Any
 DEFAULT_COLOR = "#64748b"
 
 PALETTE = ["#64748b", "#3b82f6", "#0d9488", "#ca8a04", "#9333ea", "#e11d48"]
+DETAIL_TAB_KEYS = (
+    "resumo",
+    "kanban",
+    "prd",
+    "prototipo",
+    "desenvolvimento",
+    "anexos",
+    "auditoria",
+    "github",
+    "wiki",
+    "cursor",
+)
 
 
 def default_rules_dict(index: int = 0) -> dict[str, Any]:
@@ -19,6 +31,7 @@ def default_rules_dict(index: int = 0) -> dict[str, Any]:
         "require_github_tag": False,
         "min_tag_count": 0,
         "applied_rule_ids": [],
+        "visible_detail_tabs": list(DETAIL_TAB_KEYS),
     }
 
 
@@ -54,6 +67,17 @@ def parse_rules(rules_json: str | None) -> dict[str, Any]:
         out["applied_rule_ids"] = clean_ids
     else:
         out["applied_rule_ids"] = []
+    tabs_raw = raw.get("visible_detail_tabs")
+    if isinstance(tabs_raw, list):
+        clean_tabs: list[str] = []
+        for t in tabs_raw:
+            if isinstance(t, str):
+                key = t.strip().lower()
+                if key in DETAIL_TAB_KEYS and key not in clean_tabs:
+                    clean_tabs.append(key)
+        out["visible_detail_tabs"] = clean_tabs or list(DETAIL_TAB_KEYS)
+    else:
+        out["visible_detail_tabs"] = list(DETAIL_TAB_KEYS)
     if isinstance(out.get("color_hex"), str) and out["color_hex"].startswith("#"):
         pass
     else:
@@ -92,6 +116,15 @@ def merge_rules(existing_json: str | None, patch: dict[str, Any]) -> dict[str, A
                 except (TypeError, ValueError):
                     pass
             cur["applied_rule_ids"] = clean_ids
+        elif k == "visible_detail_tabs" and isinstance(v, list):
+            clean_tabs: list[str] = []
+            for t in v:
+                if isinstance(t, str):
+                    key = t.strip().lower()
+                    if key in DETAIL_TAB_KEYS and key not in clean_tabs:
+                        clean_tabs.append(key)
+            if clean_tabs:
+                cur["visible_detail_tabs"] = clean_tabs
         elif k.startswith("require_"):
             cur[k] = bool(v)
     return cur

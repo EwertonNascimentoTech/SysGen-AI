@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Configuração de Fases | The Sovereign Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#c6c6cd",
+                        "tertiary-container": "#002109",
+                        "surface-dim": "#d8dadc",
+                        "primary-fixed-dim": "#bec6e0",
+                        "primary-fixed": "#dae2fd",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "on-tertiary-fixed-variant": "#005321",
+                        "on-tertiary-fixed": "#002109",
+                        "inverse-primary": "#bec6e0",
+                        "surface-container": "#eceef0",
+                        "outline": "#76777d",
+                        "on-error": "#ffffff",
+                        "surface-variant": "#e0e3e5",
+                        "background": "#f7f9fb",
+                        "secondary-fixed": "#d5e3fc",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "on-primary-container": "#7c839b",
+                        "tertiary-fixed": "#6bff8f",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary-fixed": "#131b2e",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface-bright": "#f7f9fb",
+                        "tertiary-fixed-dim": "#4ae176",
+                        "secondary-container": "#d5e3fc",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#000000",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#515f74",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "surface-container-low": "#f2f4f6",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#009844",
+                        "on-background": "#191c1e",
+                        "primary-container": "#131b2e",
+                        "surface": "#f7f9fb",
+                        "on-secondary-container": "#57657a",
+                        "primary": "#000000",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#45464d",
+                        "surface-container-high": "#e6e8ea",
+                        "inverse-surface": "#2d3133",
+                        "on-surface": "#191c1e",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "surface-tint": "#565e74"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .glass-header {
+            background: rgba(247, 249, 251, 0.7);
+            backdrop-filter: blur(24px);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface">
+<!-- SideNavBar from JSON -->
+<aside class="bg-slate-900 dark:bg-[#131B2E] h-screen w-64 fixed left-0 top-0 flex flex-col h-full py-6 font-['Manrope'] tracking-tight z-50">
+<div class="px-6 mb-8">
+<h1 class="text-lg font-bold text-white dark:text-[#DAE2FD]">The Sovereign Ledger</h1>
+<p class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">AI Project Governance</p>
+</div>
+<nav class="flex-1 space-y-1 px-3">
+<!-- Active: Templates based on context -->
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">folder_managed</span>
+<span class="text-sm">Projects</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">view_kanban</span>
+<span class="text-sm">Kanban</span>
+</a>
+<a class="flex items-center px-3 py-2 text-[#DAE2FD] font-semibold border-r-2 border-[#DAE2FD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">description</span>
+<span class="text-sm">Templates</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">hub</span>
+<span class="text-sm">GitHub/Wiki</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">integration_instructions</span>
+<span class="text-sm">Cursor Hub</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">group</span>
+<span class="text-sm">Users</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">security</span>
+<span class="text-sm">Audit</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+</nav>
+<div class="px-3 pt-6 border-t border-slate-800">
+<a class="flex items-center px-3 py-2 text-slate-400 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined mr-3 text-sm">help_outline</span>
+<span class="text-sm">Help</span>
+</a>
+<a class="flex items-center px-3 py-2 text-slate-400 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined mr-3 text-sm">policy</span>
+<span class="text-sm">Privacy</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar from JSON -->
+<header class="flex justify-between items-center px-8 h-16 ml-64 bg-white/70 dark:bg-[#F7F9FB]/70 backdrop-blur-xl sticky top-0 z-40 font-['Inter'] text-sm text-slate-900 dark:text-[#191C1E]">
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">arrow_back</span>
+<span class="font-medium">Voltar para Templates</span>
+</button>
+<div class="h-4 w-[1px] bg-outline-variant/30"></div>
+<div class="flex flex-col">
+<span class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Builder</span>
+<span class="text-base font-bold leading-none">Template: Fluxo de Engenharia de IA</span>
+</div>
+</div>
+<div class="flex items-center space-x-6">
+<nav class="flex space-x-6">
+<a class="text-black dark:text-[#000000] font-bold border-b-2 border-black pb-1 transition-all ease-in-out" href="#">Configuração</a>
+<a class="text-slate-500 dark:text-[#45464D] hover:text-black dark:hover:text-[#000000] pb-1 transition-all ease-in-out" href="#">Previsão</a>
+</nav>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">history</span>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high">
+<img alt="User Profile Avatar" data-alt="close up professional portrait of a tech lead man with glasses and neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmjyNwR1lO-VeFtv_Xl_PlosFmkiOn_eeWFzAfZ-JkAba1p6R7ZrARDsKMckelQFuwj3S2StIrOYv-zQP1pm9W3juw6QlJR6SvGYLzGIdMiofEF4n8EHGk8FkIzTg6VrYsSiBhL-R7_tL0QPS_GnwPp2ZV_8pmz7dPzemIpHyaL4UOeCbD3MerE4u67Wc-MRduzv2nNrplSvesBv1XPpq0c9Lu0RoetjX31K42JGlpssroBDOF2X-TM3PXHvhRxw8kfOyDGxF9rUQ"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 p-8 min-h-screen">
+<div class="max-w-5xl mx-auto">
+<!-- Header Section with asymmetric layout -->
+<div class="flex justify-between items-end mb-12">
+<div class="max-w-lg">
+<h2 class="font-headline text-4xl font-extrabold tracking-tight text-primary mb-2">Estrutura de Fases</h2>
+<p class="text-on-surface-variant leading-relaxed">Defina o ciclo de vida dos seus projetos. Organize o fluxo de trabalho, estabeleça travas de segurança e automatize a governança de cada etapa.</p>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-2.5 bg-surface-container-high text-on-surface font-semibold rounded-md hover:bg-surface-variant transition-all">
+                        Descartar
+                    </button>
+<button class="px-8 py-2.5 bg-primary text-on-primary font-bold rounded-md shadow-lg shadow-primary/10 hover:scale-[1.02] active:scale-95 transition-all">
+                        Salvar Alterações do Fluxo
+                    </button>
+</div>
+</div>
+<!-- Builder Area: Vertical Phases with Tonal Layering -->
+<div class="space-y-6">
+<!-- Phase Card 1 -->
+<div class="group bg-surface-container-low rounded-xl p-1 transition-all hover:bg-surface-container">
+<div class="bg-surface-container-lowest rounded-lg p-6 shadow-sm flex flex-col md:flex-row gap-8 items-start">
+<!-- Order & Visual Ident -->
+<div class="flex items-center gap-4">
+<div class="cursor-grab active:cursor-grabbing text-outline-variant hover:text-on-surface">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-sm">01</div>
+<div class="w-1 h-full min-h-[40px] bg-surface-container rounded-full"></div>
+</div>
+</div>
+<!-- Phase Content -->
+<div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-8">
+<!-- Basic Info -->
+<div class="md:col-span-4 space-y-4">
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Nome da Fase</label>
+<input class="w-full bg-surface-container-low border-none rounded-md px-4 py-2.5 font-bold focus:ring-2 focus:ring-primary/20 text-on-surface" type="text" value="Backlog &amp; Descoberta"/>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Cor do Status</label>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-[#3B82F6] border-2 border-white shadow-sm cursor-pointer"></div>
+<span class="text-sm font-medium text-on-surface-variant">#3B82F6</span>
+</div>
+</div>
+</div>
+<!-- Advance Rules (Bento style) -->
+<div class="md:col-span-7">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-4">Regras de Avanço (Governança)</label>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+<label class="flex flex-col gap-3 p-4 bg-surface-container-low rounded-lg border border-transparent hover:border-outline-variant cursor-pointer transition-all">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary">attach_file</span>
+<input checked="" class="rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+</div>
+<span class="text-xs font-bold leading-tight">Exigir Anexo</span>
+</label>
+<label class="flex flex-col gap-3 p-4 bg-surface-container-low rounded-lg border border-transparent hover:border-outline-variant cursor-pointer transition-all">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary">terminal</span>
+<input class="rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+</div>
+<span class="text-xs font-bold leading-tight">Exigir Tag GitHub</span>
+</label>
+<label class="flex flex-col gap-3 p-4 bg-surface-container-low rounded-lg border border-transparent hover:border-outline-variant cursor-pointer transition-all">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+<input checked="" class="rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+</div>
+<span class="text-xs font-bold leading-tight">Validação de PO</span>
+</label>
+</div>
+</div>
+<!-- Actions -->
+<div class="md:col-span-1 flex md:flex-col justify-end gap-2">
+<button class="p-2 text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Phase Card 2 -->
+<div class="group bg-surface-container-low rounded-xl p-1 transition-all hover:bg-surface-container">
+<div class="bg-surface-container-lowest rounded-lg p-6 shadow-sm flex flex-col md:flex-row gap-8 items-start">
+<div class="flex items-center gap-4">
+<div class="cursor-grab active:cursor-grabbing text-outline-variant hover:text-on-surface">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-sm">02</div>
+<div class="w-1 h-full min-h-[40px] bg-surface-container rounded-full"></div>
+</div>
+</div>
+<div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-8">
+<div class="md:col-span-4 space-y-4">
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Nome da Fase</label>
+<input class="w-full bg-surface-container-low border-none rounded-md px-4 py-2.5 font-bold focus:ring-2 focus:ring-primary/20 text-on-surface" type="text" value="Desenvolvimento IA"/>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Cor do Status</label>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-[#8B5CF6] border-2 border-white shadow-sm cursor-pointer"></div>
+<span class="text-sm font-medium text-on-surface-variant">#8B5CF6</span>
+</div>
+</div>
+</div>
+<div class="md:col-span-7">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-4">Regras de Avanço (Governança)</label>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+<label class="flex flex-col gap-3 p-4 bg-surface-container-low rounded-lg border border-transparent hover:border-outline-variant cursor-pointer transition-all">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary">attach_file</span>
+<input class="rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+</div>
+<span class="text-xs font-bold leading-tight">Exigir Anexo</span>
+</label>
+<label class="flex flex-col gap-3 p-4 bg-surface-container-low rounded-lg border border-transparent hover:border-outline-variant cursor-pointer transition-all">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary">terminal</span>
+<input checked="" class="rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+</div>
+<span class="text-xs font-bold leading-tight">Exigir Tag GitHub</span>
+</label>
+<label class="flex flex-col gap-3 p-4 bg-surface-container-low rounded-lg border border-transparent hover:border-outline-variant cursor-pointer transition-all">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+<input class="rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+</div>
+<span class="text-xs font-bold leading-tight">Validação de PO</span>
+</label>
+</div>
+</div>
+<div class="md:col-span-1 flex md:flex-col justify-end gap-2">
+<button class="p-2 text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Insight Banner (Custom Component) -->
+<div class="p-[1px] bg-gradient-to-r from-primary via-primary-container to-tertiary-fixed rounded-xl overflow-hidden shadow-xl shadow-primary/5">
+<div class="bg-surface-container-lowest p-6 flex items-center justify-between gap-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div>
+<h4 class="font-headline text-lg font-bold">Insight de Governança</h4>
+<p class="text-sm text-on-surface-variant">Detectamos que templates de IA geralmente exigem uma fase de 'Avaliação Ética' após o desenvolvimento.</p>
+</div>
+</div>
+<button class="px-5 py-2 bg-primary text-on-primary rounded-md text-sm font-bold whitespace-nowrap hover:bg-primary-container transition-all">
+                            Adicionar Fase Ética
+                        </button>
+</div>
+</div>
+<!-- Add New Phase Trigger -->
+<button class="w-full py-8 border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center gap-2 text-on-surface-variant hover:border-primary hover:text-primary transition-all group">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-all">
+<span class="material-symbols-outlined">add</span>
+</div>
+<span class="font-bold tracking-tight">Adicionar Nova Fase</span>
+</button>
+</div>
+<!-- Footer Meta Info -->
+<div class="mt-12 flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em] text-outline">
+<div class="flex gap-8">
+<span>Última Edição: 12 Out 2023</span>
+<span>Editor: Admin Sovereign</span>
+</div>
+<div class="flex gap-4">
+<span class="text-tertiary-fixed-dim">● Rascunho Ativo</span>
+</div>
+</div>
+</div>
+</main>
+</body></html>

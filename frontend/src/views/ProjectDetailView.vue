@@ -22,7 +22,22 @@ type Project = {
   ended_at: string | null;
 };
 
-type Col = { id: number; title: string; position: number };
+type DetailTab =
+  | "resumo"
+  | "kanban"
+  | "github"
+  | "wiki"
+  | "anexos"
+  | "cursor"
+  | "auditoria"
+  | "prd"
+  | "prototipo"
+  | "desenvolvimento";
+
+type MainTab = "resumo" | "kanban" | "anexos" | "auditoria" | "prd" | "prototipo" | "desenvolvimento" | "configuracoes";
+type ConfigTab = "github" | "wiki" | "cursor";
+
+type Col = { id: number; title: string; position: number; visible_detail_tabs?: string[] };
 type Tpl = { id: number; columns: Col[] };
 type Dir = { id: number; name: string };
 
@@ -61,7 +76,7 @@ const govWarnLinks = ref<GovernanceNoticePayload[]>([]);
 const kanbanMoveAudits = ref<AuditItem[]>([]);
 const attachType = ref("evidencia");
 const fileEl = ref<HTMLInputElement | null>(null);
-const activeTab = ref<"resumo" | "kanban" | "github" | "wiki" | "anexos" | "cursor" | "auditoria">("resumo");
+const activeTab = ref<DetailTab>("resumo");
 /** OAuth GitHub configurado no servidor (client id/secret). */
 const ghOAuthConfigured = ref(false);
 let pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -85,21 +100,87 @@ const editDraft = ref({
 const canMove = computed(() => auth.hasRole("admin", "coordenador"));
 const canSeeAudit = computed(() => auth.hasRole("admin", "coordenador"));
 
-const tabs = [
+const ALL_DETAIL_TABS: DetailTab[] = [
+  "resumo",
+  "kanban",
+  "prd",
+  "prototipo",
+  "desenvolvimento",
+  "anexos",
+  "auditoria",
+  "github",
+  "wiki",
+  "cursor",
+];
+
+const allMainTabs = [
   { id: "resumo" as const, label: "Resumo" },
   { id: "kanban" as const, label: "Kanban" },
+  { id: "prd" as const, label: "PRD" },
+  { id: "prototipo" as const, label: "Protótipo" },
+  { id: "desenvolvimento" as const, label: "Desenvolvimento" },
+  { id: "anexos" as const, label: "Anexos" },
+  { id: "auditoria" as const, label: "Auditoria" },
+  { id: "configuracoes" as const, label: "Configurações" },
+];
+
+const allConfigTabs = [
   { id: "github" as const, label: "GitHub" },
   { id: "wiki" as const, label: "Wiki" },
-  { id: "anexos" as const, label: "Anexos" },
   { id: "cursor" as const, label: "Cursor Hub" },
-  { id: "auditoria" as const, label: "Auditoria" },
 ];
 
 function applyTabFromRoute() {
   const raw = route.query.tab;
   const t = typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : undefined;
-  const allowed: typeof activeTab.value[] = ["resumo", "kanban", "github", "wiki", "anexos", "cursor", "auditoria"];
+  const allowed: DetailTab[] = [...ALL_DETAIL_TABS];
   if (t && (allowed as string[]).includes(t)) activeTab.value = t as typeof activeTab.value;
+}
+
+const visibleDetailTabs = computed<DetailTab[]>(() => {
+  const currentColId = project.value?.current_column_id;
+  if (!currentColId) return [...ALL_DETAIL_TABS];
+  const col = templateCols.value.find((c) => c.id === currentColId);
+  const raw = (col?.visible_detail_tabs ?? []).map((x) => String(x).toLowerCase()) as DetailTab[];
+  const filtered = ALL_DETAIL_TABS.filter((k) => raw.includes(k));
+  return filtered.length ? filtered : [...ALL_DETAIL_TABS];
+});
+
+const configTabs = computed(() => allConfigTabs.filter((t) => visibleDetailTabs.value.includes(t.id)));
+const mainTabs = computed(() =>
+  allMainTabs.filter((t) =>
+    t.id === "configuracoes" ? configTabs.value.length > 0 : visibleDetailTabs.value.includes(t.id as DetailTab),
+  ),
+);
+
+const activeMainTab = computed<MainTab>(() => {
+  if (activeTab.value === "github" || activeTab.value === "wiki" || activeTab.value === "cursor") {
+    return "configuracoes";
+  }
+  return activeTab.value as Exclude<DetailTab, ConfigTab>;
+});
+
+function setMainTab(tabId: MainTab) {
+  if (tabId === "configuracoes") {
+    if (activeTab.value !== "github" && activeTab.value !== "wiki" && activeTab.value !== "cursor") {
+      activeTab.value = "github";
+    }
+    return;
+  }
+  activeTab.value = tabId;
+}
+
+function setConfigTab(tabId: ConfigTab) {
+  activeTab.value = tabId;
+}
+
+function firstVisibleTab(): DetailTab {
+  const firstMain = mainTabs.value[0];
+  if (!firstMain) return "resumo";
+  if (firstMain.id === "configuracoes") {
+    return (configTabs.value[0]?.id ?? "resumo") as DetailTab;
+  }
+  return firstMain.id as DetailTab;
 }
 
 function scrollToRouteHash() {
@@ -115,9 +196,18 @@ watch(
   () => route.fullPath,
   () => {
     applyTabFromRoute();
+    if (!visibleDetailTabs.value.includes(activeTab.value)) {
+      activeTab.value = firstVisibleTab();
+    }
     scrollToRouteHash();
   },
 );
+
+watch(visibleDetailTabs, (tabs) => {
+  if (!tabs.includes(activeTab.value)) {
+    activeTab.value = firstVisibleTab();
+  }
+});
 
 watch(
   () => ({
@@ -593,7 +683,7 @@ async function uploadAttachment() {
 }
 
 function methodologyLabel(m: string) {
-  if (m === "base44") return "Base 4.4";
+  if (m === "base44") return "Base 44";
   if (m === "prd") return "PRD";
   return m;
 }
@@ -653,33 +743,6 @@ function methodologyLabel(m: string) {
           <button
             v-if="canMove"
             type="button"
-            class="border border-outline-variant/40 text-on-surface px-5 py-2.5 rounded-md font-semibold text-sm hover:bg-surface-container-high transition-colors font-body"
-            @click="
-              activeTab = 'resumo';
-              editingProcess = true;
-              syncEditDraftFromProject();
-            "
-          >
-            Editar dados do processo
-          </button>
-          <button
-            type="button"
-            class="bg-surface-container-high text-on-surface px-5 py-2.5 rounded-md font-semibold text-sm hover:bg-surface-variant transition-colors font-body"
-            @click="activeTab = 'github'"
-          >
-            Modificar diretiva
-          </button>
-          <button
-            type="button"
-            class="bg-primary text-on-primary px-5 py-2.5 rounded-md font-semibold text-sm flex items-center gap-2 hover:opacity-90 font-body"
-            @click="activeTab = 'kanban'"
-          >
-            <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">bolt</span>
-            Executar sprint
-          </button>
-          <button
-            v-if="canMove"
-            type="button"
             class="border border-error/40 text-error px-5 py-2.5 rounded-md font-semibold text-sm hover:bg-error-container/30 transition-colors font-body"
             @click="showDeleteModal = true"
           >
@@ -689,21 +752,46 @@ function methodologyLabel(m: string) {
       </div>
 
       <!-- Abas -->
-      <div class="mt-10 flex flex-wrap gap-x-8 gap-y-2 border-b border-outline-variant/15 font-body">
-        <button
-          v-for="t in tabs"
-          :key="t.id"
-          type="button"
-          class="pb-4 text-sm transition-colors"
-          :class="
-            activeTab === t.id
-              ? 'text-black font-bold border-b-2 border-black -mb-px'
-              : 'text-on-surface-variant hover:text-black font-medium'
-          "
-          @click="activeTab = t.id"
-        >
-          {{ t.label }}
-        </button>
+      <div class="mt-10 border-b border-outline-variant/15 font-body">
+        <div class="flex flex-wrap gap-x-8 gap-y-2">
+          <button
+            v-for="t in mainTabs"
+            :key="t.id"
+            type="button"
+            class="pb-4 text-sm transition-colors inline-flex items-center gap-1"
+            :class="
+              activeMainTab === t.id
+                ? 'text-black font-bold border-b-2 border-black -mb-px'
+                : 'text-on-surface-variant hover:text-black font-medium'
+            "
+            @click="setMainTab(t.id)"
+          >
+            {{ t.label }}
+            <span
+              v-if="t.id === 'configuracoes'"
+              class="material-symbols-outlined text-base transition-transform"
+              :class="activeMainTab === 'configuracoes' ? 'rotate-180' : ''"
+            >
+              expand_more
+            </span>
+          </button>
+        </div>
+        <div v-if="activeMainTab === 'configuracoes'" class="flex flex-wrap gap-x-6 gap-y-2 pt-3 pb-4 border-t border-outline-variant/10">
+          <button
+            v-for="t in configTabs"
+            :key="t.id"
+            type="button"
+            class="text-sm transition-colors"
+            :class="
+              activeTab === t.id
+                ? 'text-black font-semibold underline decoration-2 underline-offset-4'
+                : 'text-on-surface-variant hover:text-black'
+            "
+            @click="setConfigTab(t.id)"
+          >
+            {{ t.label }}
+          </button>
+        </div>
       </div>
     </section>
 
@@ -814,7 +902,7 @@ function methodologyLabel(m: string) {
                 <span class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">Metodologia</span>
                 <select v-model="editDraft.methodology" class="mt-1 w-full rounded-lg bg-surface-container-lowest px-3 py-2 text-sm outline-none font-body">
                   <option value="prd">PRD</option>
-                  <option value="base44">Base 4.4</option>
+                  <option value="base44">Base 44</option>
                 </select>
               </label>
               <label class="block text-sm font-body">
@@ -928,7 +1016,7 @@ function methodologyLabel(m: string) {
                   </div>
                   <div class="min-w-0">
                     <h4 class="text-sm font-bold font-body">Contexto Cursor Hub</h4>
-                    <p class="text-xs text-on-surface-variant font-body">Regras e artefatos publicados — The Sovereign Ledger</p>
+                    <p class="text-xs text-on-surface-variant font-body">Regras e artefatos publicados — SysGen AI</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-4 shrink-0">
@@ -1190,6 +1278,33 @@ function methodologyLabel(m: string) {
           </div>
         </div>
         <ProjectTaskBoard :project-id="project.id" :project-name="project.name" :can-mutate="canMove" />
+      </div>
+
+      <!-- PRD -->
+      <div v-show="activeTab === 'prd'" class="bg-surface-container-low rounded-lg p-6 md:p-8 space-y-4 max-w-4xl">
+        <h3 class="text-lg font-bold font-headline">PRD</h3>
+        <p class="text-sm text-on-surface-variant leading-relaxed font-body">
+          Espaço reservado para requisitos funcionais, critérios de aceite e decisões de produto deste projeto.
+        </p>
+      </div>
+
+      <!-- Protótipo -->
+      <div v-show="activeTab === 'prototipo'" class="bg-surface-container-low rounded-lg p-6 md:p-8 space-y-4 max-w-4xl">
+        <h3 class="text-lg font-bold font-headline">Protótipo</h3>
+        <p class="text-sm text-on-surface-variant leading-relaxed font-body">
+          Registre aqui links e observações dos protótipos de UX/UI relacionados ao fluxo de trabalho.
+        </p>
+      </div>
+
+      <!-- Desenvolvimento -->
+      <div
+        v-show="activeTab === 'desenvolvimento'"
+        class="bg-surface-container-low rounded-lg p-6 md:p-8 space-y-4 max-w-4xl"
+      >
+        <h3 class="text-lg font-bold font-headline">Desenvolvimento</h3>
+        <p class="text-sm text-on-surface-variant leading-relaxed font-body">
+          Área para acompanhamento técnico da implementação, apontamentos de arquitetura e decisões de engenharia.
+        </p>
       </div>
 
       <!-- GitHub -->

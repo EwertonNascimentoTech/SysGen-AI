@@ -224,6 +224,8 @@ async def add_column(
         rules["color_hex"] = str(body.color_hex).strip()[:16]
     if body.rules:
         rules.update(body.rules.model_dump())
+    if body.visible_detail_tabs is not None:
+        rules["visible_detail_tabs"] = list(body.visible_detail_tabs)
     col = KanbanTemplateColumn(
         template_id=tpl.id,
         title=body.title.strip(),
@@ -278,6 +280,8 @@ async def patch_column(
             d["require_po_assigned"] = False
             d["require_github_tag"] = False
             d["min_tag_count"] = 0
+        if body.visible_detail_tabs is not None:
+            d["visible_detail_tabs"] = list(body.visible_detail_tabs)
         col.rules_json = dumps_rules(d)
     else:
         patch: dict = {}
@@ -286,6 +290,8 @@ async def patch_column(
         if body.rules is not None:
             patch.update(body.rules.model_dump())
             patch["applied_rule_ids"] = []
+        if body.visible_detail_tabs is not None:
+            patch["visible_detail_tabs"] = list(body.visible_detail_tabs)
         if patch:
             merged = merge_rules(col.rules_json, patch)
             col.rules_json = dumps_rules(merged)

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#e0e3e5",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "on-primary-fixed": "#131b2e",
+                        "surface-dim": "#d8dadc",
+                        "tertiary-fixed-dim": "#4ae176",
+                        "on-tertiary-fixed-variant": "#005321",
+                        "inverse-surface": "#2d3133",
+                        "secondary-container": "#d5e3fc",
+                        "on-tertiary-fixed": "#002109",
+                        "on-surface-variant": "#45464d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#131b2e",
+                        "on-secondary-container": "#57657a",
+                        "primary-fixed-dim": "#bec6e0",
+                        "outline-variant": "#c6c6cd",
+                        "on-surface": "#191c1e",
+                        "background": "#f7f9fb",
+                        "on-tertiary-container": "#009844",
+                        "tertiary-fixed": "#6bff8f",
+                        "surface-container": "#eceef0",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-primary-container": "#7c839b",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#f7f9fb",
+                        "tertiary-container": "#002109",
+                        "on-background": "#191c1e",
+                        "primary": "#000000",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "inverse-on-surface": "#eff1f3",
+                        "error-container": "#ffdad6",
+                        "surface": "#f7f9fb",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e6e8ea",
+                        "inverse-primary": "#bec6e0",
+                        "error": "#ba1a1a",
+                        "outline": "#76777d",
+                        "secondary-fixed": "#d5e3fc",
+                        "surface-tint": "#565e74",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "secondary": "#515f74",
+                        "primary-fixed": "#dae2fd",
+                        "surface-container-low": "#f2f4f6",
+                        "tertiary": "#000000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .glass-header {
+            background: rgba(247, 249, 251, 0.7);
+            backdrop-filter: blur(24px);
+        }
+        .editorial-shadow {
+            box-shadow: 0 40px 60px -20px rgba(25, 28, 30, 0.05);
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- SideNavBar -->
+<aside class="bg-slate-900 dark:bg-[#131B2E] h-screen w-64 fixed left-0 top-0 flex flex-col py-6 font-['Manrope'] tracking-tight z-50">
+<div class="px-6 mb-10">
+<h1 class="text-lg font-bold text-white dark:text-[#DAE2FD]">The Sovereign Ledger</h1>
+<p class="text-xs text-slate-400 dark:text-[#C6C6CD] mt-1">Governança de Projetos de IA</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-6 py-3 text-[#DAE2FD] font-semibold border-r-2 border-[#DAE2FD] bg-slate-800 dark:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+<span class="text-sm">Painel</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="folder_managed">folder_managed</span>
+<span class="text-sm">Projetos</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="view_kanban">view_kanban</span>
+<span class="text-sm">Kanban</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="description">description</span>
+<span class="text-sm">Modelos</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="hub">hub</span>
+<span class="text-sm">GitHub/Wiki</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="integration_instructions">integration_instructions</span>
+<span class="text-sm">Cursor Hub</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="group">group</span>
+<span class="text-sm">Usuários</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="security">security</span>
+<span class="text-sm">Auditoria</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+<span class="text-sm">Configurações</span>
+</a>
+</nav>
+<div class="px-6 pt-6 mt-auto border-t border-slate-800 dark:border-slate-700/50">
+<a class="flex items-center py-2 text-slate-400 dark:text-[#C6C6CD] hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="help_outline">help_outline</span>
+<span class="text-sm">Ajuda</span>
+</a>
+<a class="flex items-center py-2 text-slate-400 dark:text-[#C6C6CD] hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="policy">policy</span>
+<span class="text-sm">Privacidade</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center px-8 h-16 sticky top-0 z-40 bg-white/70 dark:bg-[#F7F9FB]/70 backdrop-blur-xl font-['Inter'] text-sm">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-primary transition-all" placeholder="Pesquisar diretrizes, insights ou projetos..." type="text"/>
+</div>
+</div>
+<div class="flex items-center space-x-6">
+<nav class="flex items-center space-x-8">
+<a class="text-slate-500 dark:text-[#45464D] hover:text-black dark:hover:text-[#000000] transition-all ease-in-out font-medium" href="#">Diretrizes</a>
+<a class="text-black dark:text-[#000000] font-bold border-b-2 border-black h-16 flex items-center" href="#">Insights</a>
+</nav>
+<div class="flex items-center space-x-4 border-l border-outline-variant/30 pl-6">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/50">
+<img class="w-full h-full object-cover" data-alt="Close-up portrait of a professional male executive with neutral background and soft office lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXYlAMl9ZIFYdvF1FAYZCXK_azZrmRCtXxoIXTPbBrYDoTlrB1PswuqsJsndwqowz1cDlMYKbjYGszTqop0NTZwukDq1ZpC_eycGgLl-jB1-l1p3d7lZ9GjIaGs0aXzlHIOBgAXcW-2N_mrW6AbfUFXmjaH9xDu_5OqSukL5Qz9o4eXEvr4UOHya_S754FKxwzP5EDDeVaNErP_gFPMdMjbyohEcW30nN_OlEV0efIBdbnq0eawaqPkHPaEv9CFD-IkUq6orsnEg8"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Dashboard Canvas -->
+<div class="p-8 space-y-8">
+<!-- Header Section -->
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h2 class="text-4xl font-extrabold font-headline tracking-tighter text-on-surface">Visão Geral Executiva</h2>
+<p class="text-on-surface-variant mt-2 max-w-xl">Auditoria de governança para o Ano Fiscal 2024. Analisando 42 iniciativas ativas em STI e Operações.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 bg-surface-container-high text-on-surface font-semibold rounded-md text-sm hover:bg-surface-variant transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="filter_list">filter_list</span>
+                        Filtrar Vista
+                    </button>
+<button class="px-4 py-2 bg-primary text-on-primary font-semibold rounded-md text-sm hover:opacity-90 transition-opacity flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                        Nova Diretriz
+                    </button>
+</div>
+</section>
+<!-- KPI Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-5 gap-4">
+<div class="bg-surface-container-lowest p-6 rounded-xl editorial-shadow flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">Total de Projetos</span>
+<span class="material-symbols-outlined text-primary-fixed-dim" data-icon="account_tree">account_tree</span>
+</div>
+<div class="text-4xl font-extrabold font-headline">42</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl editorial-shadow flex flex-col justify-between h-32 border-l-4 border-tertiary-fixed">
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">Status Ativo</span>
+<span class="material-symbols-outlined text-tertiary-fixed" data-icon="rocket_launch">rocket_launch</span>
+</div>
+<div class="text-4xl font-extrabold font-headline">28</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl editorial-shadow flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">Vinculados ao GitHub</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="code">code</span>
+</div>
+<div class="text-4xl font-extrabold font-headline">35</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl editorial-shadow flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">Wikis Geradas</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="menu_book">menu_book</span>
+</div>
+<div class="text-4xl font-extrabold font-headline">30</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl editorial-shadow flex flex-col justify-between h-32 bg-gradient-to-br from-primary-container to-slate-900">
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-bold tracking-widest text-[#DAE2FD] uppercase">Artefatos do Cursor</span>
+<span class="material-symbols-outlined text-tertiary-fixed" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="text-4xl font-extrabold font-headline text-white">15</div>
+</div>
+</section>
+<!-- Charts & Insights -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Project Distribution -->
+<div class="lg:col-span-2 bg-surface-container-low p-8 rounded-xl space-y-6">
+<div class="flex justify-between items-baseline">
+<h3 class="text-xl font-bold font-headline tracking-tight">Distribuição de Projetos</h3>
+<span class="text-xs font-medium text-on-surface-variant uppercase tracking-tighter">Por Diretoria</span>
+</div>
+<div class="h-64 flex items-end gap-4 px-4 pb-4">
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary-container rounded-t-sm" style="height: 85%"></div>
+<span class="text-[10px] font-bold uppercase text-on-surface-variant">STI</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary rounded-t-sm" style="height: 60%"></div>
+<span class="text-[10px] font-bold uppercase text-on-surface-variant">Operações</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-secondary-fixed-dim rounded-t-sm" style="height: 45%"></div>
+<span class="text-[10px] font-bold uppercase text-on-surface-variant">Financeiro</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-outline rounded-t-sm" style="height: 30%"></div>
+<span class="text-[10px] font-bold uppercase text-on-surface-variant">RH</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-surface-variant rounded-t-sm" style="height: 20%"></div>
+<span class="text-[10px] font-bold uppercase text-on-surface-variant">Jurídico</span>
+</div>
+</div>
+</div>
+<!-- Secondary Stats -->
+<div class="space-y-6">
+<!-- AI Insight Card -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-tertiary-fixed/30 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2">
+<span class="material-symbols-outlined text-tertiary-fixed text-lg" data-icon="temp_preferences_custom">temp_preferences_custom</span>
+</div>
+<h4 class="text-sm font-bold uppercase tracking-widest text-on-tertiary-fixed mb-4">Insight de Governança</h4>
+<p class="text-sm text-on-surface italic leading-relaxed">"Desvio de metodologia detectado nos projetos STI. A adoção atual de PRD é 12% inferior à linha de base do Base 4.4. Sugerido alinhamento automatizado."</p>
+<button class="mt-4 text-[10px] font-bold text-on-tertiary-container underline underline-offset-4">REVISAR AUTO-DIRETRIZ</button>
+</div>
+<!-- Methodology Split -->
+<div class="bg-surface-container-lowest p-6 rounded-xl editorial-shadow">
+<h4 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Divisão de Metodologia</h4>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="font-semibold">Padrão Base 4.4</span>
+<span class="font-bold">64%</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 64%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="font-semibold">Framework PRD</span>
+<span class="font-bold">36%</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary-fixed-dim h-full" style="width: 36%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Recent Projects Table -->
+<section class="bg-surface-container-low rounded-xl p-8 overflow-hidden">
+<div class="flex justify-between items-center mb-8">
+<h3 class="text-xl font-bold font-headline tracking-tight">Governança Recente de Projetos</h3>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-separate border-spacing-y-4">
+<thead>
+<tr class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+<th class="pb-2 px-4">Nome do Projeto</th>
+<th class="pb-2 px-4">PO / Líder</th>
+<th class="pb-2 px-4">Metodologia</th>
+<th class="pb-2 px-4">Status Atual</th>
+<th class="pb-2 px-4 text-right">Prazo</th>
+</tr>
+</thead>
+<tbody class="text-sm">
+<tr class="bg-surface-container-lowest group hover:bg-white transition-colors cursor-pointer">
+<td class="py-4 px-4 font-bold rounded-l-lg border-l-2 border-primary">Sincronização Quantum Ledger</td>
+<td class="py-4 px-4">Marcos Oliveira</td>
+<td class="py-4 px-4">
+<span class="bg-surface-container-high px-2 py-0.5 rounded text-[10px] font-bold uppercase">Base 4.4</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary-fixed"></div>
+<span>Produção Ativa</span>
+</div>
+</td>
+<td class="py-4 px-4 text-right font-mono rounded-r-lg">24/11/2024</td>
+</tr>
+<tr class="bg-surface-container-lowest group hover:bg-white transition-colors cursor-pointer">
+<td class="py-4 px-4 font-bold rounded-l-lg border-l-2 border-secondary">Migração Core STI</td>
+<td class="py-4 px-4">Ana Silva</td>
+<td class="py-4 px-4">
+<span class="bg-secondary-container px-2 py-0.5 rounded text-[10px] font-bold uppercase">PRD</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-amber-400"></div>
+<span>Em Revisão</span>
+</div>
+</td>
+<td class="py-4 px-4 text-right font-mono rounded-r-lg">02/12/2024</td>
+</tr>
+<tr class="bg-surface-container-lowest group hover:bg-white transition-colors cursor-pointer">
+<td class="py-4 px-4 font-bold rounded-l-lg border-l-2 border-primary">API de Governança v3</td>
+<td class="py-4 px-4">Robert J.</td>
+<td class="py-4 px-4">
+<span class="bg-surface-container-high px-2 py-0.5 rounded text-[10px] font-bold uppercase">Base 4.4</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary-fixed"></div>
+<span>Refinamento de Backlog</span>
+</div>
+</td>
+<td class="py-4 px-4 text-right font-mono rounded-r-lg">15/01/2025</td>
+</tr>
+<tr class="bg-surface-container-lowest group hover:bg-white transition-colors cursor-pointer opacity-75">
+<td class="py-4 px-4 font-bold rounded-l-lg border-l-2 border-outline-variant">Wiki de Operações Legado</td>
+<td class="py-4 px-4">Admin do Sistema</td>
+<td class="py-4 px-4">
+<span class="bg-surface-container-high px-2 py-0.5 rounded text-[10px] font-bold uppercase">N/A</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+<span>Bloqueado</span>
+</div>
+</td>
+<td class="py-4 px-4 text-right font-mono rounded-r-lg text-error font-bold">ATRASADO</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+<!-- Contextual FAB - Only for Dashboard -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-105 transition-transform z-50">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</button>
+</body></html>

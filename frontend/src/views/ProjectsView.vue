@@ -193,7 +193,7 @@ async function loadWikiFlags(projects: Project[]) {
 }
 
 function methodologyLabel(m: string) {
-  if (m === "base44") return "Base 4.4";
+  if (m === "base44") return "Base 44";
   if (m === "prd") return "PRD";
   return m;
 }
@@ -369,7 +369,7 @@ function goToPage(item: number | string) {
         <label class="text-[10px] font-bold text-outline uppercase tracking-wider font-label whitespace-nowrap">Metodologia</label>
         <select v-model="filterMethodology" class="bg-transparent border-none text-xs font-semibold focus:ring-0 p-0 pr-6 font-body">
           <option value="">Todos os frameworks</option>
-          <option value="base44">Base 4.4</option>
+          <option value="base44">Base 44</option>
           <option value="prd">PRD</option>
         </select>
       </div>

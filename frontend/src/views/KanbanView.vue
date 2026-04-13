@@ -294,7 +294,7 @@ async function onDropOnColumn(targetColumnId: number) {
 }
 
 function methodologyLabel(m: string) {
-  if (m === "base44") return "Base 4.4";
+  if (m === "base44") return "Base 44";
   if (m === "prd") return "PRD";
   return m.toUpperCase();
 }

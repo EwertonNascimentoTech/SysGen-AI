@@ -76,7 +76,7 @@ async function save() {
           <span class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">Metodologia</span>
           <select v-model="form.methodology" class="mt-1 w-full rounded-lg bg-surface-container-lowest px-3 py-2 outline-none">
             <option value="prd">PRD</option>
-            <option value="base44">Base 4.4</option>
+            <option value="base44">Base 44</option>
           </select>
         </label>
         <label class="block text-sm font-body">

@@ -19,6 +19,7 @@ type Col = {
   color_hex: string;
   rules: ColumnRules;
   applied_rule_ids: number[];
+  visible_detail_tabs: string[];
 };
 
 type GovernanceCatalogRule = {
@@ -80,6 +81,18 @@ const METHODOLOGY_PRESETS: Record<string, string[]> = {
 const METHODOLOGY_OPTIONS = Object.keys(METHODOLOGY_PRESETS);
 
 const COLOR_SWATCHES = ["#64748b", "#3b82f6", "#0d9488", "#ca8a04", "#9333ea", "#e11d48"];
+const DETAIL_TAB_OPTIONS: { value: string; label: string }[] = [
+  { value: "resumo", label: "Resumo" },
+  { value: "kanban", label: "Kanban" },
+  { value: "prd", label: "PRD" },
+  { value: "prototipo", label: "Protótipo" },
+  { value: "desenvolvimento", label: "Desenvolvimento" },
+  { value: "anexos", label: "Anexos" },
+  { value: "auditoria", label: "Auditoria" },
+  { value: "github", label: "GitHub" },
+  { value: "wiki", label: "Wiki" },
+  { value: "cursor", label: "Cursor Hub" },
+];
 
 const isFluxoRoute = computed(() => route.name === "templates-fluxo");
 
@@ -456,6 +469,37 @@ function toggleCatalogRule(col: Col, ruleId: number, checked: boolean) {
   void patchAppliedRuleIds(col, [...cur].sort((a, b) => a - b));
 }
 
+async function patchVisibleDetailTabs(col: Col, tabs: string[]) {
+  const t = selected.value;
+  if (!t || !canEdit.value) return;
+  await withSave(async () => {
+    await api(`/kanban-templates/${t.id}/columns/${col.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ visible_detail_tabs: tabs }),
+    });
+    await reloadTemplates();
+  });
+}
+
+function visibleDetailTabsForColumn(col: Col) {
+  const cur = new Set((col.visible_detail_tabs ?? []).map((x) => x.toLowerCase()));
+  if (!cur.size) return DETAIL_TAB_OPTIONS.map((o) => o.value);
+  return DETAIL_TAB_OPTIONS.map((o) => o.value).filter((v) => cur.has(v));
+}
+
+function isDetailTabVisible(col: Col, tab: string) {
+  return visibleDetailTabsForColumn(col).includes(tab);
+}
+
+function toggleDetailTabVisibility(col: Col, tab: string, checked: boolean) {
+  const cur = new Set(visibleDetailTabsForColumn(col));
+  if (checked) cur.add(tab);
+  else cur.delete(tab);
+  const ordered = DETAIL_TAB_OPTIONS.map((o) => o.value).filter((v) => cur.has(v));
+  if (!ordered.length) return;
+  void patchVisibleDetailTabs(col, ordered);
+}
+
 function catalogRulesForPhase() {
   return governanceCatalog.value.filter((r) => r.active);
 }
@@ -717,6 +761,36 @@ function activeRulesCount(col: Col) {
                           >Mín. {{ gr.min_tags_value }} tag(s)</span
                         >
                       </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="md:col-span-4 min-w-0">
+                  <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-label"
+                      >Menus visíveis no detalhe do projeto</label
+                    >
+                    <span class="text-[10px] text-on-surface-variant font-label uppercase tracking-wider">
+                      Conforme status/fase Kanban
+                    </span>
+                  </div>
+                  <p class="text-xs text-on-surface-variant font-body mb-3 leading-relaxed">
+                    Defina quais menus o utilizador pode ver quando o projeto estiver nesta fase.
+                  </p>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label
+                      v-for="opt in DETAIL_TAB_OPTIONS"
+                      :key="`${c.id}-${opt.value}`"
+                      class="flex items-start gap-2 p-2.5 bg-surface-container-low rounded-lg border border-transparent hover:border-outline-variant/30 transition-all cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        class="rounded border-outline text-primary focus:ring-primary mt-0.5 shrink-0"
+                        :checked="isDetailTabVisible(c, opt.value)"
+                        :disabled="!canEdit || saving"
+                        @change="toggleDetailTabVisibility(c, opt.value, ($event.target as HTMLInputElement).checked)"
+                      />
+                      <span class="text-xs text-on-surface font-medium">{{ opt.label }}</span>
                     </label>
                   </div>
                 </div>

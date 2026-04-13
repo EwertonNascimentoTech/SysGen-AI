@@ -25,7 +25,7 @@ type GithubAuthStatus = {
 };
 
 const tab = ref<TabId>("geral");
-const orgName = ref("Sovereign Enterprise AI");
+const orgName = ref("SysGen AI");
 const locale = ref("pt-BR");
 const auditStrict = ref(true);
 const aiIndexing = ref(false);

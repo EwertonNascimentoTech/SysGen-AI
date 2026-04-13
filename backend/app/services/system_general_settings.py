@@ -10,7 +10,7 @@ async def ensure_system_general_settings_row(session: AsyncSession) -> SystemGen
     if row is None:
         row = SystemGeneralSettings(
             id=DEFAULT_ID,
-            org_name="Sovereign Enterprise AI",
+            org_name="SysGen AI",
             locale="pt-BR",
             audit_strict=True,
             ai_indexing=False,

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Configurações do Sistema | The Sovereign Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#e0e3e5",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "on-primary-fixed": "#131b2e",
+                        "surface-dim": "#d8dadc",
+                        "tertiary-fixed-dim": "#4ae176",
+                        "on-tertiary-fixed-variant": "#005321",
+                        "inverse-surface": "#2d3133",
+                        "secondary-container": "#d5e3fc",
+                        "on-tertiary-fixed": "#002109",
+                        "on-surface-variant": "#45464d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#131b2e",
+                        "on-secondary-container": "#57657a",
+                        "primary-fixed-dim": "#bec6e0",
+                        "outline-variant": "#c6c6cd",
+                        "on-surface": "#191c1e",
+                        "background": "#f7f9fb",
+                        "on-tertiary-container": "#009844",
+                        "tertiary-fixed": "#6bff8f",
+                        "surface-container": "#eceef0",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-primary-container": "#7c839b",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#f7f9fb",
+                        "tertiary-container": "#002109",
+                        "on-background": "#191c1e",
+                        "primary": "#000000",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "inverse-on-surface": "#eff1f3",
+                        "error-container": "#ffdad6",
+                        "surface": "#f7f9fb",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e6e8ea",
+                        "inverse-primary": "#bec6e0",
+                        "error": "#ba1a1a",
+                        "outline": "#76777d",
+                        "secondary-fixed": "#d5e3fc",
+                        "surface-tint": "#565e74",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "secondary": "#515f74",
+                        "primary-fixed": "#dae2fd",
+                        "surface-container-low": "#f2f4f6",
+                        "tertiary": "#000000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        h1, h2, h3 {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+<body class="text-on-surface overflow-x-hidden">
+<!-- SideNavBar (Shared Component) -->
+<aside class="bg-slate-900 dark:bg-[#131B2E] h-screen w-64 fixed left-0 top-0 flex flex-col py-6 font-['Manrope'] tracking-tight z-50">
+<div class="px-6 mb-10">
+<h1 class="text-lg font-bold text-white dark:text-[#DAE2FD]">The Sovereign Ledger</h1>
+<p class="text-[10px] text-slate-400 uppercase tracking-[0.2em] mt-1">Governança de Projetos IA</p>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<!-- Navigation Items -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="text-sm">Painel</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">folder_managed</span>
+<span class="text-sm">Projetos</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">view_kanban</span>
+<span class="text-sm">Kanban</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">description</span>
+<span class="text-sm">Modelos</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">hub</span>
+<span class="text-sm">GitHub/Wiki</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">integration_instructions</span>
+<span class="text-sm">Cursor Hub</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">group</span>
+<span class="text-sm">Usuários</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">security</span>
+<span class="text-sm">Auditoria</span>
+</a>
+<!-- Active Tab: Settings -->
+<a class="flex items-center gap-3 px-4 py-3 text-[#DAE2FD] font-semibold border-r-2 border-[#DAE2FD] bg-slate-800/50 dark:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="text-sm">Configurações</span>
+</a>
+</nav>
+<div class="mt-auto px-3 pt-6 border-t border-slate-800/50 dark:border-[#1C253B]">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group mb-1" href="#">
+<span class="material-symbols-outlined text-xl">help_outline</span>
+<span class="text-sm">Ajuda</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">policy</span>
+<span class="text-sm">Privacidade</span>
+</a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar (Shared Component) -->
+<header class="sticky top-0 z-40 bg-white/70 dark:bg-[#F7F9FB]/70 backdrop-blur-xl flex justify-between items-center px-8 h-16 transition-all ease-in-out">
+<div class="flex items-center gap-8">
+<span class="font-headline font-extrabold text-lg tracking-tight">Portal de Governança</span>
+<div class="relative group">
+<span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+<span class="material-symbols-outlined text-sm">search</span>
+</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container-low border-none rounded-md text-sm w-64 focus:ring-1 focus:ring-primary-container transition-all" placeholder="Buscar configuração do sistema..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<nav class="flex gap-6 font-['Inter'] text-sm">
+<a class="text-slate-500 dark:text-[#45464D] hover:text-black dark:hover:text-[#000000] transition-colors" href="#">Diretrizes</a>
+<a class="text-slate-500 dark:text-[#45464D] hover:text-black dark:hover:text-[#000000] transition-colors" href="#">Insights</a>
+</nav>
+<div class="flex items-center gap-3 border-l border-outline-variant/20 pl-6">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">history</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<img alt="Avatar do Perfil do Usuário" class="w-8 h-8 rounded-full bg-surface-container-highest ml-2" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCV3Wf84gVXe3OBt8AGaC17EtY9Crigpn0-ov7Fj5rj-3aQcYCEa94J5wL9WfIB4hDe9DT2CLAWhparbuCze6nCS_uLRYtKV43BLkKsR0WjW63CO-K9bDRYFLaJVM6ThQndMb86LUpQ8PrJu2kMUARr6Kl954Xm6GpYXCrXLySgcYiRiH_bU39FkmhgqghA_BDnIFaRzFYiMu1U2Mbd9kjHE5BTl6socUukNJA-IcmAYfjsm6tlhkl9PDpH7qsmDenS9B8Q1LPAY5I"/>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<div class="p-10 max-w-7xl mx-auto">
+<!-- Page Header -->
+<div class="mb-10">
+<h2 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2">Configurações do Sistema</h2>
+<p class="text-on-surface-variant max-w-2xl">Configure parâmetros globais, protocolos de segurança e ganchos de integração para o ecossistema Sovereign Ledger.</p>
+</div>
+<!-- Tabbed Navigation Interface -->
+<div class="flex gap-1 mb-8 bg-surface-container-low p-1 rounded-lg w-fit">
+<button class="px-6 py-2 text-sm font-semibold rounded-md bg-surface-container-lowest shadow-sm text-primary">Geral</button>
+<button class="px-6 py-2 text-sm font-medium rounded-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Anexos</button>
+<button class="px-6 py-2 text-sm font-medium rounded-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Integrações</button>
+<button class="px-6 py-2 text-sm font-medium rounded-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">Permissões</button>
+</div>
+<!-- Main Layout: Bento Grid Style -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Section 1: General Parameters -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl p-8 shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h3 class="text-lg font-bold tracking-tight">Parâmetros Gerais</h3>
+<p class="text-xs text-on-surface-variant uppercase tracking-widest mt-1">Configuração Principal do Ambiente</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">tune</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Nome da Organização</label>
+<input class="w-full bg-surface-container-low border-none rounded-md px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-primary-container" type="text" value="Sovereign Enterprise AI"/>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Localidade do Sistema</label>
+<select class="w-full bg-surface-container-low border-none rounded-md px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-primary-container">
+<option>Português (Brasil)</option>
+<option>English (United States)</option>
+<option>German (Central Europe)</option>
+<option>Japanese (Tokyo)</option>
+</select>
+</div>
+<div class="col-span-2 space-y-4">
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg">
+<div>
+<h4 class="text-sm font-bold">Log de Auditoria Estrito</h4>
+<p class="text-xs text-on-surface-variant">Registrar todas as operações de leitura para artefatos sensíveis.</p>
+</div>
+<div class="w-10 h-5 bg-tertiary-container rounded-full relative flex items-center px-1">
+<div class="w-3 h-3 bg-tertiary-fixed rounded-full ml-auto"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg">
+<div>
+<h4 class="text-sm font-bold">Indexação Preditiva por IA</h4>
+<p class="text-xs text-on-surface-variant">Ativar etiquetagem autônoma de metadados para novos projetos.</p>
+</div>
+<div class="w-10 h-5 bg-outline-variant/30 rounded-full relative flex items-center px-1">
+<div class="w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 2: AI Governance Insights -->
+<div class="col-span-12 lg:col-span-4 bg-primary-container text-primary-fixed rounded-xl p-8 relative overflow-hidden flex flex-col justify-between">
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-tertiary-fixed">smart_toy</span>
+<span class="text-xs font-bold uppercase tracking-widest text-tertiary-fixed">Insight de Governança IA</span>
+</div>
+<h3 class="text-2xl font-bold leading-tight mb-4">Sugestão de Protocolo de Segurança</h3>
+<p class="text-sm text-on-primary-container leading-relaxed">
+                        Com base na sua atividade recente de integração com o GitHub, recomendamos ativar a **Auditoria de Referência Cruzada** para garantir a integridade da linhagem de dados.
+                    </p>
+</div>
+<button class="relative z-10 mt-8 w-full py-3 bg-tertiary-fixed text-on-tertiary-fixed font-bold text-sm rounded-md hover:bg-tertiary-fixed-dim transition-all">
+                    Implementar Diretriz
+                </button>
+<!-- Subtle Gradient background texture -->
+<div class="absolute -bottom-20 -right-20 w-64 h-64 bg-tertiary-fixed/10 rounded-full blur-3xl"></div>
+</div>
+<!-- Section 3: Integration Keys (GitHub) -->
+<div class="col-span-12 lg:col-span-6 bg-surface-container-low rounded-xl p-8">
+<div class="flex items-center gap-4 mb-6">
+<div class="p-3 bg-white rounded-lg shadow-sm">
+<img alt="Logo do GitHub" class="w-6 h-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcvKN1qQYT1ijnhDrn7AKLRcY8QdnTQX-ajcreZAFtUEszxWK2ayABjQaE_AQ3Ly28lOyqDnjH8VH4TOm-QmBUnXep556DFbGz8vIJJ6SRZWmL0ViRnfyKAY41zVz9qHR4ZCn2n9UockaZUfoTc2Kh57GMPSAzPg7LZjkdHzktm1fJPURxfHEI8ni7l-iL1Xp78boCzQM9qCEhiTXi29LyqjjQcwN0ig33xT6d-uznCsM_NmH-qvtIhosBCX27sOUxjGHUhVC9NoY"/>
+</div>
+<div>
+<h3 class="text-lg font-bold tracking-tight">Integração GitHub</h3>
+<p class="text-xs text-on-surface-variant uppercase tracking-widest">Configuração da API Enterprise</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="space-y-2">
+<label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Token de Acesso Pessoal</label>
+<div class="flex gap-2">
+<input class="flex-1 bg-surface-container-lowest border-none rounded-md px-4 py-2 text-sm font-mono focus:ring-1 focus:ring-primary-container" type="password" value="********************************"/>
+<button class="px-4 py-2 bg-surface-container-high text-on-surface text-sm font-bold rounded-md">Atualizar</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-4 bg-surface-container-lowest rounded-lg">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Status do Webhook</span>
+<span class="text-sm font-bold flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-on-tertiary-container"></span>
+                                Saudável
+                            </span>
+</div>
+<div class="p-4 bg-surface-container-lowest rounded-lg">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Última Sincronização</span>
+<span class="text-sm font-bold">há 2m</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 4: Attachment Types Config -->
+<div class="col-span-12 lg:col-span-6 bg-surface-container-low rounded-xl p-8">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h3 class="text-lg font-bold tracking-tight">Tipos de Anexo</h3>
+<p class="text-xs text-on-surface-variant uppercase tracking-widest mt-1">Política Global de Arquivos</p>
+</div>
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">add_circle</span>
+</button>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between p-3 bg-surface-container-lowest rounded-lg">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">description</span>
+<span class="text-sm font-medium">Documentos PDF</span>
+</div>
+<span class="text-[10px] font-bold px-2 py-1 bg-surface-container-high rounded-md">MÁX 50MB</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-container-lowest rounded-lg">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">code</span>
+<span class="text-sm font-medium">Arquivos Fonte (.ts, .py)</span>
+</div>
+<span class="text-[10px] font-bold px-2 py-1 bg-surface-container-high rounded-md">MÁX 10MB</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-container-lowest rounded-lg">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">image</span>
+<span class="text-sm font-medium">Ativos Visuais (Figma)</span>
+</div>
+<span class="text-[10px] font-bold px-2 py-1 bg-surface-container-high rounded-md">MÁX 100MB</span>
+</div>
+</div>
+</div>
+<!-- Section 5: Role Permissions Overview -->
+<div class="col-span-12 bg-surface-container-low rounded-xl p-8">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h3 class="text-lg font-bold tracking-tight">Visão Geral de Permissões de Cargo</h3>
+<p class="text-xs text-on-surface-variant uppercase tracking-widest mt-1">Matriz de Autoridade</p>
+</div>
+<button class="text-sm font-bold text-primary flex items-center gap-2 hover:underline">
+                        Exportar Matriz <span class="material-symbols-outlined text-sm">download</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+<th class="pb-4 pr-6">Cargo Funcional</th>
+<th class="pb-4 px-6">Acesso de Leitura</th>
+<th class="pb-4 px-6">Escrita/Edição</th>
+<th class="pb-4 px-6">Meta Governança</th>
+<th class="pb-4 px-6">Gestão de Integração</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="group hover:bg-surface-container-lowest transition-colors">
+<td class="py-4 pr-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-[10px] font-bold">SO</div>
+<div>
+<div class="text-sm font-bold">System Overlord</div>
+<div class="text-[10px] text-on-surface-variant italic">Admin Total</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-6"><span class="material-symbols-outlined text-on-tertiary-container">check_circle</span></td>
+<td class="py-4 px-6"><span class="material-symbols-outlined text-on-tertiary-container">check_circle</span></td>
+<td class="py-4 px-6"><span class="material-symbols-outlined text-on-tertiary-container">check_circle</span></td>
+<td class="py-4 px-6"><span class="material-symbols-outlined text-on-tertiary-container">check_circle</span></td>
+</tr>
+<tr class="group hover:bg-surface-container-lowest transition-colors">
+<td class="py-4 pr-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container text-[10px] font-bold">GP</div>
+<div>
+<div class="text-sm font-bold">Gerente de Projeto</div>
+<div class="text-[10px] text-on-surface-variant italic">Líder Operacional</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-6"><span class="material-symbols-outlined text-on-tertiary-container">check_circle</span></td>
+<td class="py-4 px-6"><span class="material-symbols-outlined text-on-tertiary-container">check_circle</span></td>
+<td class="py-4 px-6"><span class="material-symbols-outlined text-on-tertiary-container">check_circle</span></td>
+<td class="py-4 px-6"><span class="material-symbols-outlined text-outline-variant">cancel</span></td>
+</tr>
+<tr class="group hover:bg-surface-container-lowest transition-colors">
+<td class="py-4 pr-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant text-[10px] font-bold">CO</div>
+<div>
+<div class="text-sm font-bold">Contribuidor</div>
+<div class="text-[10px] text-on-surface-variant italic">Usuário Padrão</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-6"><span class="material-symbols-outlined text-on-tertiary-container">check_circle</span></td>
+<td class="py-4 px-6"><span class="material-symbols-outlined text-on-tertiary-container">check_circle</span></td>
+<td class="py-4 px-6"><span class="material-symbols-outlined text-outline-variant">cancel</span></td>
+<td class="py-4 px-6"><span class="material-symbols-outlined text-outline-variant">cancel</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Footer Action Bar -->
+<div class="mt-12 flex justify-end gap-4 border-t border-outline-variant/10 pt-8">
+<button class="px-8 py-3 text-sm font-bold text-on-surface-variant hover:text-primary transition-colors">Descartar Alterações</button>
+<button class="px-8 py-3 bg-primary text-on-primary font-bold text-sm rounded-md shadow-lg shadow-black/5 hover:scale-[1.02] active:scale-95 transition-all">Salvar Configuração do Sistema</button>
+</div>
+</div>
+</main>
+</body></html>

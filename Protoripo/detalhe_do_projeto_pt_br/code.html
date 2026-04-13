@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Visão 360 do Projeto | The Sovereign Ledger</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#e0e3e5",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "on-primary-fixed": "#131b2e",
+                    "surface-dim": "#d8dadc",
+                    "tertiary-fixed-dim": "#4ae176",
+                    "on-tertiary-fixed-variant": "#005321",
+                    "inverse-surface": "#2d3133",
+                    "secondary-container": "#d5e3fc",
+                    "on-tertiary-fixed": "#002109",
+                    "on-surface-variant": "#45464d",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#131b2e",
+                    "on-secondary-container": "#57657a",
+                    "primary-fixed-dim": "#bec6e0",
+                    "outline-variant": "#c6c6cd",
+                    "on-surface": "#191c1e",
+                    "background": "#f7f9fb",
+                    "on-tertiary-container": "#009844",
+                    "tertiary-fixed": "#6bff8f",
+                    "surface-container": "#eceef0",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "on-primary-container": "#7c839b",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "tertiary-container": "#002109",
+                    "on-background": "#191c1e",
+                    "primary": "#000000",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "inverse-on-surface": "#eff1f3",
+                    "error-container": "#ffdad6",
+                    "surface": "#f7f9fb",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-error-container": "#93000a",
+                    "surface-container-high": "#e6e8ea",
+                    "inverse-primary": "#bec6e0",
+                    "error": "#ba1a1a",
+                    "outline": "#76777d",
+                    "secondary-fixed": "#d5e3fc",
+                    "surface-tint": "#565e74",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "secondary": "#515f74",
+                    "primary-fixed": "#dae2fd",
+                    "surface-container-low": "#f2f4f6",
+                    "tertiary": "#000000"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- SideNavBar Anchor -->
+<aside class="bg-slate-900 dark:bg-[#131B2E] h-screen w-64 fixed left-0 top-0 flex flex-col py-6 font-['Manrope'] tracking-tight">
+<div class="px-6 mb-10">
+<h1 class="text-lg font-bold text-white dark:text-[#DAE2FD]">The Sovereign Ledger</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1">Governança de Projetos IA</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+<span class="text-sm">Painel</span>
+</a>
+<a class="flex items-center px-6 py-3 text-[#DAE2FD] font-semibold border-r-2 border-[#DAE2FD] bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="folder_managed">folder_managed</span>
+<span class="text-sm">Projetos</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="view_kanban">view_kanban</span>
+<span class="text-sm">Kanban</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="description">description</span>
+<span class="text-sm">Modelos</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="hub">hub</span>
+<span class="text-sm">GitHub/Wiki</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="integration_instructions">integration_instructions</span>
+<span class="text-sm">Cursor Hub</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="group">group</span>
+<span class="text-sm">Usuários</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="security">security</span>
+<span class="text-sm">Auditoria</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+<span class="text-sm">Configurações</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-slate-800 space-y-1">
+<a class="flex items-center px-6 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 text-sm" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="help_outline">help_outline</span>
+<span>Ajuda</span>
+</a>
+<a class="flex items-center px-6 py-2 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 text-sm" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="policy">policy</span>
+<span>Privacidade</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar Anchor -->
+<header class="flex justify-between items-center px-8 h-16 sticky top-0 z-40 glass-nav transition-all ease-in-out font-['Inter'] text-sm">
+<div class="flex items-center space-x-6">
+<div class="flex items-center bg-surface-container-low px-4 py-1.5 rounded-lg">
+<span class="material-symbols-outlined text-outline mr-2 text-lg" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-64 p-0" placeholder="Buscar diretivas..." type="text"/>
+</div>
+<nav class="flex space-x-6">
+<a class="text-slate-500 dark:text-[#45464D] hover:text-black font-medium" href="#">Diretivas</a>
+<a class="text-black dark:text-[#000000] font-bold border-b-2 border-black" href="#">Insights</a>
+</nav>
+</div>
+<div class="flex items-center space-x-5">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary-container overflow-hidden">
+<img alt="User Profile Avatar" class="object-cover h-full w-full" data-alt="Professional portrait of a high-level corporate executive in a modern office with soft natural lighting and neutral colors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmNVNxs659wh-W4scbbeua13uu6TNBZq32Q4TgIQPJHmk5NQZQ-WBZ7q4DIqKkksO6katjlRh3Lb0DTnN0MN9HslQ4ffReZ2Z9zilhYGzoA3sEM6U4kQEhXXzLMDIxfVAKuXtYzYIpvVE8xwedfPGZAxGzwHdCWYSs0-b3s2WLinsojSIU6wSbVeE1_buo-3u8heTrE2g0Wqp0YD9Iw1-nVvtzEJietBIF8hIchX3bWcQSDiYxweu6C8eLJFGDMBCTCnYTd5dqlGg"/>
+</div>
+</div>
+</header>
+<!-- Project Hero Section -->
+<section class="px-10 py-10">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<div class="flex items-center space-x-3 mb-2">
+<span class="text-xs font-bold tracking-[0.1em] text-on-surface-variant uppercase">ID do Projeto: SL-7742</span>
+<span class="h-1.5 w-1.5 rounded-full bg-tertiary-container"></span>
+<span class="bg-tertiary-container text-on-tertiary-container px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Saudável</span>
+</div>
+<h1 class="text-5xl font-extrabold tracking-tighter text-on-surface mb-4">Project Quantum Syphon</h1>
+<div class="flex items-center space-x-6">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-outline" data-icon="calendar_today">calendar_today</span>
+<span class="text-sm font-medium text-on-surface-variant">Prazo: <span class="text-on-surface">24 de Out, 2024</span></span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-outline" data-icon="person">person</span>
+<span class="text-sm font-medium text-on-surface-variant">Líder: <span class="text-on-surface">Dr. Elena Vance</span></span>
+</div>
+<div class="flex -space-x-2">
+<div class="h-6 w-6 rounded-full border-2 border-surface bg-slate-200 overflow-hidden"><img class="w-full h-full object-cover" data-alt="Close up face of a male engineer in glasses" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhtTtVvpJR8znYvI8VcqDUW6CM8I0F1DlDQmMI_jIhJ4St14lei1Ku9h3wPtaW4wxTBcLwXECDA654XPZplDXjO2W9yDCIZ2KnM9dOJvbZhmYM3tqjb6R7YrPmFlyLe8Z0pZ2EE6DXXlml95zduic35xRGhx3x8TfhZ44cgsij3RGvHSq4OYqYOiHAVZWr2EMQOr24ffpOYJwgBvYCMmid0ckptABKe4JX56DxQ3GHW2siYgK9NLSkoAno3IcrPqryD-ckzu3nAi8"/></div>
+<div class="h-6 w-6 rounded-full border-2 border-surface bg-slate-200 overflow-hidden"><img class="w-full h-full object-cover" data-alt="Close up face of a female designer smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwkKf5f-YE_CC18DppRrwGn_kvZ5xgGH7_sd3H_OPfzePmlstSXKIT1hX2U_X5MDv-bP_2RRuQcy3t3xZLfV0JeScQL-4z0l775ER7KsWINJkieRUyeCmO5b0UCd1Rt5YYsRcv_HRN5GFEF8wcb2RREEGO5HxxPrFYlGVIsTGvQ2OXLM3KWMe1RoV4AnCGoUDcEm_OJ7tNIdmXI-IaDLwqzgkw1Xfzefd8j71UXeosapAQHkA7CKLW5L-3R99uQbZ9LYWiSEXRKI4"/></div>
+<div class="h-6 w-6 rounded-full border-2 border-surface bg-slate-300 flex items-center justify-center text-[8px] font-bold">+12</div>
+</div>
+</div>
+</div>
+<div class="flex items-center space-x-3">
+<button class="bg-surface-container-high text-on-surface px-5 py-2.5 rounded-md font-semibold text-sm hover:bg-surface-variant transition-colors">
+                        Modificar Diretiva
+                    </button>
+<button class="bg-primary text-on-primary px-5 py-2.5 rounded-md font-semibold text-sm flex items-center">
+<span class="material-symbols-outlined mr-2 text-sm" data-icon="bolt" data-weight="fill" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                        Executar Sprint
+                    </button>
+</div>
+</div>
+<!-- Tabs Navigation -->
+<div class="mt-12 flex space-x-10 border-b border-outline-variant/15 font-['Inter']">
+<button class="pb-4 text-black font-bold border-b-2 border-black text-sm">Resumo</button>
+<button class="pb-4 text-on-surface-variant hover:text-black text-sm font-medium transition-colors">Kanban</button>
+<button class="pb-4 text-on-surface-variant hover:text-black text-sm font-medium transition-colors">GitHub</button>
+<button class="pb-4 text-on-surface-variant hover:text-black text-sm font-medium transition-colors">Wiki</button>
+<button class="pb-4 text-on-surface-variant hover:text-black text-sm font-medium transition-colors">Anexos</button>
+<button class="pb-4 text-on-surface-variant hover:text-black text-sm font-medium transition-colors">Cursor Hub</button>
+<button class="pb-4 text-on-surface-variant hover:text-black text-sm font-medium transition-colors">Auditoria</button>
+</div>
+</section>
+<!-- Active Tab Content: Resumo -->
+<section class="px-10 pb-20">
+<div class="grid grid-cols-12 gap-6">
+<!-- Left Column: Governance & Integrations -->
+<div class="col-span-8 space-y-6">
+<!-- AI Governance Insights (Bento Style) -->
+<div class="grid grid-cols-2 gap-6">
+<div class="bg-surface-container-lowest p-6 rounded-lg shadow-sm border border-outline-variant/10">
+<div class="flex justify-between items-start mb-8">
+<div class="p-2 bg-primary-container rounded-md">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="policy">policy</span>
+</div>
+<span class="text-[10px] font-bold text-tertiary-on-container px-2 py-1 bg-tertiary-container/10 rounded uppercase">Check do Sistema</span>
+</div>
+<h3 class="text-xl font-bold mb-2">Alinhamento de Governança</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-6">A velocidade atual se alinha com as diretivas de IA Nível-1. Nenhuma distorção ética detectada nos merges recentes.</p>
+<div class="w-full bg-surface-container rounded-full h-1.5 mb-2">
+<div class="bg-tertiary-fixed-dim h-1.5 rounded-full" style="width: 94%"></div>
+</div>
+<div class="flex justify-between text-[10px] font-bold text-on-surface-variant uppercase">
+<span>94% Precisão</span>
+<span>Desvio: 0.02%</span>
+</div>
+</div>
+<div class="bg-primary-container p-6 rounded-lg text-white relative overflow-hidden">
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-8">
+<div class="p-2 bg-white/10 rounded-md">
+<span class="material-symbols-outlined text-tertiary-fixed" data-icon="auto_awesome">auto_awesome</span>
+</div>
+</div>
+<h3 class="text-xl font-bold mb-2">Recomendação do Arquiteto IA</h3>
+<p class="text-sm text-primary-fixed/80 leading-relaxed">A integração do novo módulo 'Syphon-Core' pode otimizar o uso de memória latente em 14%.</p>
+<button class="mt-8 text-xs font-bold text-tertiary-fixed border-b border-tertiary-fixed pb-0.5 hover:text-white hover:border-white transition-all uppercase">Revisar Estratégia de Otimização</button>
+</div>
+<!-- Background Texture -->
+<div class="absolute inset-0 bg-gradient-to-br from-primary-container to-black/40 opacity-50"></div>
+</div>
+</div>
+<!-- Detailed Card: Integrations -->
+<div class="bg-surface-container-low p-8 rounded-lg">
+<h3 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6">Integrações Ativas</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-md">
+<div class="flex items-center space-x-4">
+<div class="h-10 w-10 bg-surface-container-high rounded flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+</div>
+<div>
+<h4 class="text-sm font-bold">Repositório Principal</h4>
+<p class="text-xs text-on-surface-variant">github.com/ledger/quantum-syphon</p>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<span class="text-xs font-mono text-tertiary-on-container bg-tertiary-container px-2 py-0.5 rounded-full">v2.4.1-rc</span>
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="open_in_new">open_in_new</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-md">
+<div class="flex items-center space-x-4">
+<div class="h-10 w-10 bg-surface-container-high rounded flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="data_object">data_object</span>
+</div>
+<div>
+<h4 class="text-sm font-bold">Contexto Cursor Hub</h4>
+<p class="text-xs text-on-surface-variant">Regras de Contexto: Sovereign Ledger v4</p>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<span class="text-xs font-mono text-secondary-on-container bg-secondary-container px-2 py-0.5 rounded-full">Sincronizado</span>
+<span class="material-symbols-outlined text-outline text-lg" data-icon="sync">sync</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Recent Activity Timeline -->
+<div class="col-span-4 bg-surface-container-low p-8 rounded-lg h-fit">
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Fluxo de Atividade</h3>
+<span class="material-symbols-outlined text-outline cursor-pointer" data-icon="more_vert">more_vert</span>
+</div>
+<div class="space-y-8 relative">
+<!-- Timeline Line -->
+<div class="absolute left-[11px] top-2 bottom-2 w-0.5 bg-outline-variant/20"></div>
+<div class="relative pl-10">
+<div class="absolute left-0 top-1.5 h-6 w-6 rounded-full bg-surface-container-lowest flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-xs" data-icon="commit">commit</span>
+</div>
+<p class="text-xs font-bold text-on-surface">Solicitação de Merge #204 Aprovada</p>
+<p class="text-xs text-on-surface-variant mt-1 leading-relaxed">Arquitetura do sistema verificada por Elena Vance. Pontuação de governança atingida.</p>
+<span class="text-[10px] text-outline font-medium block mt-2 uppercase">Há 2 Horas</span>
+</div>
+<div class="relative pl-10">
+<div class="absolute left-0 top-1.5 h-6 w-6 rounded-full bg-surface-container-lowest flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-xs text-error" data-icon="warning">warning</span>
+</div>
+<p class="text-xs font-bold text-on-surface">Alerta de Conformidade</p>
+<p class="text-xs text-on-surface-variant mt-1 leading-relaxed">Pequeno desvio detectado na documentação Wiki. Reconciliação automática em progresso.</p>
+<span class="text-[10px] text-outline font-medium block mt-2 uppercase">Há 5 Horas</span>
+</div>
+<div class="relative pl-10">
+<div class="absolute left-0 top-1.5 h-6 w-6 rounded-full bg-surface-container-lowest flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-xs" data-icon="add_task">add_task</span>
+</div>
+<p class="text-xs font-bold text-on-surface">Nova Entrada no Registro de Auditoria</p>
+<p class="text-xs text-on-surface-variant mt-1 leading-relaxed">Auditoria acionada para uso de computação de alta densidade no 'Projeto Syphon'.</p>
+<span class="text-[10px] text-outline font-medium block mt-2 uppercase">Ontem</span>
+</div>
+<div class="relative pl-10">
+<div class="absolute left-0 top-1.5 h-6 w-6 rounded-full bg-surface-container-lowest flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-xs" data-icon="person">person</span>
+</div>
+<p class="text-xs font-bold text-on-surface">Atualização da Equipe</p>
+<p class="text-xs text-on-surface-variant mt-1 leading-relaxed">Markus Chen juntou-se ao projeto como Líder de Governança.</p>
+<span class="text-[10px] text-outline font-medium block mt-2 uppercase">Há 2 Dias</span>
+</div>
+</div>
+<button class="w-full mt-10 py-3 text-xs font-bold text-on-surface-variant hover:text-black border border-outline-variant/30 rounded-md transition-all uppercase">Ver Registro Completo</button>
+</div>
+</div>
+</section>
+</main>
+</body></html>

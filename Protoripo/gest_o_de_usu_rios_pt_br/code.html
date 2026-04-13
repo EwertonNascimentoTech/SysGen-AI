@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestão de Usuários | The Sovereign Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#e0e3e5",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "on-primary-fixed": "#131b2e",
+                    "surface-dim": "#d8dadc",
+                    "tertiary-fixed-dim": "#4ae176",
+                    "on-tertiary-fixed-variant": "#005321",
+                    "inverse-surface": "#2d3133",
+                    "secondary-container": "#d5e3fc",
+                    "on-tertiary-fixed": "#002109",
+                    "on-surface-variant": "#45464d",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#131b2e",
+                    "on-secondary-container": "#57657a",
+                    "primary-fixed-dim": "#bec6e0",
+                    "outline-variant": "#c6c6cd",
+                    "on-surface": "#191c1e",
+                    "background": "#f7f9fb",
+                    "on-tertiary-container": "#009844",
+                    "tertiary-fixed": "#6bff8f",
+                    "surface-container": "#eceef0",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "on-primary-container": "#7c839b",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "tertiary-container": "#002109",
+                    "on-background": "#191c1e",
+                    "primary": "#000000",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "inverse-on-surface": "#eff1f3",
+                    "error-container": "#ffdad6",
+                    "surface": "#f7f9fb",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-error-container": "#93000a",
+                    "surface-container-high": "#e6e8ea",
+                    "inverse-primary": "#bec6e0",
+                    "error": "#ba1a1a",
+                    "outline": "#76777d",
+                    "secondary-fixed": "#d5e3fc",
+                    "surface-tint": "#565e74",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "secondary": "#515f74",
+                    "primary-fixed": "#dae2fd",
+                    "surface-container-low": "#f2f4f6",
+                    "tertiary": "#000000"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-effect {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- SideNavBar Shell -->
+<aside class="bg-slate-900 dark:bg-[#131B2E] h-screen w-64 fixed left-0 top-0 flex flex-col h-full py-6 font-['Manrope'] tracking-tight z-50">
+<div class="px-6 mb-10 flex items-center gap-3">
+<div class="w-8 h-8 bg-primary-fixed rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container text-xl" data-icon="security">security</span>
+</div>
+<div>
+<h1 class="text-lg font-bold text-white dark:text-[#DAE2FD]">The Sovereign Ledger</h1>
+<p class="text-[10px] text-slate-400 dark:text-[#C6C6CD] tracking-[0.1em] uppercase">Governança de Projetos AI</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="folder_managed">folder_managed</span>
+<span class="text-sm">Projetos</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="view_kanban">view_kanban</span>
+<span class="text-sm">Kanban</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="description">description</span>
+<span class="text-sm">Modelos</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="hub">hub</span>
+<span class="text-sm">GitHub/Wiki</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="integration_instructions">integration_instructions</span>
+<span class="text-sm">Cursor Hub</span>
+</a>
+<!-- ACTIVE TAB: Users -->
+<a class="flex items-center px-6 py-3 text-[#DAE2FD] font-semibold border-r-2 border-[#DAE2FD] bg-slate-800 dark:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="group">group</span>
+<span class="text-sm">Usuários</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="security">security</span>
+<span class="text-sm">Auditoria</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+<span class="text-sm">Configurações</span>
+</a>
+</nav>
+<div class="mt-auto py-6 border-t border-slate-800/50">
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="help_outline">help_outline</span>
+<span class="text-sm">Ajuda</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors scale-95 duration-150" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="policy">policy</span>
+<span class="text-sm">Privacidade</span>
+</a>
+</div>
+</aside>
+<div class="ml-64 min-h-screen flex flex-col">
+<!-- TopNavBar Shell -->
+<header class="bg-white/70 dark:bg-[#F7F9FB]/70 backdrop-blur-xl sticky top-0 z-40 flex justify-between items-center px-8 h-16 ml-0 transition-all ease-in-out">
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg" data-icon="search">search</span>
+<input class="bg-surface-container-low border-none rounded-md pl-10 pr-4 py-2 text-sm w-64 focus:ring-1 focus:ring-primary/20" placeholder="Buscar diretivas..." type="text"/>
+</div>
+<nav class="flex gap-8">
+<a class="text-slate-500 dark:text-[#45464D] text-sm hover:text-black dark:hover:text-[#000000] transition-all" href="#">Diretivas</a>
+<a class="text-slate-500 dark:text-[#45464D] text-sm hover:text-black dark:hover:text-[#000000] transition-all" href="#">Insights</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-slate-500 dark:text-[#45464D] hover:text-black"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
+<button class="text-slate-500 dark:text-[#45464D] hover:text-black"><span class="material-symbols-outlined" data-icon="history">history</span></button>
+<button class="text-slate-500 dark:text-[#45464D] hover:text-black"><span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span></button>
+<div class="h-8 w-[1px] bg-outline-variant/30 mx-2"></div>
+<img alt="Avatar do Perfil do Usuário" class="w-8 h-8 rounded-full object-cover" data-alt="professional headshot of a business executive in a dark suit with clean lighting and neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDojMHb4WG3w6IW_KBJJlgnCrjxzkjE3vdANWtaHHCGEhDqisCJRfjIrBpwOFWaa5E1e-zCICgWPg4VrpIN3jFse-OaYf5w-FZi4xDUCiE-vSfH8vxpK0H8FhYs13dzIdm2X05cHQHcJcEcLzwWkNUxd8PKzQinP3SivoVzvaN-to4hKNzCX2q9nv4Jp-FQqCMzjLg3A8loWlKUFpkPBHBMoR279EYHN291K7SCKa4mCqN3qHL7k_zZz8AJZXoev0KuejrY62Ri1tg"/>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 p-8 space-y-8">
+<!-- Warning Banner: Architectural Style -->
+<div class="bg-error-container/40 p-4 flex items-center justify-between border-l-4 border-error">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-error" data-icon="gavel">gavel</span>
+<p class="text-on-error-container font-medium text-sm">Apenas Administradores podem gerenciar usuários</p>
+</div>
+<button class="text-xs font-bold uppercase tracking-widest text-on-error-container/60 hover:text-on-error-container transition-colors">Fechar</button>
+</div>
+<!-- Page Header -->
+<div class="flex items-end justify-between">
+<div class="space-y-1">
+<h2 class="font-headline text-4xl font-extrabold tracking-tight text-on-surface">Hub de Governança</h2>
+<p class="text-on-surface-variant font-medium text-sm">Controle de acesso e permissões de usuários corporativos.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-5 py-2.5 bg-surface-container-high text-on-surface-variant font-semibold rounded-md text-sm hover:bg-surface-container-highest transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="settings_input_component">settings_input_component</span>
+                        Permissões
+                    </button>
+<button class="px-5 py-2.5 bg-primary text-on-primary font-semibold rounded-md text-sm hover:opacity-90 transition-opacity flex items-center gap-2 shadow-sm shadow-black/10">
+<span class="material-symbols-outlined text-lg" data-icon="person_add">person_add</span>
+                        Novo Usuário
+                    </button>
+</div>
+</div>
+<!-- Table Module -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low">
+<div class="flex gap-4">
+<span class="px-3 py-1 bg-surface-container-highest text-on-surface font-bold text-[10px] uppercase tracking-widest rounded flex items-center">Usuários Ativos: 124</span>
+<span class="px-3 py-1 bg-surface-container-highest text-on-surface font-bold text-[10px] uppercase tracking-widest rounded flex items-center">Estratégia de Autenticação: SSO/LDAP</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg" data-icon="filter_list">filter_list</span>
+<span class="text-sm font-medium">Filtrar por Perfil</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container">
+<th class="px-8 py-4 font-bold text-[11px] uppercase tracking-widest text-on-surface-variant">Entidade de Usuário</th>
+<th class="px-6 py-4 font-bold text-[11px] uppercase tracking-widest text-on-surface-variant">Perfil / Função</th>
+<th class="px-6 py-4 font-bold text-[11px] uppercase tracking-widest text-on-surface-variant">Tipo de Autenticação</th>
+<th class="px-6 py-4 font-bold text-[11px] uppercase tracking-widest text-on-surface-variant">Status</th>
+<th class="px-8 py-4 font-bold text-[11px] uppercase tracking-widest text-on-surface-variant text-right">Ações</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- User 1 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center font-bold text-primary">MS</div>
+<div>
+<div class="font-bold text-on-surface text-sm">Marcus Sterling</div>
+<div class="text-xs text-on-surface-variant">marcus.s@sovereign.ai</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-on-primary-fixed text-primary-fixed font-bold text-[10px] uppercase">
+<span class="material-symbols-outlined text-[14px]" data-icon="shield_person">shield_person</span>
+                                        Admin
+                                    </div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface-variant">OAuth2 (Google)</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-tertiary-container text-on-tertiary-container">
+                                        Ativo
+                                    </span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="edit_square">edit_square</span>
+</button>
+</td>
+</tr>
+<!-- User 2 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center font-bold text-secondary">EL</div>
+<div>
+<div class="font-bold text-on-surface text-sm">Elena Lombardi</div>
+<div class="text-xs text-on-surface-variant">elena.l@sovereign.ai</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-bold text-[10px] uppercase">
+<span class="material-symbols-outlined text-[14px]" data-icon="account_tree">account_tree</span>
+                                        PO
+                                    </div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface-variant">SAML SSO</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-tertiary-container text-on-tertiary-container">
+                                        Ativo
+                                    </span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="edit_square">edit_square</span>
+</button>
+</td>
+</tr>
+<!-- User 3 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img alt="Perfil de Desenvolvedor" class="w-10 h-10 rounded-full object-cover" data-alt="portrait of a young developer with glasses and a soft smile in a bright creative studio environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeTkBnNDJQikLttEOuFrqEofoRr73RTggx_nur7Su8aXh8ea4nW8TlWwnPbKOcesdgPFzqTSJHqgehNR--NX7TpG9OeaAtQ1p1g6ZvpSCqua7cfQJ18EmF_SJGPHHKVtk30RQ6b6icWVC8-hzYqWofZCySq3s8-_2rlqHmQWLB6iNI-AB3hbld6ijgj_46Rtk7v347Uplh12s-Py_4Z16h6cKuaONdKEU5X5gRqMX-mdKJGmK28trmShYlMqdqMfPPaToPlRJSmHY"/>
+<div>
+<div class="font-bold text-on-surface text-sm">Jordan Vance</div>
+<div class="text-xs text-on-surface-variant">j.vance@sovereign.ai</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-bold text-[10px] uppercase">
+<span class="material-symbols-outlined text-[14px]" data-icon="code">code</span>
+                                        Dev
+                                    </div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface-variant">Keycloak</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-surface-variant text-on-surface-variant">
+                                        Inativo
+                                    </span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="edit_square">edit_square</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination/Footer -->
+<div class="px-8 py-4 flex justify-between items-center text-xs text-on-surface-variant font-medium bg-surface-container-low border-t border-outline-variant/10">
+<div>Exibindo 1-10 de 124 usuários</div>
+<div class="flex gap-2">
+<button class="px-3 py-1 rounded bg-surface-container hover:bg-surface-container-high transition-colors">Anterior</button>
+<button class="px-3 py-1 rounded bg-primary text-on-primary">1</button>
+<button class="px-3 py-1 rounded bg-surface-container hover:bg-surface-container-high transition-colors">2</button>
+<button class="px-3 py-1 rounded bg-surface-container hover:bg-surface-container-high transition-colors">Próximo</button>
+</div>
+</div>
+</div>
+<!-- AI Governance Insight (Grid Breaking) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="md:col-span-2 bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-tertiary-fixed/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+<h4 class="font-headline font-bold text-lg mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-fixed-variant" data-icon="auto_awesome">auto_awesome</span>
+                        Insight de Governança de Acesso
+                    </h4>
+<p class="text-on-surface-variant text-sm max-w-lg mb-6">
+                        Análise preditiva detectou 3 contas com acesso 'Admin' que não efetuaram login nos últimos 90 dias. Recomendamos o rebaixamento de privilégios para garantir a conformidade SOC2.
+                    </p>
+<button class="text-primary font-bold text-xs uppercase tracking-[0.1em] hover:underline">Executar Diretivas de Limpeza →</button>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl flex flex-col justify-between">
+<div>
+<div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-4">Pulso de Segurança</div>
+<div class="text-3xl font-headline font-extrabold text-on-surface">98.4%</div>
+<div class="text-xs text-on-tertiary-container font-semibold mt-1">Pontuação de Saúde: Ideal</div>
+</div>
+<div class="h-2 w-full bg-outline-variant/20 rounded-full overflow-hidden mt-4">
+<div class="h-full bg-tertiary-fixed w-[98.4%]"></div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

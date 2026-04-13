@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quadro de Tarefas do Projeto</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#002109",
+                        "on-surface-variant": "#45464d",
+                        "tertiary-fixed": "#6bff8f",
+                        "surface": "#f7f9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "primary-container": "#131b2e",
+                        "tertiary-fixed-dim": "#4ae176",
+                        "surface-container": "#eceef0",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary-container": "#7c839b",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-background": "#191c1e",
+                        "secondary-container": "#d5e3fc",
+                        "primary": "#000000",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#131b2e",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "surface-container-low": "#f2f4f6",
+                        "primary-fixed-dim": "#bec6e0",
+                        "surface-dim": "#d8dadc",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "surface-tint": "#565e74",
+                        "background": "#f7f9fb",
+                        "inverse-primary": "#bec6e0",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#e6e8ea",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "inverse-surface": "#2d3133",
+                        "tertiary-container": "#002109",
+                        "secondary": "#515f74",
+                        "on-tertiary-container": "#009844",
+                        "outline": "#76777d",
+                        "surface-variant": "#e0e3e5",
+                        "primary-fixed": "#dae2fd",
+                        "secondary-fixed": "#d5e3fc",
+                        "on-tertiary-fixed-variant": "#005321",
+                        "outline-variant": "#c6c6cd",
+                        "on-secondary-container": "#57657a",
+                        "surface-bright": "#f7f9fb",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#000000",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface font-body text-on-surface">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-screen flex flex-col bg-slate-900 dark:bg-slate-950 text-slate-400 font-medium w-64 z-50">
+<div class="p-6">
+<div class="text-xl font-bold text-slate-50 tracking-tight font-headline mb-1">Sovereign Ledger</div>
+<div class="text-xs font-label uppercase tracking-widest text-slate-500">Enterprise Governance</div>
+</div>
+<nav class="flex-1 px-3 space-y-1 mt-4">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 font-medium hover:bg-white/10 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-sm">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 font-medium hover:bg-white/10 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">gavel</span>
+<span class="text-sm">Governance</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-blue-100 bg-white/5 border-r-2 border-blue-400 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">folder_open</span>
+<span class="text-sm">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 font-medium hover:bg-white/10 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+<span class="text-sm">Compliance</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 font-medium hover:bg-white/10 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">psychology</span>
+<span class="text-sm">AI Models</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 font-medium hover:bg-white/10 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+</nav>
+<div class="px-3 py-6 space-y-1">
+<button class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-semibold mb-6 transition-all active:scale-95">New Initiative</button>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 text-sm hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+                Help Center
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 text-sm hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">headset_mic</span>
+                Support
+            </a>
+</div>
+</aside>
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 right-0 left-64 h-16 flex justify-between items-center px-8 z-40 bg-slate-50/70 backdrop-blur-xl">
+<div class="flex items-center gap-8">
+<h1 class="text-slate-900 font-bold font-headline text-lg tracking-tight">Governance Workspace</h1>
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
+<input class="bg-slate-100/50 border-none rounded-lg py-1.5 pl-10 pr-4 text-sm w-full focus:ring-2 focus:ring-slate-200" placeholder="Buscar no workspace..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<nav class="flex gap-6">
+<a class="text-slate-500 hover:text-slate-900 text-sm font-medium transition-colors" href="#">Recent</a>
+<a class="text-slate-500 hover:text-slate-900 text-sm font-medium transition-colors" href="#">Drafts</a>
+<a class="text-slate-500 hover:text-slate-900 text-sm font-medium transition-colors" href="#">Archive</a>
+</nav>
+<div class="h-6 w-[1px] bg-slate-200"></div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-500 hover:text-slate-900">notifications</button>
+<button class="material-symbols-outlined text-slate-500 hover:text-slate-900">history</button>
+<img alt="User Profile" class="w-8 h-8 rounded-full border border-slate-200" data-alt="Close up portrait of a professional male executive in a corporate setting with soft natural office lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPSy3dIcosWuHm0cgwJ6HqJDa2ABeLcasTkoywCYntvf9qLLG0er5v-V9O_1DSjpLhecNj-dO8nTIrTWkHwX5bXuuYRB3ErRzLTKSy6hVvVxP8l7a4PZOFZTAIlbTbwz7u71o83vatJCm7U_yrPoqBAOjW6s9nuL885FmxKstaIF1K5X9vvMHfO_-iFZYoYvmQghFQnzJBHvp-G6SjPEYuBlMv_j_tzLTUC_IUIHkCgsJw5SBHPmW9TYGJSceNWRP0K69NmDcLqU4"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-16 min-h-screen">
+<div class="p-8 max-w-[1600px] mx-auto">
+<!-- Breadcrumb -->
+<nav class="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant mb-6">
+<a class="hover:text-primary transition-colors" href="#">Projetos</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Detalhe do Projeto</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary font-semibold">Quadro de Tarefas</span>
+</nav>
+<!-- Header Section -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="text-4xl font-extrabold font-headline text-on-surface tracking-tight mb-2">Quadro de Tarefas do Projeto</h2>
+<p class="text-on-surface-variant text-lg">Gerenciamento operacional de sprints e entregáveis técnicos do projeto</p>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:opacity-90 transition-all active:scale-95 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                    Nova Tarefa
+                </button>
+</div>
+<!-- Filter Bar -->
+<div class="bg-surface-container-low p-4 rounded-xl mb-8 flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="relative w-72">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">filter_list</span>
+<input class="w-full bg-surface-container-lowest border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-1 focus:ring-outline-variant" placeholder="Filtrar por nome da tarefa..." type="text"/>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-label uppercase tracking-tighter text-on-surface-variant mr-1">Responsável:</span>
+<div class="flex -space-x-2">
+<img alt="User" class="w-8 h-8 rounded-full border-2 border-surface-container-lowest" data-alt="Female professional portrait with neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrw4KvZ4qFxQl4h94qc9AQepX-G8Asw-MTO5saTmBmFe3H4Xcu5aWFdzPKEjPZqerUfMAg-UjXXuM9CdqB1MIiO8FalVg6cYGBdvMTzy1CmWX4AXGQLtu6tSHZHzRmrdNsOv_17_pspEvItUfFJf-sq87iBYsEPg6duPyX9Je4SSXhF-kcAUQ4kPFcH_9ELWEn3IZ3dbMtnmp77H9GJMGMh7GvcmrZzdRYtROGd6OiiH31kAKDJGnAntpYI_kgaaH_EGI-nk5xSCc"/>
+<img alt="User" class="w-8 h-8 rounded-full border-2 border-surface-container-lowest" data-alt="Male professional portrait with creative studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMyd9JNE8raukLp5Gv_bqmCrKhnrh1zlHJMdjkUboLIDgziSxlXIyA6Drni5760FH_m0Duw_amxH4fwC6_qclueD9fJB4_fOENnDyTMXmKhqaqMyUWmurW6nIuGcSdkqnhEd60eSxy4dlqnTAPMw3UOUeP-mjCpd79b7aYiulxpghC2FNhyvckmilfTItO8HJFwwdGsOdFpME8ljOJ0V9rdkwMcX8C19e-3qRSqtXqFgVavN8QMEQG0NNdlntDdQYL-ZA11bn9ITs"/>
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-lowest bg-surface-container-high flex items-center justify-center text-[10px] font-bold">+4</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-xs font-label uppercase tracking-tighter text-on-surface-variant">Prioridade:</span>
+<button class="px-4 py-1.5 rounded-full text-xs font-bold bg-error-container text-on-error-container hover:opacity-80 transition-opacity">Alta</button>
+<button class="px-4 py-1.5 rounded-full text-xs font-bold bg-surface-container-highest text-on-surface-variant hover:opacity-80 transition-opacity">Média</button>
+<button class="px-4 py-1.5 rounded-full text-xs font-bold bg-surface-container-highest text-on-surface-variant hover:opacity-80 transition-opacity">Baixa</button>
+</div>
+</div>
+<!-- Kanban Board -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<!-- Column: A Fazer -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-slate-400"></span>
+<h3 class="text-sm font-bold font-headline uppercase tracking-widest text-on-surface">A Fazer</h3>
+<span class="text-xs font-medium text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">3</span>
+</div>
+<button class="material-symbols-outlined text-outline hover:text-primary">more_horiz</button>
+</div>
+<div class="space-y-4">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] hover:shadow-md transition-shadow group cursor-pointer border border-transparent hover:border-outline-variant/30">
+<div class="flex justify-between items-start mb-3">
+<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-error-container/50 text-on-error-container">Alta</span>
+<span class="material-symbols-outlined text-[18px] text-outline opacity-0 group-hover:opacity-100 transition-opacity">edit_note</span>
+</div>
+<h4 class="text-sm font-bold text-on-surface leading-tight mb-4">Revisão de Protocolos de Segurança Zero-Trust</h4>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 text-on-surface-variant text-[11px] font-medium">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+                                    12 Out
+                                </div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-tertiary-fixed-dim" data-weight="fill">verified_user</span>
+<img alt="Assignee" class="w-6 h-6 rounded-full" data-alt="Portrait of a female professional architect working in a modern office" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWbvk-Cg0Vtpf_ff_PNtFARqWCFXdLT8z3tt3-8X-8kkGS-vsUa1P99jgXbDyFt9Baz3MbHkSLMQMmVkMC5NLAle7PLE4V-vKbHyS07Bo35yoVCaCpVR0ozBb-ogHVrZQit2dDfC8hZ5Z0wS59qVX4hWNamugxUT1jEFUpZnR4rCb5Xf6RAKzUDIvl0KZlJUqV9340mGz1qn0Pxea2Mq9izKBaP56jyyeEBi9HVH76k0Q0C-PUh1sd22VekfDPQSB01rtqCy03BR0"/>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] hover:shadow-md transition-shadow group cursor-pointer border border-transparent hover:border-outline-variant/30">
+<div class="flex justify-between items-start mb-3">
+<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container">Média</span>
+</div>
+<h4 class="text-sm font-bold text-on-surface leading-tight mb-4">Mapeamento de Fluxo de Dados Transfronteiriços</h4>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 text-on-surface-variant text-[11px] font-medium text-error">
+<span class="material-symbols-outlined text-[16px]">event_busy</span>
+                                    Atrasado
+                                </div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-outline">attach_file</span>
+<img alt="Assignee" class="w-6 h-6 rounded-full" data-alt="Portrait of a male professional executive with a clean minimalist background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwyidCOiZ5_BoUshldZGatw5dxc_54tkaTKQVnKqKZFDNaw0BqNNakLbm0eAaMkKeuIu2nxAb57oT69Wf2dbIIxbTfAtLppqFfjFejjdjeLbn0hb-yCqZRXejAEV5FlVazHMFVWg-W75iShx1wZH2tJlo6i2DJETZ-sdAmN7X8x09OsfB5gVst6pXbL7a3d_qiHwR7xtCFvkLLXCxvH1VHTTzQxzQTrozrWOMSe9k-_q_BaWN9XtQZdgrtlnkwLWIEDFqi4R1IkXA"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Em Execução -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-blue-500"></span>
+<h3 class="text-sm font-bold font-headline uppercase tracking-widest text-on-surface">Em Execução</h3>
+<span class="text-xs font-medium text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">1</span>
+</div>
+<button class="material-symbols-outlined text-outline hover:text-primary">more_horiz</button>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] border-l-4 border-blue-500 group cursor-pointer">
+<div class="flex justify-between items-start mb-3">
+<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-error-container/50 text-on-error-container">Alta</span>
+</div>
+<h4 class="text-sm font-bold text-on-surface leading-tight mb-4">Implementação de Criptografia Homomórfica no Core AI</h4>
+<div class="mb-4">
+<div class="flex justify-between text-[10px] mb-1 font-bold text-on-surface-variant">
+<span>Progresso</span>
+<span>65%</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-blue-500 h-full w-[65%] rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 text-on-surface-variant text-[11px] font-medium">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+                                    Em progresso
+                                </div>
+<img alt="Assignee" class="w-6 h-6 rounded-full" data-alt="Portrait of a young creative professional in a high-tech studio environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChbEbBIPKIy1fft3yZ0_iheU0g-J3JNxvy3khZ6nH07I_5SR_Z3G0wVWe1j4mvfSBtMGT4qlah3G8V8TXJS9geihQrNbX-9Op7S1wBfZTaEMt2GyNkX36Iptvtqnf-yNnZrNzCGegISbeY1_ZchDugClZNBgZ4j2C8UbYiof50HW8KQs9OnvVY2kRkVosRlWVZbIRE6b8QlZbAQQsDGN7gK-iwLtNiYGWlXCTOjxdoAwVsjz0hxHrVQhmZFnOsSHEOx7kIBuIkHv0"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Revisão Técnica -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-amber-500"></span>
+<h3 class="text-sm font-bold font-headline uppercase tracking-widest text-on-surface">Revisão Técnica</h3>
+<span class="text-xs font-medium text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">2</span>
+</div>
+<button class="material-symbols-outlined text-outline hover:text-primary">more_horiz</button>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] group cursor-pointer border border-transparent">
+<div class="flex justify-between items-start mb-3">
+<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container">Média</span>
+</div>
+<h4 class="text-sm font-bold text-on-surface leading-tight mb-4">Auditoria de Logs de Acesso da Infraestrutura Cloud</h4>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 text-on-surface-variant text-[11px] font-medium">
+<span class="material-symbols-outlined text-[16px] text-amber-500">rate_review</span>
+                                    Aguardando aprovação
+                                </div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-outline">link</span>
+<img alt="Assignee" class="w-6 h-6 rounded-full" data-alt="Professional profile photo of a corporate executive woman with soft bokeh background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3ZnkZKZ2dVCGyFeqeSWoGCsH0pGVM2jqx-PY_9wBGzVjmX7hhhzIiXkaTC_xeUKAj8d6R_VhGasoC0JePJ-3UnC2_elDVoT5YHrAy9PoGdQcHd7Q7PHhGNvi-_ZuubLf38nu7vtD6-yNk-pn9FBK6A_QnfwQrhN8OKo6dL7ss84QhFD1n9Cta7-JdzbHapRVEIB9l2soORH4idAtftdLeF8xMffZcpCYfUN9aWBW0KbUWhAm8rjNFvIul64aptN1-JUcVh2vKFlc"/>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] group cursor-pointer border border-transparent">
+<div class="flex justify-between items-start mb-3">
+<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container">Baixa</span>
+</div>
+<h4 class="text-sm font-bold text-on-surface leading-tight mb-4">Atualização de Documentação API v2.4</h4>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 text-on-surface-variant text-[11px] font-medium">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+                                    Em revisão
+                                </div>
+<img alt="Assignee" class="w-6 h-6 rounded-full" data-alt="Portrait of a male professional developer in a modern office setup" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZGNAC9SJpQNS6v4FWMeOqY_-T3JfAoYEs8wLWvKFjWyipIevEt0YaWr2ggc8BEqzoHjeslrDWb14njbnfwKoQpupVKALNZjr3MGPpkp9UO7WgomScU4SRx1H9RdKyjvgAcOI6vQpAx1PNMmDDxfrJnjIh82_Xgx1WTk8SnxRxx1SIlT9e5LZi2w2diC5Ed4H20ygQlXQqJ6DDOdtWhiA2kmpHyn00f87rcQhwFh25Rr5Xr9SWYttjtVaxadQbSqgh7Z4cm1GJPqA"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Concluído -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<h3 class="text-sm font-bold font-headline uppercase tracking-widest text-on-surface">Concluído</h3>
+<span class="text-xs font-medium text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">1</span>
+</div>
+<button class="material-symbols-outlined text-outline hover:text-primary">more_horiz</button>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-lowest/60 p-5 rounded-xl shadow-none border border-surface-container-highest group cursor-pointer">
+<div class="flex justify-between items-start mb-3">
+<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tertiary-container text-on-tertiary-container">Concluído</span>
+</div>
+<h4 class="text-sm font-bold text-on-surface/50 leading-tight mb-4 line-through">Setup Inicial do Cluster de Governança</h4>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 text-on-tertiary-container text-[11px] font-bold">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                    Validado
+                                </div>
+<div class="flex -space-x-1.5">
+<img alt="Assignee" class="w-5 h-5 rounded-full border border-surface-container-lowest" data-alt="Close up portrait of a professional male executive" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9yYyLQy1YW4nqWytep4gReWsiHLnDqHrCHCnvV6CJbeBRbJMfAFBzZBYMEJDx54a3-ymu7bTOXZr7-kTORLcBgzxMMq6B5pMEE5EZLHuWtbInbfgExzEVfDDWy7-Rv9eqS8UCrHoF0-ZM-o_HmkqTA66iryChTRv-ItVYMpV57lo0chvOe0RZd4z3AGwd7qj3qvYLm0ng7-rQNozmOcHoSnced1SkqUBcCPlxx7RnfCq5NUG3Oork1EW8NQGjqntR8LonA-oembo"/>
+<img alt="Assignee" class="w-5 h-5 rounded-full border border-surface-container-lowest" data-alt="Portrait of a female professional architect" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYkX2vLgNOxFuCQIpaMQTqG3h0mHz8SP8a3CzbCBK9s8At-A5bggW1rhs1csQ0NvkI-_1OCTtEa7xh5rE6Hfbv1Xq7Z0Lj7D-Bq2CwecToRZPgnSqRbK2Gt8tt0MWPYsy4OS4MoOevz48IFTjWY-KWYJwfxBAfKi5My5Oqr4Zfst09AFJdY2tdltjDw0PekwSUhsoKJzivXs94xBW9J7yCCpHNuj8SdcqPbQKfko2xI5AOzfnJqnJZQ4P8CK99Z6b4JimogtLvo7A"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Insight Section (Custom Component) -->
+<div class="mt-12 p-1 rounded-xl bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200">
+<div class="bg-surface-container-lowest rounded-[10px] p-6 flex items-start gap-6">
+<div class="w-12 h-12 rounded-lg bg-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-tertiary-fixed text-[28px]" data-weight="fill">psychology</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] font-bold font-label uppercase tracking-[0.2em] text-primary">Sovereign Insight</span>
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed shadow-[0_0_8px_#6bff8f]"></span>
+</div>
+<h5 class="text-lg font-headline font-bold text-on-surface mb-2">Otimização de Gargalo Detectada</h5>
+<p class="text-on-surface-variant text-sm leading-relaxed max-w-3xl">
+                            O status <span class="font-bold text-on-surface">Revisão Técnica</span> apresenta um tempo médio de retenção 24% superior à média do trimestre. Recomenda-se a alocação de um revisor adicional para as tarefas de <span class="italic">Infraestrutura</span> para evitar atrasos na próxima sprint.
+                        </p>
+</div>
+<button class="px-5 py-2 border border-outline-variant rounded-lg text-xs font-bold hover:bg-surface-container transition-colors">Ver Relatório Completo</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

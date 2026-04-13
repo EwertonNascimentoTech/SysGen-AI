@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#e0e3e5",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "on-primary-fixed": "#131b2e",
+                        "surface-dim": "#d8dadc",
+                        "tertiary-fixed-dim": "#4ae176",
+                        "on-tertiary-fixed-variant": "#005321",
+                        "inverse-surface": "#2d3133",
+                        "secondary-container": "#d5e3fc",
+                        "on-tertiary-fixed": "#002109",
+                        "on-surface-variant": "#45464d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#131b2e",
+                        "on-secondary-container": "#57657a",
+                        "primary-fixed-dim": "#bec6e0",
+                        "outline-variant": "#c6c6cd",
+                        "on-surface": "#191c1e",
+                        "background": "#f7f9fb",
+                        "on-tertiary-container": "#009844",
+                        "tertiary-fixed": "#6bff8f",
+                        "surface-container": "#eceef0",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-primary-container": "#7c839b",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#f7f9fb",
+                        "tertiary-container": "#002109",
+                        "on-background": "#191c1e",
+                        "primary": "#000000",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "inverse-on-surface": "#eff1f3",
+                        "error-container": "#ffdad6",
+                        "surface": "#f7f9fb",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e6e8ea",
+                        "inverse-primary": "#bec6e0",
+                        "error": "#ba1a1a",
+                        "outline": "#76777d",
+                        "secondary-fixed": "#d5e3fc",
+                        "surface-tint": "#565e74",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "secondary": "#515f74",
+                        "primary-fixed": "#dae2fd",
+                        "surface-container-low": "#f2f4f6",
+                        "tertiary": "#000000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- SideNavBar -->
+<aside class="bg-slate-900 dark:bg-[#131B2E] h-screen w-64 fixed left-0 top-0 flex flex-col h-full py-6 font-['Manrope'] tracking-tight z-50">
+<div class="px-6 mb-10">
+<h1 class="text-lg font-bold text-white dark:text-[#DAE2FD]">The Sovereign Ledger</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-on-primary-container mt-1">Governança de Projetos IA</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<a class="flex items-center px-6 py-3 text-[#DAE2FD] font-semibold border-r-2 border-[#DAE2FD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">folder_managed</span>
+<span class="text-sm">Projetos</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">view_kanban</span>
+<span class="text-sm">Kanban</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">description</span>
+<span class="text-sm">Modelos</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">hub</span>
+<span class="text-sm">GitHub/Wiki</span>
+</a>
+<a class="flex items-center px-6 py-3 text-slate-400 dark:text-[#C6C6CD] hover:bg-slate-800 dark:hover:bg-[#1C253B] transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3">integration_instructions</span>
+<span class="text-sm">Hub Cursor</span>
+</a>
+</nav>
+<div class="px-6 pt-6 space-y-1 border-t border-slate-800">
+<a class="flex items-center py-2 text-slate-400 dark:text-[#C6C6CD] hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined mr-3 text-lg">help_outline</span>
+<span class="text-xs">Ajuda</span>
+</a>
+<a class="flex items-center py-2 text-slate-400 dark:text-[#C6C6CD] hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined mr-3 text-lg">policy</span>
+<span class="text-xs">Privacidade</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="bg-white/70 dark:bg-[#F7F9FB]/70 backdrop-blur-xl docked full-width top-0 sticky z-40 flex justify-between items-center px-8 h-16 ml-64 font-['Inter'] text-sm">
+<div class="flex items-center space-x-6">
+<h2 class="font-bold text-slate-900 tracking-tight">Registro de Projeto</h2>
+<div class="flex space-x-4">
+<a class="text-slate-500 dark:text-[#45464D] hover:text-black dark:hover:text-[#000000] transition-all ease-in-out" href="#">Diretrizes</a>
+<a class="text-black dark:text-[#000000] font-bold border-b-2 border-black transition-all ease-in-out" href="#">Insights</a>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<div class="relative flex items-center bg-surface-container-low px-3 py-1.5 rounded-lg w-64">
+<span class="material-symbols-outlined text-outline text-lg mr-2">search</span>
+<input class="bg-transparent border-none text-xs focus:ring-0 p-0 w-full text-on-surface" placeholder="Buscar diretrizes..." type="text"/>
+</div>
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDeZEb3_xDA3mcvVUvxELUoiWZATDlLQ5kg1sH6jO8wXEU4Vb7LAx64M5rnuN2taPdKjpYe_0tuLqIP6zFbu-yVeUiIKB29TfPsU_Vy9g-3xlQoOEeT0db0M4C0Feh2RAhJAXEAQ2s1oNBa-zXeEheJW661d7vo2t6GzoRXMzb5EUgUz5f8wMWztF0QHI_iMlxxCL4bBYrc6l0MmRELCHSvREHPiUDf15F8lYeUd-NLYl-AQc1IM9i9fLJLrKFs-h2Ig1pucH0sQ4"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 p-8 max-w-6xl mx-auto">
+<!-- Header & Stepper Indication -->
+<div class="mb-12">
+<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Fluxo de Registro</p>
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface mb-6">Iniciar Nova Iniciativa</h1>
+<!-- Custom Visual Stepper -->
+<div class="flex items-center space-x-4">
+<div class="flex items-center">
+<span class="h-8 w-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-xs font-bold">1</span>
+<span class="ml-3 text-xs font-semibold uppercase tracking-wider text-primary">Fundamentos</span>
+</div>
+<div class="h-px w-8 bg-outline-variant"></div>
+<div class="flex items-center opacity-40">
+<span class="h-8 w-8 rounded-full bg-surface-container-high text-on-surface flex items-center justify-center text-xs font-bold border border-outline-variant">2</span>
+<span class="ml-3 text-xs font-semibold uppercase tracking-wider">Inteligência</span>
+</div>
+</div>
+</div>
+<form class="space-y-12">
+<!-- Section 1: Main Data -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<div class="md:col-span-4">
+<h3 class="text-xl font-bold tracking-tight">Dados Principais</h3>
+<p class="text-sm text-on-surface-variant mt-2 leading-relaxed">Defina a identidade estrutural e a liderança da iniciativa do projeto.</p>
+</div>
+<div class="md:col-span-8 bg-surface-container-low p-8 rounded-xl space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="md:col-span-2">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Nome do Projeto</label>
+<input class="w-full bg-surface-container-lowest border-none rounded-lg focus:ring-1 focus:ring-primary py-3 text-sm" placeholder="ex: Projeto Aethelgard Fase II" type="text"/>
+</div>
+<div class="md:col-span-2">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Descrição</label>
+<textarea class="w-full bg-surface-container-lowest border-none rounded-lg focus:ring-1 focus:ring-primary py-3 text-sm" placeholder="Descreva o valor estratégico e o escopo..." rows="3"></textarea>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Diretoria</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-lg focus:ring-1 focus:ring-primary py-3 text-sm">
+<option>Infraestrutura e Crescimento</option>
+<option>Engenharia de Produto</option>
+<option>Operações Estratégicas</option>
+</select>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Product Owner</label>
+<input class="w-full bg-surface-container-lowest border-none rounded-lg focus:ring-1 focus:ring-primary py-3 text-sm" placeholder="Buscar membros da equipe..." type="text"/>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Metodologia</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-lg focus:ring-1 focus:ring-primary py-3 text-sm">
+<option>Agile - Scrum</option>
+<option>Agile - Kanban</option>
+<option>Híbrido / Cascata</option>
+</select>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Modelo de Kanban</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-lg focus:ring-1 focus:ring-primary py-3 text-sm">
+<option>Padrão Corporativo</option>
+<option>Sandbox de R&amp;D</option>
+<option>Resposta a Incidentes</option>
+</select>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: GitHub Integration -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<div class="md:col-span-4">
+<h3 class="text-xl font-bold tracking-tight">Integração GitHub</h3>
+<p class="text-sm text-on-surface-variant mt-2 leading-relaxed">Estabeleça a conexão técnica entre a governança e a base de código.</p>
+</div>
+<div class="md:col-span-8 bg-surface-container-low p-8 rounded-xl space-y-6">
+<div class="flex items-center p-4 bg-surface-container-lowest rounded-lg border border-outline-variant border-opacity-20 mb-4">
+<span class="material-symbols-outlined text-primary mr-3">link</span>
+<div class="flex-1">
+<p class="text-xs font-bold text-on-surface">Conta Conectada</p>
+<p class="text-[10px] text-on-surface-variant">sovereign-ledger-org</p>
+</div>
+<button class="text-[10px] font-bold uppercase tracking-widest text-primary hover:underline" type="button">Alterar</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Repositório</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-lg focus:ring-1 focus:ring-primary py-3 text-sm">
+<option>ledger-core-engine</option>
+<option>governance-ui-kit</option>
+<option>ai-logic-gateway</option>
+</select>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Branch/Tag Padrão</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-lg focus:ring-1 focus:ring-primary py-3 text-sm">
+<option>main</option>
+<option>staging</option>
+<option>v2.1.0-rc</option>
+</select>
+</div>
+</div>
+<div class="flex items-center space-x-4 pt-4">
+<span class="material-symbols-outlined text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<p class="text-xs text-on-surface-variant italic">Webhooks e permissões validados. Integração ativa.</p>
+</div>
+</div>
+</section>
+<!-- Section 3: Anexos & Evidence -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<div class="md:col-span-4">
+<h3 class="text-xl font-bold tracking-tight">Anexos e Evidências</h3>
+<p class="text-sm text-on-surface-variant mt-2 leading-relaxed">Faça o upload de casos de negócio, documentos de conformidade ou diagramas arquiteturais iniciais.</p>
+</div>
+<div class="md:col-span-8 bg-surface-container-low p-8 rounded-xl">
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-10 flex flex-col items-center justify-center bg-surface-container-lowest/50 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-outline group-hover:scale-110 transition-transform mb-4 text-3xl">cloud_upload</span>
+<p class="text-sm font-semibold text-on-surface">Arraste e solte documentos de governança</p>
+<p class="text-xs text-on-surface-variant mt-1">PDF, DOCX ou PNG até 25MB</p>
+<button class="mt-6 px-4 py-2 bg-surface-container-high rounded-md text-[10px] font-bold uppercase tracking-widest text-on-surface hover:bg-surface-container-highest transition-colors" type="button">Procurar Arquivos</button>
+</div>
+</div>
+</section>
+<!-- Section 4: Cursor Hub Linking -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<div class="md:col-span-4">
+<div class="flex items-center mb-2">
+<h3 class="text-xl font-bold tracking-tight">Vínculo com Hub Cursor</h3>
+<span class="ml-3 px-2 py-0.5 bg-tertiary-container text-on-tertiary-container text-[8px] font-bold uppercase tracking-widest rounded-full">IA Ativada</span>
+</div>
+<p class="text-sm text-on-surface-variant mt-2 leading-relaxed">Aplique regras de desenvolvimento de IA e habilidades de engenharia especializadas ao workspace deste projeto.</p>
+</div>
+<div class="md:col-span-8 bg-surface-container-low p-8 rounded-xl space-y-8">
+<!-- Insight Card: Break the grid slightly -->
+<div class="relative -mx-4 md:-mx-8 p-6 bg-gradient-to-br from-primary-container to-[#1C253B] rounded-lg shadow-2xl overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-8xl">auto_awesome</span>
+</div>
+<div class="relative z-10">
+<h4 class="text-[#6BFF8F] text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center">
+<span class="material-symbols-outlined text-sm mr-2" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                                Sugestão Estratégica
+                            </h4>
+<p class="text-[#DAE2FD] text-sm font-medium max-w-md leading-relaxed">Com base na metodologia "Scrum" e no repositório "Core Engine", recomendamos ativar as regras de <span class="text-white underline decoration-[#6BFF8F]/40 underline-offset-4">Reforço de Segurança</span> e <span class="text-white underline decoration-[#6BFF8F]/40 underline-offset-4">Governança de Refatoração</span>.</p>
+</div>
+</div>
+<div class="space-y-6">
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-4">Selecionar Regras do Hub</label>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<label class="flex items-center p-4 bg-surface-container-lowest rounded-lg border border-transparent hover:border-primary-fixed cursor-pointer transition-all">
+<input class="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary mr-3" type="checkbox"/>
+<div class="flex-1">
+<p class="text-xs font-bold">DX Padrão</p>
+<p class="text-[10px] text-on-surface-variant">Formatação e linting padrão</p>
+</div>
+</label>
+<label class="flex items-center p-4 bg-surface-container-lowest rounded-lg border border-transparent hover:border-primary-fixed cursor-pointer transition-all">
+<input checked="" class="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary mr-3" type="checkbox"/>
+<div class="flex-1">
+<p class="text-xs font-bold">Reforço de Segurança</p>
+<p class="text-[10px] text-on-surface-variant">Checagem de padrões alinhados ao OWASP</p>
+</div>
+</label>
+<label class="flex items-center p-4 bg-surface-container-lowest rounded-lg border border-transparent hover:border-primary-fixed cursor-pointer transition-all">
+<input checked="" class="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary mr-3" type="checkbox"/>
+<div class="flex-1">
+<p class="text-xs font-bold">Bloqueio de Arquitetura</p>
+<p class="text-[10px] text-on-surface-variant">Aplicação estrita de padrões de design</p>
+</div>
+</label>
+<label class="flex items-center p-4 bg-surface-container-lowest rounded-lg border border-transparent hover:border-primary-fixed cursor-pointer transition-all">
+<input class="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary mr-3" type="checkbox"/>
+<div class="flex-1">
+<p class="text-xs font-bold">Governança de Refatoração</p>
+<p class="text-[10px] text-on-surface-variant">Monitoramento contínuo de débito técnico</p>
+</div>
+</label>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Final Actions -->
+<div class="flex justify-end items-center space-x-6 border-t border-outline-variant/30 pt-10 pb-20">
+<button class="text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors" type="button">Cancelar</button>
+<button class="px-10 py-4 bg-primary text-on-primary rounded-md text-xs font-bold uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] transition-all active:scale-95" type="submit">Salvar</button>
+</div>
+</form>
+</main>
+<!-- Right Side Sidebar (Floating Insight or Progress) -->
+<aside class="fixed right-8 top-24 w-64 hidden xl:block">
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/20 shadow-sm">
+<h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-6">Métricas de Conclusão</h4>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-[10px] font-semibold">Pontuação de Integridade</span>
+<span class="text-[10px] font-bold">78%</span>
+</div>
+<div class="h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 78%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-[10px] font-semibold">Profundidade de Metadados</span>
+<span class="text-[10px] font-bold">45%</span>
+</div>
+<div class="h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim" style="width: 45%"></div>
+</div>
+</div>
+</div>
+<div class="mt-8 p-4 bg-surface-container-low rounded-lg">
+<p class="text-[10px] leading-relaxed text-on-surface-variant italic">"Projetos com integração total com o GitHub e regras de Hub mostram uma velocidade de entrega 30% maior."</p>
+</div>
+</div>
+</aside>
+</body></html>

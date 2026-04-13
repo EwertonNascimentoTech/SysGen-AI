@@ -10,7 +10,7 @@ class SystemGeneralSettings(Base):
     __tablename__ = "system_general_settings"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    org_name: Mapped[str] = mapped_column(String(255), default="Sovereign Enterprise AI")
+    org_name: Mapped[str] = mapped_column(String(255), default="SysGen AI")
     locale: Mapped[str] = mapped_column(String(32), default="pt-BR")
     audit_strict: Mapped[bool] = mapped_column(Boolean, default=True)
     ai_indexing: Mapped[bool] = mapped_column(Boolean, default=False)
