@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode, urlparse
 
@@ -18,7 +19,14 @@ from app.models.user_identity import UserIdentity
 from app.schemas.auth import LoginRequest, MeResponse, Token
 from app.services.token_crypt import encrypt_token
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+def _email_match_clause(normalized: str):
+    """Compara e-mail na base com trim + lower (evita falhas por espaços)."""
+    return func.lower(func.trim(User.email)) == normalized
 
 
 def _safe_oauth_next_path(raw: str | None) -> str | None:
@@ -51,7 +59,7 @@ async def login(body: LoginRequest, session: AsyncSession = Depends(get_session)
     result = await session.execute(
         select(User)
         .options(selectinload(User.roles))
-        .where(func.lower(User.email) == email_norm)
+        .where(func.lower(func.trim(User.email)) == email_norm)
     )
     user = result.scalar_one_or_none()
     if not user or not verify_password(body.password, user.hashed_password):
@@ -147,27 +155,102 @@ async def github_callback(
         gh_user = ur.json()
         login = gh_user.get("login") or ""
         gh_id = str(gh_user.get("id") or "")
+        if not gh_id:
+            return RedirectResponse(f"{front}?error=github_user", status_code=302)
 
         er = await client.get(
             "https://api.github.com/user/emails",
             headers={"Authorization": f"Bearer {access}", "Accept": "application/vnd.github+json"},
         )
-        if er.status_code != 200:
-            return RedirectResponse(f"{front}?error=github_email", status_code=302)
-        emails = er.json()
-        primary = next((e for e in emails if e.get("primary")), None)
-        verified = next((e for e in emails if e.get("verified")), None)
-        chosen = primary or verified or (emails[0] if emails else None)
-        email = (chosen or {}).get("email")
-        if not email:
-            return RedirectResponse(f"{front}?error=no_email", status_code=302)
+        emails: list = er.json() if er.status_code == 200 else []
+        if not isinstance(emails, list):
+            emails = []
+        verified_entries = [e for e in emails if e.get("verified") and (e.get("email") or "").strip()]
+        # Primário primeiro: muitas contas têm noreply como primário e o e-mail corporativo só como secundário verificado.
+        verified_entries.sort(key=lambda e: (not bool(e.get("primary")), (e.get("email") or "").lower()))
+        # Com scope user:email o GET /user pode trazer e-mail ainda que falte entrada na lista.
+        profile_email = (gh_user.get("email") or "").strip()
 
+    # 1) Conta GitHub já vinculada — permite login mesmo se o e-mail na plataforma ou no GitHub mudou.
     result = await session.execute(
-        select(User).options(selectinload(User.roles)).where(func.lower(User.email) == email.lower())
+        select(User)
+        .options(selectinload(User.roles))
+        .join(UserIdentity, UserIdentity.user_id == User.id)
+        .where(UserIdentity.provider == "github", UserIdentity.provider_user_id == gh_id)
     )
     user = result.scalar_one_or_none()
-    if not user or not user.is_active:
-        return RedirectResponse(f"{front}?error=no_user", status_code=302)
+    if user:
+        if not user.is_active:
+            return RedirectResponse(f"{front}?error=inactive_user", status_code=302)
+    else:
+        candidate_emails: list[str] = []
+        seen: set[str] = set()
+        for entry in verified_entries:
+            em = (entry.get("email") or "").strip().lower()
+            if em and em not in seen:
+                seen.add(em)
+                candidate_emails.append(em)
+        if profile_email:
+            em = profile_email.lower()
+            if em not in seen:
+                seen.add(em)
+                candidate_emails.append(em)
+
+        if not candidate_emails:
+            err_q = "github_email" if er.status_code != 200 else "no_email"
+            return RedirectResponse(f"{front}?error={err_q}", status_code=302)
+
+        for em in candidate_emails:
+            result = await session.execute(
+                select(User).options(selectinload(User.roles)).where(_email_match_clause(em))
+            )
+            u = result.scalar_one_or_none()
+            if u and u.is_active:
+                user = u
+                break
+
+        # E-mails ainda «não verificados» no GitHub (pendentes de clique no link) — última tentativa antes do login manual.
+        if not user:
+            tried = set(candidate_emails)
+            for entry in emails:
+                if entry.get("verified"):
+                    continue
+                em = (entry.get("email") or "").strip().lower()
+                if not em or em in tried:
+                    continue
+                tried.add(em)
+                result = await session.execute(
+                    select(User).options(selectinload(User.roles)).where(_email_match_clause(em))
+                )
+                u = result.scalar_one_or_none()
+                if u and u.is_active:
+                    user = u
+                    logger.info("github_oauth_matched_unverified_email gh_login=%s", login)
+                    break
+
+        # Último recurso: admin definiu o login GitHub no utilizador (e-mail GitHub ≠ e-mail da plataforma).
+        if not user and login:
+            result = await session.execute(
+                select(User)
+                .options(selectinload(User.roles))
+                .where(
+                    User.github_login.isnot(None),
+                    func.lower(func.trim(User.github_login)) == login.strip().lower(),
+                    User.is_active.is_(True),
+                )
+            )
+            user = result.scalar_one_or_none()
+
+        if not user:
+            logger.warning(
+                "github_oauth_no_user gh_login=%s gh_id=%s verified_email_candidates=%s profile_email=%s github_login_prefill=%s",
+                login,
+                gh_id,
+                len(candidate_emails),
+                bool(profile_email),
+                bool(login),
+            )
+            return RedirectResponse(f"{front}?error=no_user", status_code=302)
 
     user.github_login = login
     existing = await session.execute(

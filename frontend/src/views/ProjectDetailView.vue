@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
-import { api, ApiError, type GovernanceNoticePayload } from "@/api/client";
+import { api, apiBlob, apiText, ApiError, type GovernanceNoticePayload } from "@/api/client";
+import { prepareStitchExportHtmlForViewer } from "@/utils/stitchExportHtml";
+import PrdChatPanel from "@/components/PrdChatPanel.vue";
+import PrdVersionsPanel from "@/components/PrdVersionsPanel.vue";
+import PrototipoVersionsPanel from "@/components/PrototipoVersionsPanel.vue";
 import ProjectTaskBoard from "@/components/ProjectTaskBoard.vue";
 import { useAuthStore } from "@/stores/auth";
+
+/** Google Stitch — o URL pode ser substituído em build (VITE_STITCH_URL). */
+const STITCH_APP_URL =
+  (import.meta.env.VITE_STITCH_URL as string | undefined)?.trim() || "https://stitch.withgoogle.com/";
 
 type Project = {
   id: number;
@@ -17,6 +25,12 @@ type Project = {
   template_id: number;
   github_repo_url: string | null;
   github_tag: string | null;
+  /** ISO; última gravação do PRD (MD) a partir do chat. */
+  prd_markdown_saved_at?: string | null;
+  /** Última versão registada em `project_prd_versions`. */
+  prd_current_version?: number | null;
+  prototipo_prompt_saved_at?: string | null;
+  prototipo_current_version?: number | null;
   planned_start: string;
   planned_end: string;
   ended_at: string | null;
@@ -32,9 +46,19 @@ type DetailTab =
   | "auditoria"
   | "prd"
   | "prototipo"
+  | "planejamento"
   | "desenvolvimento";
 
-type MainTab = "resumo" | "kanban" | "anexos" | "auditoria" | "prd" | "prototipo" | "desenvolvimento" | "configuracoes";
+type MainTab =
+  | "resumo"
+  | "kanban"
+  | "anexos"
+  | "auditoria"
+  | "prd"
+  | "prototipo"
+  | "planejamento"
+  | "desenvolvimento"
+  | "configuracoes";
 type ConfigTab = "github" | "wiki" | "cursor";
 
 type Col = { id: number; title: string; position: number; visible_detail_tabs?: string[] };
@@ -80,6 +104,32 @@ const activeTab = ref<DetailTab>("resumo");
 /** OAuth GitHub configurado no servidor (client id/secret). */
 const ghOAuthConfigured = ref(false);
 let pollTimer: ReturnType<typeof setInterval> | null = null;
+const prdVersionsPanelRef = ref<{ reload: () => void | Promise<void> } | null>(null);
+const prototipoVersionsPanelRef = ref<{ reload: () => void | Promise<void> } | null>(null);
+const prototipoGenerating = ref(false);
+const prototipoPrompt = ref("");
+const prototipoPromptErr = ref("");
+const prototipoPromptMsg = ref("");
+const prototipoPromptVersion = ref<number | null>(null);
+const prototipoPrdVersion = ref<number | null>(null);
+/** API MCP Google Stitch (backend + STITCH_API_KEY) — alternativa ao site web. */
+const stitchApiReady = ref(false);
+const stitchApiDetail = ref("");
+const stitchApiGenerating = ref(false);
+const stitchApproveExporting = ref(false);
+/** Ficheiros relativos listados no MinIO (último export aprovado) — usado pelas galerias Entregas. */
+const stitchMinioFiles = ref<string[]>([]);
+/** Metadados por pasta (`meta.json` no MinIO): ordem do export e título legível. */
+const stitchMinioFolderMeta = ref<Record<string, { exportOrder?: number; title?: string; htmlUrl?: string }>>({});
+const stitchApiResult = ref<{
+  html_url: string;
+  image_url: string;
+  stitch_project_id: string;
+  screen_id: string;
+  approved_at?: string | null;
+  approved_by_email?: string | null;
+  export_storage_prefix?: string | null;
+} | null>(null);
 const showDeleteModal = ref(false);
 const deleting = ref(false);
 /** Evita cliques repetidos enquanto o macro Kanban valida regras e grava o movimento. */
@@ -99,12 +149,365 @@ const editDraft = ref({
 
 const canMove = computed(() => auth.hasRole("admin", "coordenador"));
 const canSeeAudit = computed(() => auth.hasRole("admin", "coordenador"));
+const canEditPrototipoPrompt = computed(() => auth.hasRole("admin", "coordenador", "po"));
 
-const ALL_DETAIL_TABS: DetailTab[] = [
+function stitchMinioFileSortRank(name: string): number {
+  const low = name.toLowerCase();
+  if (/^ecra\.(html|svg)$/.test(low)) return 0;
+  if (low.startsWith("preview.")) return 1;
+  if (low === "meta.json") return 2;
+  if (low === "get_screen.json") return 3;
+  return 4;
+}
+
+function sortStitchMinioFiles(files: string[]): string[] {
+  return [...files].sort((x, y) => {
+    const r = stitchMinioFileSortRank(x) - stitchMinioFileSortRank(y);
+    if (r !== 0) return r;
+    return x.localeCompare(y, "pt");
+  });
+}
+
+/** Agrupa caminhos por primeira pasta; ordena ecrãs por `exportOrder` em `meta.json` quando existir. */
+const stitchMinioGrouped = computed(() => {
+  const map = new Map<string, string[]>();
+  for (const rel of stitchMinioFiles.value) {
+    const i = rel.indexOf("/");
+    const folder = i === -1 ? "(raiz)" : rel.slice(0, i);
+    const file = i === -1 ? rel : rel.slice(i + 1);
+    if (!map.has(folder)) map.set(folder, []);
+    map.get(folder)!.push(file);
+  }
+  const meta = stitchMinioFolderMeta.value;
+  return [...map.entries()]
+    .map(([folder, files]) => {
+      const m = meta[folder];
+      const displayTitle = (m?.title && m.title.trim()) || folder;
+      return {
+        folder,
+        files: sortStitchMinioFiles(files),
+        displayTitle,
+        exportOrder: typeof m?.exportOrder === "number" ? m.exportOrder : undefined,
+      };
+    })
+    .sort((a, b) => {
+      const ao = a.exportOrder;
+      const bo = b.exportOrder;
+      if (ao != null && bo != null && ao !== bo) return ao - bo;
+      if (ao != null && bo == null) return -1;
+      if (ao == null && bo != null) return 1;
+      return a.folder.localeCompare(b.folder, "pt");
+    });
+});
+
+/** PNG do export MinIO — ordem do protótipo invertida (último ecrã primeiro). */
+const stitchDeliveriesPngRelsOrdered = computed(() => {
+  const pngs = stitchMinioFiles.value.filter((r) => /\.png$/i.test(r));
+  const foldersOrder = stitchMinioGrouped.value.map((g) => g.folder);
+  const folderRank = new Map(foldersOrder.map((f, i) => [f, i]));
+  const sorted = [...pngs].sort((a, b) => {
+    const fa = a.includes("/") ? a.slice(0, a.indexOf("/")) : "(raiz)";
+    const fb = b.includes("/") ? b.slice(0, b.indexOf("/")) : "(raiz)";
+    const ra = folderRank.get(fa) ?? 999;
+    const rb = folderRank.get(fb) ?? 999;
+    if (ra !== rb) return ra - rb;
+    return a.localeCompare(b, "pt");
+  });
+  return sorted.slice().reverse();
+});
+
+/** `ecra.html` / `ecra.svg` por pasta — ordem invertida (último ecrã primeiro). */
+const stitchDeliveriesEcraRelsOrdered = computed(() => {
+  const list: string[] = [];
+  for (const g of stitchMinioGrouped.value) {
+    if (g.folder === "(raiz)") continue;
+    for (const f of g.files) {
+      if (/^ecra\.(html|svg)$/i.test(f)) list.push(`${g.folder}/${f}`);
+    }
+  }
+  for (const rel of stitchMinioFiles.value) {
+    const i = rel.indexOf("/");
+    if (i === -1 && /^ecra\.(html|svg)$/i.test(rel)) list.push(rel);
+  }
+  return list.slice().reverse();
+});
+
+const STITCH_SLIDE_EXTERNAL_IMAGE = "__stitch_external_image__";
+const STITCH_SLIDE_EXTERNAL_HTML = "__stitch_external_html__";
+
+const showStitchDeliveriesImageModal = ref(false);
+const showStitchDeliveriesHtmlModal = ref(false);
+const stitchImgCarouselIndex = ref(0);
+const stitchHtmlCarouselIndex = ref(0);
+const stitchImgRels = ref<string[]>([]);
+const stitchImgSrc = ref<(string | undefined)[]>([]);
+const stitchHtmlRels = ref<string[]>([]);
+const stitchHtmlSrc = ref<(string | undefined)[]>([]);
+const stitchGalleryImgLoading = ref(false);
+const stitchGalleryHtmlLoading = ref(false);
+const stitchGalleryImgErr = ref("");
+const stitchGalleryHtmlErr = ref("");
+let stitchImgLoadDepth = 0;
+let stitchHtmlLoadDepth = 0;
+
+function cleanupStitchImgBlobs() {
+  for (const u of stitchImgSrc.value) {
+    if (u && u.startsWith("blob:")) URL.revokeObjectURL(u);
+  }
+  stitchImgSrc.value = [];
+  stitchImgRels.value = [];
+}
+
+function cleanupStitchHtmlBlobs() {
+  for (const u of stitchHtmlSrc.value) {
+    if (u && u.startsWith("blob:")) URL.revokeObjectURL(u);
+  }
+  stitchHtmlSrc.value = [];
+  stitchHtmlRels.value = [];
+}
+
+async function loadStitchImgSlide(i: number) {
+  if (i < 0 || i >= stitchImgRels.value.length) return;
+  if (stitchImgSrc.value[i]) return;
+  const rel = stitchImgRels.value[i];
+  if (!project.value) return;
+  if (rel === STITCH_SLIDE_EXTERNAL_IMAGE) {
+    const u = stitchApiResult.value?.image_url;
+    if (u) {
+      const next = [...stitchImgSrc.value];
+      next[i] = u;
+      stitchImgSrc.value = next;
+    }
+    return;
+  }
+  stitchImgLoadDepth += 1;
+  stitchGalleryImgLoading.value = true;
+  stitchGalleryImgErr.value = "";
+  try {
+    const path = `/projects/${project.value.id}/prototipo/stitch-api/export-file?rel=${encodeURIComponent(rel)}`;
+    const blob = await apiBlob(path);
+    const url = URL.createObjectURL(blob);
+    if (i !== stitchImgCarouselIndex.value) {
+      URL.revokeObjectURL(url);
+      return;
+    }
+    const next = [...stitchImgSrc.value];
+    next[i] = url;
+    stitchImgSrc.value = next;
+  } catch (e) {
+    if (i === stitchImgCarouselIndex.value) {
+      stitchGalleryImgErr.value = e instanceof Error ? e.message : "Erro ao carregar imagem.";
+    }
+  } finally {
+    stitchImgLoadDepth = Math.max(0, stitchImgLoadDepth - 1);
+    stitchGalleryImgLoading.value = stitchImgLoadDepth > 0;
+  }
+}
+
+async function loadStitchHtmlSlide(i: number) {
+  if (i < 0 || i >= stitchHtmlRels.value.length) return;
+  if (stitchHtmlSrc.value[i]) return;
+  const rel = stitchHtmlRels.value[i];
+  if (!project.value) return;
+  if (rel === STITCH_SLIDE_EXTERNAL_HTML) {
+    const u = stitchApiResult.value?.html_url;
+    if (u) {
+      const next = [...stitchHtmlSrc.value];
+      next[i] = u;
+      stitchHtmlSrc.value = next;
+    }
+    return;
+  }
+  stitchHtmlLoadDepth += 1;
+  stitchGalleryHtmlLoading.value = true;
+  stitchGalleryHtmlErr.value = "";
+  try {
+    const path = `/projects/${project.value.id}/prototipo/stitch-api/export-file?rel=${encodeURIComponent(rel)}`;
+    let url: string;
+    if (/\.html?$/i.test(rel)) {
+      const raw = await apiText(path);
+      const withViewer = prepareStitchExportHtmlForViewer(raw, project.value.id, rel);
+      url = URL.createObjectURL(new Blob([withViewer], { type: "text/html;charset=utf-8" }));
+    } else {
+      const blob = await apiBlob(path);
+      url = URL.createObjectURL(blob);
+    }
+    if (i !== stitchHtmlCarouselIndex.value) {
+      URL.revokeObjectURL(url);
+      return;
+    }
+    const next = [...stitchHtmlSrc.value];
+    next[i] = url;
+    stitchHtmlSrc.value = next;
+  } catch (e) {
+    if (i === stitchHtmlCarouselIndex.value) {
+      stitchGalleryHtmlErr.value = e instanceof Error ? e.message : "Erro ao carregar HTML.";
+    }
+  } finally {
+    stitchHtmlLoadDepth = Math.max(0, stitchHtmlLoadDepth - 1);
+    stitchGalleryHtmlLoading.value = stitchHtmlLoadDepth > 0;
+  }
+}
+
+async function openStitchDeliveriesImageModal() {
+  stitchGalleryImgErr.value = "";
+  let rels = stitchDeliveriesPngRelsOrdered.value;
+  if (stitchApiResult.value?.export_storage_prefix && stitchMinioFiles.value.length === 0) {
+    await loadStitchMinioFileList();
+    rels = stitchDeliveriesPngRelsOrdered.value;
+  }
+  if (rels.length === 0 && stitchApiResult.value?.image_url) {
+    stitchImgRels.value = [STITCH_SLIDE_EXTERNAL_IMAGE];
+  } else if (rels.length === 0) {
+    prototipoPromptErr.value =
+      "Não há PNG no export MinIO. Aprove o protótipo ou recarregue a página para sincronizar a lista.";
+    return;
+  } else {
+    stitchImgRels.value = [...rels];
+  }
+  stitchImgCarouselIndex.value = 0;
+  stitchImgSrc.value = stitchImgRels.value.map(() => undefined);
+  showStitchDeliveriesImageModal.value = true;
+  await loadStitchImgSlide(0);
+}
+
+async function openStitchDeliveriesHtmlModal() {
+  stitchGalleryHtmlErr.value = "";
+  let rels = stitchDeliveriesEcraRelsOrdered.value;
+  if (stitchApiResult.value?.export_storage_prefix && stitchMinioFiles.value.length === 0) {
+    await loadStitchMinioFileList();
+    rels = stitchDeliveriesEcraRelsOrdered.value;
+  }
+  if (rels.length === 0 && stitchApiResult.value?.html_url) {
+    stitchHtmlRels.value = [STITCH_SLIDE_EXTERNAL_HTML];
+  } else if (rels.length === 0) {
+    prototipoPromptErr.value =
+      "Não há ficheiros ecra.html no export MinIO. Aprove o export ou recarregue a página para sincronizar.";
+    return;
+  } else {
+    stitchHtmlRels.value = [...rels];
+  }
+  stitchHtmlCarouselIndex.value = 0;
+  stitchHtmlSrc.value = stitchHtmlRels.value.map(() => undefined);
+  showStitchDeliveriesHtmlModal.value = true;
+  await loadStitchHtmlSlide(0);
+}
+
+function closeStitchDeliveriesImageModal() {
+  showStitchDeliveriesImageModal.value = false;
+  cleanupStitchImgBlobs();
+  stitchImgCarouselIndex.value = 0;
+  stitchGalleryImgErr.value = "";
+  stitchImgLoadDepth = 0;
+  stitchGalleryImgLoading.value = false;
+}
+
+function closeStitchDeliveriesHtmlModal() {
+  showStitchDeliveriesHtmlModal.value = false;
+  cleanupStitchHtmlBlobs();
+  stitchHtmlCarouselIndex.value = 0;
+  stitchGalleryHtmlErr.value = "";
+  stitchHtmlLoadDepth = 0;
+  stitchGalleryHtmlLoading.value = false;
+}
+
+function stitchImgCarouselPrev() {
+  if (stitchGalleryImgLoading.value) return;
+  if (stitchImgCarouselIndex.value <= 0) return;
+  stitchImgCarouselIndex.value -= 1;
+  void loadStitchImgSlide(stitchImgCarouselIndex.value);
+}
+
+function stitchImgCarouselNext() {
+  if (stitchGalleryImgLoading.value) return;
+  if (stitchImgCarouselIndex.value >= stitchImgRels.value.length - 1) return;
+  stitchImgCarouselIndex.value += 1;
+  void loadStitchImgSlide(stitchImgCarouselIndex.value);
+}
+
+function stitchHtmlCarouselPrev() {
+  if (stitchGalleryHtmlLoading.value) return;
+  if (stitchHtmlCarouselIndex.value <= 0) return;
+  stitchHtmlCarouselIndex.value -= 1;
+  void loadStitchHtmlSlide(stitchHtmlCarouselIndex.value);
+}
+
+function stitchHtmlCarouselNext() {
+  if (stitchGalleryHtmlLoading.value) return;
+  if (stitchHtmlCarouselIndex.value >= stitchHtmlRels.value.length - 1) return;
+  stitchHtmlCarouselIndex.value += 1;
+  void loadStitchHtmlSlide(stitchHtmlCarouselIndex.value);
+}
+
+function stitchImgSlideLabel(i: number): string {
+  const rel = stitchImgRels.value[i];
+  if (rel === STITCH_SLIDE_EXTERNAL_IMAGE) return "Pré-visualização Stitch (API)";
+  return rel;
+}
+
+function stitchHtmlSlideLabel(i: number): string {
+  const rel = stitchHtmlRels.value[i];
+  if (rel === STITCH_SLIDE_EXTERNAL_HTML) return "Pré-visualização Stitch (API)";
+  return rel;
+}
+
+function onStitchGalleryKeydown(e: KeyboardEvent) {
+  if (e.key === "Escape") {
+    if (showStitchDeliveriesImageModal.value) closeStitchDeliveriesImageModal();
+    if (showStitchDeliveriesHtmlModal.value) closeStitchDeliveriesHtmlModal();
+    return;
+  }
+  if (showStitchDeliveriesImageModal.value) {
+    if (e.key === "ArrowLeft") stitchImgCarouselPrev();
+    else if (e.key === "ArrowRight") stitchImgCarouselNext();
+  } else if (showStitchDeliveriesHtmlModal.value) {
+    if (e.key === "ArrowLeft") stitchHtmlCarouselPrev();
+    else if (e.key === "ArrowRight") stitchHtmlCarouselNext();
+  }
+}
+
+watch(
+  () => showStitchDeliveriesImageModal.value || showStitchDeliveriesHtmlModal.value,
+  (anyOpen) => {
+    if (anyOpen) window.addEventListener("keydown", onStitchGalleryKeydown);
+    else window.removeEventListener("keydown", onStitchGalleryKeydown);
+  },
+);
+
+async function loadStitchMinioFolderMetas() {
+  if (!project.value) return;
+  const folders = new Set<string>();
+  for (const rel of stitchMinioFiles.value) {
+    const i = rel.indexOf("/");
+    if (i > 0) folders.add(rel.slice(0, i));
+  }
+  const metaMap: Record<string, { exportOrder?: number; title?: string; htmlUrl?: string }> = {};
+  await Promise.all(
+    [...folders].map(async (folder) => {
+      try {
+        const rel = `${folder}/meta.json`;
+        const m = await api<Record<string, unknown>>(
+          `/projects/${project.value!.id}/prototipo/stitch-api/export-file?rel=${encodeURIComponent(rel)}`,
+        );
+        metaMap[folder] = {
+          exportOrder: typeof m.exportOrder === "number" ? m.exportOrder : undefined,
+          title: typeof m.title === "string" ? m.title : undefined,
+          htmlUrl: typeof m.htmlUrl === "string" ? m.htmlUrl : undefined,
+        };
+      } catch {
+        metaMap[folder] = {};
+      }
+    }),
+  );
+  stitchMinioFolderMeta.value = metaMap;
+}
+
+const DEFAULT_DETAIL_TAB_ORDER: DetailTab[] = [
   "resumo",
-  "kanban",
   "prd",
   "prototipo",
+  "planejamento",
+  "kanban",
   "desenvolvimento",
   "anexos",
   "auditoria",
@@ -113,45 +516,63 @@ const ALL_DETAIL_TABS: DetailTab[] = [
   "cursor",
 ];
 
-const allMainTabs = [
-  { id: "resumo" as const, label: "Resumo" },
-  { id: "kanban" as const, label: "Kanban" },
-  { id: "prd" as const, label: "PRD" },
-  { id: "prototipo" as const, label: "Protótipo" },
-  { id: "desenvolvimento" as const, label: "Desenvolvimento" },
-  { id: "anexos" as const, label: "Anexos" },
-  { id: "auditoria" as const, label: "Auditoria" },
-  { id: "configuracoes" as const, label: "Configurações" },
-];
+const MAIN_TAB_LABELS: Record<MainTab, string> = {
+  resumo: "Resumo",
+  prd: "PRD",
+  prototipo: "Protótipo",
+  planejamento: "Planejamento",
+  kanban: "Desenvolvimento",
+  desenvolvimento: "Planejamento",
+  anexos: "Anexos",
+  auditoria: "Auditoria",
+  configuracoes: "Configurações",
+};
 
-const allConfigTabs = [
-  { id: "github" as const, label: "GitHub" },
-  { id: "wiki" as const, label: "Wiki" },
-  { id: "cursor" as const, label: "Cursor Hub" },
-];
+const CONFIG_TAB_LABELS: Record<ConfigTab, string> = {
+  github: "GitHub",
+  wiki: "Wiki",
+  cursor: "Cursor Hub",
+};
+
+function orderDetailTabsByFlowConfig(rawTabs?: string[]): DetailTab[] {
+  if (!rawTabs?.length) return [...DEFAULT_DETAIL_TAB_ORDER];
+  const valid = new Set<DetailTab>(DEFAULT_DETAIL_TAB_ORDER);
+  const ordered = rawTabs
+    .map((x) => String(x).toLowerCase())
+    .filter((x): x is DetailTab => valid.has(x as DetailTab))
+    .filter((x, i, arr) => arr.indexOf(x) === i);
+  return ordered.length ? ordered : [...DEFAULT_DETAIL_TAB_ORDER];
+}
 
 function applyTabFromRoute() {
   const raw = route.query.tab;
   const t = typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : undefined;
-  const allowed: DetailTab[] = [...ALL_DETAIL_TABS];
-  if (t && (allowed as string[]).includes(t)) activeTab.value = t as typeof activeTab.value;
+  if (!t) return;
+  const allowed = visibleDetailTabs.value;
+  if ((allowed as string[]).includes(t)) activeTab.value = t as DetailTab;
 }
 
 const visibleDetailTabs = computed<DetailTab[]>(() => {
   const currentColId = project.value?.current_column_id;
-  if (!currentColId) return [...ALL_DETAIL_TABS];
+  if (!currentColId) return [...DEFAULT_DETAIL_TAB_ORDER];
   const col = templateCols.value.find((c) => c.id === currentColId);
-  const raw = (col?.visible_detail_tabs ?? []).map((x) => String(x).toLowerCase()) as DetailTab[];
-  const filtered = ALL_DETAIL_TABS.filter((k) => raw.includes(k));
-  return filtered.length ? filtered : [...ALL_DETAIL_TABS];
+  return orderDetailTabsByFlowConfig(col?.visible_detail_tabs ?? []);
 });
 
-const configTabs = computed(() => allConfigTabs.filter((t) => visibleDetailTabs.value.includes(t.id)));
-const mainTabs = computed(() =>
-  allMainTabs.filter((t) =>
-    t.id === "configuracoes" ? configTabs.value.length > 0 : visibleDetailTabs.value.includes(t.id as DetailTab),
-  ),
+const configTabs = computed(() =>
+  visibleDetailTabs.value
+    .filter((tab): tab is ConfigTab => tab === "github" || tab === "wiki" || tab === "cursor")
+    .map((id) => ({ id, label: CONFIG_TAB_LABELS[id] })),
 );
+const mainTabs = computed(() => {
+  const orderedMainIds: MainTab[] = [];
+  for (const tab of visibleDetailTabs.value) {
+    if (tab === "github" || tab === "wiki" || tab === "cursor") continue;
+    orderedMainIds.push(tab as Exclude<MainTab, "configuracoes">);
+  }
+  if (configTabs.value.length) orderedMainIds.push("configuracoes");
+  return orderedMainIds.map((id) => ({ id, label: MAIN_TAB_LABELS[id] }));
+});
 
 const activeMainTab = computed<MainTab>(() => {
   if (activeTab.value === "github" || activeTab.value === "wiki" || activeTab.value === "cursor") {
@@ -208,6 +629,33 @@ watch(visibleDetailTabs, (tabs) => {
     activeTab.value = firstVisibleTab();
   }
 });
+
+/** Mantém `?tab=` alinhado com a aba ao clicar; «resumo» omite o parâmetro. */
+watch(
+  activeTab,
+  (tab) => {
+    const cur =
+      typeof route.query.tab === "string"
+        ? route.query.tab
+        : Array.isArray(route.query.tab)
+          ? route.query.tab[0]
+          : undefined;
+    if (cur === tab) return;
+    if (tab === "resumo" && (cur === undefined || cur === "")) return;
+    const q = { ...route.query } as Record<string, string | string[] | undefined>;
+    if (tab === "resumo") delete q.tab;
+    else q.tab = tab;
+    void router.replace({ path: route.path, query: q, hash: route.hash });
+  },
+  { flush: "post" },
+);
+
+watch(
+  () => [activeTab.value, project.value?.id] as const,
+  ([tab]) => {
+    if (tab === "prototipo" && project.value) void loadPrototipoDocument();
+  },
+);
 
 watch(
   () => ({
@@ -463,6 +911,251 @@ async function load() {
   await loadKanbanTimelineAudits();
   applyTabFromRoute();
   scrollToRouteHash();
+}
+
+async function onPrdMarkdownSaved() {
+  if (!project.value) return;
+  try {
+    project.value = await api<Project>(`/projects/${project.value.id}`);
+  } catch {
+    /* ignora */
+  }
+}
+
+async function onPrdChatSaved() {
+  await onPrdMarkdownSaved();
+  await prdVersionsPanelRef.value?.reload?.();
+}
+
+async function onPrototipoVersionSavedFromPanel() {
+  await loadPrototipoDocument();
+}
+
+/** Abre separador vazio no gesto do utilizador; depois de `await` usa-se para navegar ao Stitch (evita bloqueio de pop-up). */
+function openStitchPlaceholderTab(): Window | null {
+  try {
+    return window.open("about:blank", "_blank");
+  } catch {
+    return null;
+  }
+}
+
+function closeStitchPlaceholderTab(win: Window | null) {
+  if (!win || win.closed) return;
+  try {
+    win.close();
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Copia o texto e envia o separador placeholder para o Stitch (ou abre um novo). Devolve se a cópia funcionou. */
+async function copyPromptAndShowStitch(text: string, placeholder: Window | null): Promise<boolean> {
+  let copied = true;
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    copied = false;
+  }
+  if (placeholder && !placeholder.closed) {
+    try {
+      placeholder.location.href = STITCH_APP_URL;
+    } catch {
+      window.open(STITCH_APP_URL, "_blank", "noopener,noreferrer");
+    }
+  } else {
+    window.open(STITCH_APP_URL, "_blank", "noopener,noreferrer");
+  }
+  return copied;
+}
+
+async function loadPrototipoDocument() {
+  if (!project.value) return;
+  prototipoPromptErr.value = "";
+  prototipoPromptMsg.value = "";
+  try {
+    const doc = await api<{
+      prompt: string;
+      version: number | null;
+      saved_at: string | null;
+      prd_version_used: number | null;
+      stitch_latest?: {
+        stitch_project_id: string;
+        screen_id: string;
+        html_url: string;
+        image_url: string;
+        created_at?: string | null;
+        saved_id?: number | null;
+        approved_at?: string | null;
+        approved_by_email?: string | null;
+        export_storage_prefix?: string | null;
+      } | null;
+    }>(`/projects/${project.value.id}/prototipo`);
+    prototipoPrompt.value = doc.prompt ?? "";
+    prototipoPromptVersion.value = doc.version ?? null;
+    prototipoPrdVersion.value = doc.prd_version_used ?? null;
+    if (doc.stitch_latest) {
+      stitchApiResult.value = {
+        stitch_project_id: doc.stitch_latest.stitch_project_id,
+        screen_id: doc.stitch_latest.screen_id,
+        html_url: doc.stitch_latest.html_url,
+        image_url: doc.stitch_latest.image_url,
+        approved_at: doc.stitch_latest.approved_at ?? null,
+        approved_by_email: doc.stitch_latest.approved_by_email ?? null,
+        export_storage_prefix: doc.stitch_latest.export_storage_prefix ?? null,
+      };
+    } else {
+      stitchApiResult.value = null;
+    }
+    await loadStitchApiStatus();
+    if (doc.stitch_latest?.export_storage_prefix) {
+      await loadStitchMinioFileList();
+    } else {
+      stitchMinioFiles.value = [];
+      stitchMinioFolderMeta.value = {};
+    }
+    void prototipoVersionsPanelRef.value?.reload?.();
+  } catch {
+    prototipoPrompt.value = "";
+    prototipoPromptVersion.value = null;
+    prototipoPrdVersion.value = null;
+    stitchApiResult.value = null;
+    stitchMinioFiles.value = [];
+    stitchMinioFolderMeta.value = {};
+  }
+}
+
+async function loadStitchMinioFileList() {
+  if (!project.value) return;
+  if (!stitchApiResult.value?.export_storage_prefix) {
+    stitchMinioFiles.value = [];
+    stitchMinioFolderMeta.value = {};
+    return;
+  }
+  try {
+    const m = await api<{ storage_prefix: string; files: string[] }>(
+      `/projects/${project.value.id}/prototipo/stitch-api/export-manifest`,
+    );
+    stitchMinioFiles.value = m.files ?? [];
+    await loadStitchMinioFolderMetas();
+  } catch {
+    stitchMinioFiles.value = [];
+    stitchMinioFolderMeta.value = {};
+  }
+}
+
+async function loadStitchApiStatus() {
+  if (!project.value) return;
+  try {
+    const s = await api<{ ready: boolean; detail: string }>(
+      `/projects/${project.value.id}/prototipo/stitch-api/status`,
+    );
+    stitchApiReady.value = s.ready;
+    stitchApiDetail.value = s.detail || "";
+  } catch {
+    stitchApiReady.value = false;
+    stitchApiDetail.value = "";
+  }
+}
+
+async function generateStitchApiScreen() {
+  if (!project.value || !canEditPrototipoPrompt.value) return;
+  if (!prototipoPrompt.value.trim()) {
+    prototipoPromptErr.value =
+      "Não há prompt na última versão. Use o painel «Versões do prompt» ou «Gerar prompt (último PRD)».";
+    return;
+  }
+  stitchApiGenerating.value = true;
+  prototipoPromptErr.value = "";
+  stitchMinioFiles.value = [];
+  stitchMinioFolderMeta.value = {};
+  stitchApiResult.value = null;
+  try {
+    const out = await api<{
+      html_url: string;
+      image_url: string;
+      stitch_project_id: string;
+      screen_id: string;
+      saved_id?: number | null;
+    }>(`/projects/${project.value.id}/prototipo/stitch-api/generate`, { method: "POST", body: "{}" });
+    stitchApiResult.value = {
+      ...out,
+      approved_at: null,
+      approved_by_email: null,
+      export_storage_prefix: null,
+    };
+    prototipoPromptMsg.value = `Stitch (API): ecrã ${out.screen_id} gerado. Links abaixo.`;
+  } catch (e) {
+    prototipoPromptErr.value = e instanceof Error ? e.message : "Falha ao chamar a API Stitch.";
+  } finally {
+    stitchApiGenerating.value = false;
+  }
+}
+
+async function approveAndSaveStitchToMinio() {
+  if (!project.value || !canEditPrototipoPrompt.value) return;
+  if (!stitchApiResult.value?.stitch_project_id) {
+    prototipoPromptErr.value = "Não há projeto Stitch na sessão. Gere um ecrã ou recarregue a aba.";
+    return;
+  }
+  stitchApproveExporting.value = true;
+  prototipoPromptErr.value = "";
+  try {
+    await api<{ storage_prefix: string }>(
+      `/projects/${project.value.id}/prototipo/stitch-api/approve-and-export`,
+      {
+        method: "POST",
+        body: "{}",
+      },
+    );
+    prototipoPromptMsg.value = "Protótipo aprovado; os ecrãs estão gravados no MinIO.";
+    await loadPrototipoDocument();
+  } catch (e) {
+    prototipoPromptErr.value =
+      e instanceof Error ? e.message : "Falha ao aprovar ou ao gravar no MinIO.";
+  } finally {
+    stitchApproveExporting.value = false;
+  }
+}
+
+async function generatePrototipoPrompt() {
+  if (!project.value || !canEditPrototipoPrompt.value) return;
+  const stitchTab = openStitchPlaceholderTab();
+  prototipoGenerating.value = true;
+  prototipoPromptErr.value = "";
+  prototipoPromptMsg.value = "";
+  try {
+    const out = await api<{
+      prompt: string;
+      prd_version: number | null;
+      prompt_version: number;
+    }>(`/projects/${project.value.id}/prototipo/generate-prompt`, { method: "POST", body: "{}" });
+    prototipoPrompt.value = out.prompt;
+    prototipoPrdVersion.value = out.prd_version ?? null;
+    prototipoPromptVersion.value = out.prompt_version;
+
+    const copied = await copyPromptAndShowStitch(out.prompt, stitchTab);
+    const stitchHint = copied
+      ? " Prompt na área de transferência; no Stitch, Ctrl+V (ou ⌘V) no chat e envie."
+      : " Stitch aberto — copie o prompt deste campo (a cópia automática falhou).";
+    prototipoPromptMsg.value = `Guardado na versão ${out.prompt_version}.${stitchHint}`;
+    if (!copied) {
+      prototipoPromptErr.value =
+        "Não foi possível copiar automaticamente; copie o texto do campo ou permita acesso à área de transferência.";
+    }
+
+    try {
+      project.value = await api<Project>(`/projects/${project.value.id}`);
+    } catch {
+      /* ignora */
+    }
+    void prototipoVersionsPanelRef.value?.reload?.();
+  } catch (e) {
+    closeStitchPlaceholderTab(stitchTab);
+    prototipoPromptErr.value = e instanceof Error ? e.message : "Não foi possível gerar o prompt.";
+  } finally {
+    prototipoGenerating.value = false;
+  }
 }
 
 function cancelEditProcess() {
@@ -1075,7 +1768,7 @@ function methodologyLabel(m: string) {
         </div>
       </div>
 
-      <!-- Kanban: macro fluxo + quadro de tarefas -->
+      <!-- Desenvolvimento (quadro macro + tarefas; id interno: kanban) -->
       <div v-show="activeTab === 'kanban'" class="w-full min-w-0 max-w-none space-y-6">
         <!-- Feedback imediato (regras de avanço / API); evita parecer que «Mover para aqui» não faz nada -->
         <div v-if="govFixLinks.length || govWarnLinks.length || err || msg" class="space-y-2">
@@ -1280,28 +1973,256 @@ function methodologyLabel(m: string) {
         <ProjectTaskBoard :project-id="project.id" :project-name="project.name" :can-mutate="canMove" />
       </div>
 
-      <!-- PRD -->
-      <div v-show="activeTab === 'prd'" class="bg-surface-container-low rounded-lg p-6 md:p-8 space-y-4 max-w-4xl">
-        <h3 class="text-lg font-bold font-headline">PRD</h3>
+      <!-- PRD — chat ocupa o espaço útil até à coluna de versões (sem max-width que afaste o ledger) -->
+      <div
+        v-show="activeTab === 'prd'"
+        class="flex w-full min-w-0 max-w-none flex-col gap-8 xl:flex-row xl:items-start xl:justify-start xl:gap-5 2xl:gap-6"
+      >
+        <div class="flex min-w-0 w-full flex-1 flex-col gap-6">
+          <PrdChatPanel
+            v-if="project"
+            :project-id="project.id"
+            :prd-tab-active="activeTab === 'prd'"
+            @prd-saved="onPrdChatSaved"
+          />
+        </div>
+        <div
+          v-if="project"
+          class="w-full min-w-0 xl:w-[400px] xl:shrink-0 xl:sticky xl:top-28 xl:self-start"
+        >
+          <PrdVersionsPanel
+            ref="prdVersionsPanelRef"
+            :project-id="project.id"
+            :tab-active="activeTab === 'prd'"
+            @prd-saved="onPrdMarkdownSaved"
+          />
+        </div>
+      </div>
+
+      <!-- Protótipo (layout alinhado a stitch_gest_o_governan_a_projetos_ia (2) — Sovereign Ledger) -->
+      <div
+        v-show="activeTab === 'prototipo'"
+        class="flex w-full min-w-0 max-w-none flex-col gap-8 xl:flex-row xl:items-start xl:justify-start xl:gap-5 2xl:gap-6"
+      >
+        <div class="flex min-w-0 w-full flex-1 flex-col gap-6">
+        <section>
+          <header class="flex flex-col gap-1">
+            <h2 class="font-headline text-2xl font-extrabold tracking-tight text-on-surface md:text-3xl">Protótipo</h2>
+            <p class="font-body text-sm font-medium text-on-surface-variant">
+              <strong class="text-on-surface font-semibold">Versões do prompt</strong> ao lado; gere a partir do último PRD e
+              use a API Stitch ou o export MinIO após aprovar.
+            </p>
+          </header>
+        </section>
+
+        <!-- Cartões: Gerar prompt → API Stitch → Aprovar MinIO -->
+        <section>
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+            <button
+              v-if="canEditPrototipoPrompt"
+              type="button"
+              class="flex flex-col items-start p-6 bg-surface-container-low rounded-xl hover:bg-surface-container-high transition-all border border-transparent hover:border-outline-variant/30 text-left group disabled:opacity-50"
+              :disabled="prototipoGenerating || !project"
+              title="Gera o prompt de protótipo a partir do último PRD guardado"
+              @click="generatePrototipoPrompt"
+            >
+              <span class="material-symbols-outlined text-primary mb-3 text-3xl" aria-hidden="true">psychology</span>
+              <span class="font-bold text-on-surface font-body">Gerar prompt (último PRD)</span>
+              <span class="text-xs text-on-surface-variant mt-1 font-body"
+                >Cria a última versão a partir do PRD; edite depois no painel ao lado.</span
+              >
+            </button>
+            <template v-if="canEditPrototipoPrompt">
+              <button
+                v-if="prototipoPrompt.trim().length > 0"
+                type="button"
+                class="flex flex-col items-start p-6 rounded-xl text-left transition-all border border-transparent"
+                :class="
+                  stitchApiReady && !stitchApiGenerating && !prototipoGenerating
+                    ? 'bg-surface-container-low hover:bg-surface-container-high hover:border-outline-variant/30 group'
+                    : 'bg-surface-container-low opacity-60 cursor-not-allowed'
+                "
+                :disabled="!stitchApiReady || stitchApiGenerating || prototipoGenerating"
+                :title="stitchApiDetail || 'API MCP Stitch no backend'"
+                @click="generateStitchApiScreen"
+              >
+                <span
+                  class="material-symbols-outlined mb-3 text-3xl"
+                  :class="stitchApiReady ? 'text-primary' : 'text-on-surface-variant'"
+                  aria-hidden="true"
+                  >auto_awesome</span
+                >
+                <span class="font-bold font-body" :class="stitchApiReady ? 'text-on-surface' : 'text-on-surface-variant'"
+                  >Gerar ecrã (API Stitch)</span
+                >
+                <span class="text-xs mt-1 font-body" :class="stitchApiReady ? 'text-on-surface-variant' : 'italic text-on-surface-variant'">
+                  {{
+                    stitchApiReady
+                      ? "Gera ecrã no projeto Stitch a partir deste prompt."
+                      : stitchApiDetail || "API indisponível no servidor."
+                  }}
+                </span>
+              </button>
+              <button
+                v-else
+                type="button"
+                disabled
+                class="flex flex-col items-start p-6 bg-surface-container-low rounded-xl opacity-60 cursor-not-allowed text-left"
+              >
+                <span class="material-symbols-outlined text-on-surface-variant mb-3 text-3xl" aria-hidden="true">auto_awesome</span>
+                <span class="font-bold text-on-surface-variant font-body">Gerar ecrã (API Stitch)</span>
+                <span class="text-xs text-on-surface-variant mt-1 italic font-body"
+                  >É necessário um prompt na última versão (cartão «Gerar prompt» ou painel ao lado).</span
+                >
+              </button>
+              <button
+                v-if="canEditPrototipoPrompt && stitchApiResult && stitchApiReady"
+                type="button"
+                class="flex flex-col items-start p-6 bg-surface-container-low rounded-xl hover:bg-surface-container-high transition-all border border-transparent hover:border-outline-variant/30 text-left group disabled:opacity-50"
+                :disabled="stitchApproveExporting || stitchApiGenerating || prototipoGenerating"
+                title="Marca como aprovado e grava os ecrãs no MinIO"
+                @click="approveAndSaveStitchToMinio"
+              >
+                <span class="material-symbols-outlined text-primary mb-3 text-3xl" aria-hidden="true">cloud_upload</span>
+                <span class="font-bold text-on-surface font-body">{{
+                  stitchApproveExporting ? "A gravar…" : "Aprovar e gravar no MinIO"
+                }}</span>
+                <span class="text-xs text-on-surface-variant mt-1 font-body"
+                  >Grava o export no bucket após gerar o ecrã por API.</span
+                >
+              </button>
+              <button
+                v-else-if="canEditPrototipoPrompt"
+                type="button"
+                disabled
+                class="flex flex-col items-start p-6 bg-surface-container-low rounded-xl opacity-60 cursor-not-allowed text-left"
+              >
+                <span class="material-symbols-outlined text-on-surface-variant mb-3 text-3xl" aria-hidden="true">cloud_upload</span>
+                <span class="font-bold text-on-surface-variant font-body">Aprovar e gravar no MinIO</span>
+                <span class="text-xs text-on-surface-variant mt-1 italic font-body"
+                  >Gere um ecrã com «Gerar ecrã (API Stitch)» antes de aprovar.</span
+                >
+              </button>
+            </template>
+          </div>
+
+          <p v-if="prototipoPromptMsg" class="mt-4 text-sm text-on-tertiary-container font-body">{{ prototipoPromptMsg }}</p>
+          <p v-if="prototipoPromptErr" class="mt-4 text-sm text-error font-body">{{ prototipoPromptErr }}</p>
+
+          <!-- Resultado API Stitch -->
+          <div
+            v-if="stitchApiResult"
+            class="mt-8 md:mt-10 bg-surface-container-lowest rounded-xl p-6 md:p-8 border border-outline-variant/10 shadow-sm relative overflow-hidden"
+          >
+            <div v-if="stitchApiResult.approved_at" class="absolute top-0 right-0 p-4">
+              <span
+                class="inline-flex items-center px-3 py-1 bg-tertiary-container text-on-tertiary-container text-[11px] font-bold uppercase tracking-wider rounded-full font-label"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container mr-2" aria-hidden="true" />
+                Aprovado
+              </span>
+            </div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-label mb-6 md:mb-8">
+              Resultado API Stitch
+            </p>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div class="space-y-4">
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold text-on-surface-variant uppercase font-label tracking-wider"
+                    >Projecto Stitch</label
+                  >
+                  <p class="font-bold text-on-surface font-body break-all">{{ stitchApiResult.stitch_project_id }}</p>
+                </div>
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold text-on-surface-variant uppercase font-label tracking-wider"
+                    >Protótipo</label
+                  >
+                  <p class="font-bold text-on-surface font-body break-all">{{ stitchApiResult.screen_id }}</p>
+                </div>
+              </div>
+              <div class="space-y-4">
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold text-on-surface-variant uppercase font-label tracking-wider"
+                    >Entregas</label
+                  >
+                  <div class="flex flex-wrap items-baseline gap-4">
+                    <a
+                      :href="`https://stitch.withgoogle.com/projects/${encodeURIComponent(stitchApiResult.stitch_project_id)}`"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-sm font-semibold text-primary underline underline-offset-4 hover:opacity-70 transition-opacity font-body"
+                    >
+                      Stitch
+                    </a>
+                    <button
+                      type="button"
+                      class="text-sm font-semibold text-primary underline underline-offset-4 hover:opacity-70 transition-opacity font-body"
+                      @click="openStitchDeliveriesHtmlModal"
+                    >
+                      Ver HTML
+                    </button>
+                    <button
+                      type="button"
+                      class="text-sm font-semibold text-primary underline underline-offset-4 hover:opacity-70 transition-opacity font-body"
+                      @click="openStitchDeliveriesImageModal"
+                    >
+                      Ver imagem
+                    </button>
+                  </div>
+                </div>
+                <div v-if="stitchApiResult.approved_at" class="space-y-1">
+                  <label class="text-[10px] font-bold text-on-surface-variant uppercase font-label tracking-wider"
+                    >Metadados</label
+                  >
+                  <p class="text-xs text-on-surface-variant font-body">
+                    Aprovado
+                    {{ new Date(stitchApiResult.approved_at).toLocaleString("pt-PT") }}
+                    <template v-if="stitchApiResult.approved_by_email">
+                      por <span class="font-medium text-on-surface">{{ stitchApiResult.approved_by_email }}</span>
+                    </template>
+                  </p>
+                </div>
+              </div>
+              <div
+                v-if="stitchApiResult.export_storage_prefix"
+                class="bg-surface-container-low rounded-lg p-4 self-start"
+              >
+                <label class="text-[10px] font-bold text-on-surface-variant uppercase font-label tracking-wider block mb-2"
+                  >Caminho MinIO</label
+                >
+                <code class="font-mono text-xs text-secondary leading-relaxed break-all">{{ stitchApiResult.export_storage_prefix }}</code>
+              </div>
+            </div>
+          </div>
+        </section>
+        </div>
+        <div
+          v-if="project"
+          class="w-full min-w-0 xl:w-[400px] xl:shrink-0 xl:sticky xl:top-28 xl:self-start"
+        >
+          <PrototipoVersionsPanel
+            ref="prototipoVersionsPanelRef"
+            :project-id="project.id"
+            :tab-active="activeTab === 'prototipo'"
+            @prototipo-saved="onPrototipoVersionSavedFromPanel"
+          />
+        </div>
+      </div>
+
+      <!-- Planejamento -->
+      <div v-show="activeTab === 'planejamento'" class="bg-surface-container-low rounded-lg p-6 md:p-8 space-y-4 max-w-4xl">
+        <h3 class="text-lg font-bold font-headline">Planejamento</h3>
         <p class="text-sm text-on-surface-variant leading-relaxed font-body">
-          Espaço reservado para requisitos funcionais, critérios de aceite e decisões de produto deste projeto.
+          Área para cronogramas, marcos, capacidade e dependências entre equipas. Use esta secção para alinhar entregas com o PRD e o protótipo.
         </p>
       </div>
 
-      <!-- Protótipo -->
-      <div v-show="activeTab === 'prototipo'" class="bg-surface-container-low rounded-lg p-6 md:p-8 space-y-4 max-w-4xl">
-        <h3 class="text-lg font-bold font-headline">Protótipo</h3>
-        <p class="text-sm text-on-surface-variant leading-relaxed font-body">
-          Registre aqui links e observações dos protótipos de UX/UI relacionados ao fluxo de trabalho.
-        </p>
-      </div>
-
-      <!-- Desenvolvimento -->
+      <!-- Desenvolvimento (rótulo: Planejamento) -->
       <div
         v-show="activeTab === 'desenvolvimento'"
         class="bg-surface-container-low rounded-lg p-6 md:p-8 space-y-4 max-w-4xl"
       >
-        <h3 class="text-lg font-bold font-headline">Desenvolvimento</h3>
+        <h3 class="text-lg font-bold font-headline">Planejamento</h3>
         <p class="text-sm text-on-surface-variant leading-relaxed font-body">
           Área para acompanhamento técnico da implementação, apontamentos de arquitetura e decisões de engenharia.
         </p>
@@ -1466,6 +2387,154 @@ function methodologyLabel(m: string) {
         </div>
       </template>
     </section>
+
+    <!-- Galeria Entregas: PNG — vista minimalista (só conteúdo + barra fina) -->
+    <div
+      v-if="showStitchDeliveriesImageModal"
+      class="fixed inset-0 z-[80] flex items-center justify-center p-2 bg-black/75 backdrop-blur-[2px]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="stitch-gallery-img-title"
+      @click.self="closeStitchDeliveriesImageModal"
+    >
+      <div
+        class="flex flex-col w-full max-w-[min(100vw-1rem,1200px)] h-[min(96svh,900px)] bg-zinc-950 rounded-md overflow-hidden border border-zinc-800 shadow-2xl"
+        @click.stop
+      >
+        <div class="flex items-center gap-2 px-3 py-2 shrink-0 border-b border-zinc-800">
+          <h3 id="stitch-gallery-img-title" class="text-sm font-semibold text-zinc-100 truncate min-w-0">
+            PNG
+            <span class="text-zinc-500 font-normal"
+              >· {{ stitchImgCarouselIndex + 1 }}/{{ stitchImgRels.length || 1 }}</span
+            >
+          </h3>
+          <p
+            class="hidden sm:block text-[11px] text-zinc-500 font-mono truncate flex-1 min-w-0"
+            :title="stitchImgSlideLabel(stitchImgCarouselIndex)"
+          >
+            {{ stitchImgSlideLabel(stitchImgCarouselIndex) }}
+          </p>
+          <button
+            type="button"
+            class="p-1.5 rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 shrink-0"
+            aria-label="Fechar"
+            @click="closeStitchDeliveriesImageModal"
+          >
+            <span class="material-symbols-outlined text-[22px]" aria-hidden="true">close</span>
+          </button>
+        </div>
+        <p v-if="stitchGalleryImgErr" class="px-3 py-1 text-xs text-red-400 font-body border-b border-zinc-800">{{ stitchGalleryImgErr }}</p>
+        <div
+          class="relative flex-1 min-h-0 flex items-center justify-center bg-black p-1"
+          :aria-busy="stitchGalleryImgLoading"
+        >
+          <div
+            v-if="stitchGalleryImgLoading && !stitchImgSrc[stitchImgCarouselIndex]"
+            class="flex flex-col items-center justify-center gap-2 text-zinc-500"
+          >
+            <span class="material-symbols-outlined text-3xl text-zinc-600 animate-pulse" aria-hidden="true">image</span>
+            <span class="text-xs font-body">A carregar…</span>
+          </div>
+          <img
+            v-else-if="stitchImgSrc[stitchImgCarouselIndex]"
+            :src="stitchImgSrc[stitchImgCarouselIndex]"
+            :alt="stitchImgSlideLabel(stitchImgCarouselIndex)"
+            class="max-h-full max-w-full w-auto h-auto object-contain"
+          />
+          <button
+            type="button"
+            class="absolute left-1 top-1/2 -translate-y-1/2 p-1.5 rounded-md bg-zinc-900/90 text-zinc-300 hover:bg-zinc-800 disabled:opacity-25"
+            :disabled="stitchImgCarouselIndex <= 0 || stitchGalleryImgLoading"
+            aria-label="Anterior"
+            @click="stitchImgCarouselPrev"
+          >
+            <span class="material-symbols-outlined text-[22px]" aria-hidden="true">chevron_left</span>
+          </button>
+          <button
+            type="button"
+            class="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-md bg-zinc-900/90 text-zinc-300 hover:bg-zinc-800 disabled:opacity-25"
+            :disabled="stitchImgCarouselIndex >= stitchImgRels.length - 1 || stitchGalleryImgLoading"
+            aria-label="Seguinte"
+            @click="stitchImgCarouselNext"
+          >
+            <span class="material-symbols-outlined text-[22px]" aria-hidden="true">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Galeria Entregas: HTML — vista minimalista -->
+    <div
+      v-if="showStitchDeliveriesHtmlModal"
+      class="fixed inset-0 z-[80] flex items-center justify-center p-2 bg-black/75 backdrop-blur-[2px]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="stitch-gallery-html-title"
+      @click.self="closeStitchDeliveriesHtmlModal"
+    >
+      <div
+        class="flex flex-col w-full max-w-[min(100vw-1rem,1400px)] h-[min(96svh,920px)] bg-zinc-950 rounded-md overflow-hidden border border-zinc-800 shadow-2xl"
+        @click.stop
+      >
+        <div class="flex items-center gap-2 px-3 py-2 shrink-0 border-b border-zinc-800">
+          <h3 id="stitch-gallery-html-title" class="text-sm font-semibold text-zinc-100 truncate min-w-0">
+            HTML
+            <span class="text-zinc-500 font-normal"
+              >· {{ stitchHtmlCarouselIndex + 1 }}/{{ stitchHtmlRels.length || 1 }}</span
+            >
+          </h3>
+          <p
+            class="hidden sm:block text-[11px] text-zinc-500 font-mono truncate flex-1 min-w-0"
+            :title="stitchHtmlSlideLabel(stitchHtmlCarouselIndex)"
+          >
+            {{ stitchHtmlSlideLabel(stitchHtmlCarouselIndex) }}
+          </p>
+          <button
+            type="button"
+            class="p-1.5 rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 shrink-0"
+            aria-label="Fechar"
+            @click="closeStitchDeliveriesHtmlModal"
+          >
+            <span class="material-symbols-outlined text-[22px]" aria-hidden="true">close</span>
+          </button>
+        </div>
+        <p v-if="stitchGalleryHtmlErr" class="px-3 py-1 text-xs text-red-400 font-body border-b border-zinc-800">{{ stitchGalleryHtmlErr }}</p>
+        <div class="relative flex-1 min-h-0 flex flex-col bg-black" :aria-busy="stitchGalleryHtmlLoading">
+          <div
+            v-if="stitchGalleryHtmlLoading && !stitchHtmlSrc[stitchHtmlCarouselIndex]"
+            class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-zinc-500 z-10 bg-zinc-950/80"
+          >
+            <span class="material-symbols-outlined text-3xl text-zinc-600 animate-pulse" aria-hidden="true">html</span>
+            <span class="text-xs font-body">A carregar…</span>
+          </div>
+          <iframe
+            v-if="stitchHtmlSrc[stitchHtmlCarouselIndex]"
+            :src="stitchHtmlSrc[stitchHtmlCarouselIndex]"
+            :title="stitchHtmlSlideLabel(stitchHtmlCarouselIndex)"
+            class="w-full flex-1 min-h-0 border-0 bg-white"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          />
+          <button
+            type="button"
+            class="absolute left-1 top-1/2 -translate-y-1/2 p-1.5 rounded-md bg-zinc-900/90 text-zinc-300 hover:bg-zinc-800 disabled:opacity-25 z-20"
+            :disabled="stitchHtmlCarouselIndex <= 0 || stitchGalleryHtmlLoading"
+            aria-label="Anterior"
+            @click="stitchHtmlCarouselPrev"
+          >
+            <span class="material-symbols-outlined text-[22px]" aria-hidden="true">chevron_left</span>
+          </button>
+          <button
+            type="button"
+            class="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-md bg-zinc-900/90 text-zinc-300 hover:bg-zinc-800 disabled:opacity-25 z-20"
+            :disabled="stitchHtmlCarouselIndex >= stitchHtmlRels.length - 1 || stitchGalleryHtmlLoading"
+            aria-label="Seguinte"
+            @click="stitchHtmlCarouselNext"
+          >
+            <span class="material-symbols-outlined text-[22px]" aria-hidden="true">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    </div>
 
     <div
       v-if="showDeleteModal"

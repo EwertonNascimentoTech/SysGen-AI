@@ -41,6 +41,36 @@ const ghLoading = ref(false);
 const ghErr = ref("");
 const ghMsg = ref("");
 
+type AzureRuntimeOut = {
+  azure_ai_project_endpoint_masked: string;
+  azure_ai_project_connection_string_set: boolean;
+  azure_ai_agent_id_masked: string;
+  azure_tenant_id_set: boolean;
+  azure_client_id_set: boolean;
+  azure_client_secret_set: boolean;
+  ready_for_agents: boolean;
+};
+
+const azureRuntime = ref<AzureRuntimeOut | null>(null);
+const azureLoading = ref(false);
+const azureErr = ref("");
+const azureMsg = ref("");
+/** Detalhes do último POST /settings/azure-runtime/test (Agents + OpenAI). */
+const azureTestDetail = ref("");
+const azureRequestProbing = ref(false);
+/** Detalhes do POST /request-probe (requisições reais ao modelo). */
+const azureRequestDetail = ref("");
+const azureSaving = ref(false);
+const azureTesting = ref(false);
+const azureForm = ref({
+  azure_ai_project_endpoint: "",
+  azure_ai_project_connection_string: "",
+  azure_ai_agent_id: "",
+  azure_tenant_id: "",
+  azure_client_id: "",
+  azure_client_secret: "",
+});
+
 const oauthDiag = computed(() => {
   const g = ghPublic.value;
   if (!g || g.oauth_configured) return null;
@@ -129,6 +159,136 @@ async function loadGithubPublic() {
   }
 }
 
+async function loadAzureRuntime() {
+  azureErr.value = "";
+  azureMsg.value = "";
+  azureTestDetail.value = "";
+  azureRequestDetail.value = "";
+  azureLoading.value = true;
+  try {
+    azureRuntime.value = await api<AzureRuntimeOut>("/settings/azure-runtime");
+  } catch (e) {
+    azureRuntime.value = null;
+    azureErr.value =
+      e instanceof Error ? e.message : "Não foi possível carregar a configuração Azure AI (requer admin/coordenador).";
+  } finally {
+    azureLoading.value = false;
+  }
+}
+
+async function saveAzureRuntime() {
+  if (!canPersistGeneral.value) return;
+  azureErr.value = "";
+  azureMsg.value = "";
+  const body: Record<string, string> = {};
+  const f = azureForm.value;
+  for (const k of Object.keys(f) as (keyof typeof f)[]) {
+    const v = f[k].trim();
+    if (v) body[k] = v;
+  }
+  if (Object.keys(body).length === 0) {
+    azureErr.value = "Preencha pelo menos um campo para gravar na base (ou use variáveis de ambiente).";
+    return;
+  }
+  azureSaving.value = true;
+  try {
+    azureRuntime.value = await api<AzureRuntimeOut>("/settings/azure-runtime", {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+    azureMsg.value = "Configuração Azure AI gravada.";
+    for (const k of Object.keys(azureForm.value) as (keyof typeof azureForm.value)[]) {
+      azureForm.value[k] = "";
+    }
+  } catch (e) {
+    azureErr.value = e instanceof Error ? e.message : "Erro ao gravar.";
+  } finally {
+    azureSaving.value = false;
+  }
+}
+
+type AzureTestOut = {
+  ok: boolean;
+  message: string;
+  agents_ok?: boolean | null;
+  agents_detail?: string | null;
+  openai_ok?: boolean | null;
+  openai_detail?: string | null;
+};
+
+function formatAzureTestDetail(r: AzureTestOut): string {
+  const lines: string[] = [];
+  const a = (x: boolean | null | undefined) =>
+    x === true ? "OK" : x === false ? "falhou" : "—";
+  if (r.agents_detail != null && r.agents_detail !== "") {
+    lines.push(`Agents (${a(r.agents_ok)}): ${r.agents_detail}`);
+  }
+  if (r.openai_detail != null && r.openai_detail !== "") {
+    lines.push(`OpenAI (${a(r.openai_ok)}): ${r.openai_detail}`);
+  }
+  return lines.join("\n\n");
+}
+
+async function testAzureRuntime() {
+  azureErr.value = "";
+  azureMsg.value = "";
+  azureTestDetail.value = "";
+  azureTesting.value = true;
+  try {
+    const r = await api<AzureTestOut>("/settings/azure-runtime/test", { method: "POST" });
+    azureTestDetail.value = formatAzureTestDetail(r);
+    if (r.ok) {
+      azureMsg.value = r.message;
+      azureErr.value = "";
+    } else {
+      azureMsg.value = "";
+      azureErr.value = r.message;
+    }
+  } catch (e) {
+    azureErr.value = e instanceof Error ? e.message : "Erro no teste.";
+  } finally {
+    azureTesting.value = false;
+  }
+}
+
+type AzureRequestProbeOut = {
+  ok: boolean;
+  message: string;
+  openai_request_ok: boolean;
+  openai_request_detail: string;
+  agents_request_ok: boolean;
+  agents_request_detail: string;
+};
+
+async function testAzureRequestProbe() {
+  azureErr.value = "";
+  azureMsg.value = "";
+  azureTestDetail.value = "";
+  azureRequestDetail.value = "";
+  azureRequestProbing.value = true;
+  try {
+    const r = await api<AzureRequestProbeOut>("/settings/azure-runtime/request-probe", { method: "POST" });
+    azureRequestDetail.value = [
+      `Resumo: ${r.message}`,
+      "",
+      `OpenAI (POST chat/completions): ${r.openai_request_ok ? "OK" : "falhou"}`,
+      r.openai_request_detail,
+      "",
+      `Agents (turno mínimo): ${r.agents_request_ok ? "OK" : "falhou"}`,
+      r.agents_request_detail,
+    ].join("\n");
+    if (!r.ok) {
+      azureErr.value = r.message;
+    } else {
+      azureMsg.value = r.message;
+    }
+  } catch (e) {
+    azureErr.value = e instanceof Error ? e.message : "Erro no teste de requisição.";
+  } finally {
+    azureRequestProbing.value = false;
+  }
+}
+
 async function loadIntegrationsTab() {
   ghMsg.value = "";
   ghErr.value = "";
@@ -141,6 +301,7 @@ async function loadIntegrationsTab() {
   } finally {
     ghLoading.value = false;
   }
+  await loadAzureRuntime();
 }
 
 function startGithubOAuth() {
@@ -417,6 +578,162 @@ onMounted(() => {
         <p class="text-sm text-on-surface-variant font-body">
           Anexos com MinIO/S3 quando <code class="bg-surface-container-lowest px-1 rounded text-xs">S3_ENDPOINT_URL</code> está definido.
         </p>
+      </div>
+
+      <div class="col-span-12 bg-surface-container-low rounded-xl p-8 border border-outline-variant/10">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="p-3 bg-white rounded-lg shadow-sm border border-outline-variant/10">
+            <span class="material-symbols-outlined text-2xl text-on-surface">smart_toy</span>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold font-headline tracking-tight text-on-surface">Azure AI (Agents)</h3>
+            <p class="text-xs text-on-surface-variant uppercase tracking-widest font-label">
+              Chat PRD — prioridade sobre Azure OpenAI REST
+            </p>
+          </div>
+        </div>
+        <p class="text-sm text-on-surface-variant font-body mb-4 leading-relaxed">
+          Defina <code class="bg-surface-container-lowest px-1 rounded text-[11px]">AZURE_AI_PROJECT_ENDPOINT</code> (ou connection string) e
+          <code class="bg-surface-container-lowest px-1 rounded text-[11px]">AZURE_AI_AGENT_ID</code> no ambiente, ou grave valores abaixo (encriptado na base).
+          Opcionalmente <code class="bg-surface-container-lowest px-1 rounded text-[11px]">AZURE_TENANT_ID</code> /
+          <code class="bg-surface-container-lowest px-1 rounded text-[11px]">AZURE_CLIENT_ID</code> /
+          <code class="bg-surface-container-lowest px-1 rounded text-[11px]">AZURE_CLIENT_SECRET</code>; caso contrário usa-se
+          <em>DefaultAzureCredential</em> (ex.: <code class="text-[11px]">az login</code> em desenvolvimento).
+        </p>
+        <div v-if="azureLoading" class="text-sm text-on-surface-variant font-body">A carregar…</div>
+        <template v-else-if="azureRuntime">
+          <div class="flex flex-wrap items-center gap-3 mb-4 text-sm font-body">
+            <span
+              class="w-2 h-2 rounded-full shrink-0"
+              :class="azureRuntime.ready_for_agents ? 'bg-tertiary-fixed-dim' : 'bg-outline-variant'"
+            />
+            <span class="text-on-surface font-medium">
+              {{ azureRuntime.ready_for_agents ? "Agentes prontos (endpoint + ID)" : "Agentes incompletos" }}
+            </span>
+          </div>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-body text-on-surface-variant mb-4">
+            <div>
+              <dt class="font-label uppercase tracking-wider">Endpoint (mascarado)</dt>
+              <dd class="text-on-surface mt-1 break-all">{{ azureRuntime.azure_ai_project_endpoint_masked || "—" }}</dd>
+            </div>
+            <div>
+              <dt class="font-label uppercase tracking-wider">Agent ID (mascarado)</dt>
+              <dd class="text-on-surface mt-1 break-all">{{ azureRuntime.azure_ai_agent_id_masked || "—" }}</dd>
+            </div>
+            <div>
+              <dt class="font-label uppercase tracking-wider">Connection string</dt>
+              <dd class="text-on-surface mt-1">{{ azureRuntime.azure_ai_project_connection_string_set ? "definida" : "não" }}</dd>
+            </div>
+            <div>
+              <dt class="font-label uppercase tracking-wider">Entra ID / SP</dt>
+              <dd class="text-on-surface mt-1">
+                tenant {{ azureRuntime.azure_tenant_id_set ? "sim" : "não" }} · client
+                {{ azureRuntime.azure_client_id_set ? "sim" : "não" }} · secret
+                {{ azureRuntime.azure_client_secret_set ? "sim" : "não" }}
+              </dd>
+            </div>
+          </dl>
+        </template>
+        <p v-else-if="azureErr" class="text-sm text-error font-body mb-2">{{ azureErr }}</p>
+        <div class="flex flex-wrap gap-2 mb-6">
+          <button
+            type="button"
+            class="rounded-md bg-secondary py-2 px-4 text-sm font-semibold text-on-secondary font-body hover:opacity-95 disabled:opacity-50"
+            :disabled="azureTesting || azureRequestProbing || !canPersistGeneral"
+            :title="!canPersistGeneral ? 'Apenas admin ou coordenador.' : undefined"
+            @click="testAzureRuntime"
+          >
+            {{ azureTesting ? "A testar…" : "Testar ligação (metadados)" }}
+          </button>
+          <button
+            type="button"
+            class="rounded-md bg-tertiary-container py-2 px-4 text-sm font-semibold text-on-tertiary-container font-body hover:opacity-95 disabled:opacity-50"
+            :disabled="azureTesting || azureRequestProbing || !canPersistGeneral"
+            title="Envia POST ao modelo (OpenAI) e um turno no Agents — pode gerar custo de tokens."
+            @click="testAzureRequestProbe"
+          >
+            {{ azureRequestProbing ? "A pedir…" : "Testar requisição ao modelo" }}
+          </button>
+        </div>
+        <div v-if="canPersistGeneral" class="space-y-3 border-t border-outline-variant/15 pt-6">
+          <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider font-label">Gravar na base (opcional)</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label class="block space-y-1">
+              <span class="text-xs text-on-surface-variant">AZURE_AI_PROJECT_ENDPOINT</span>
+              <input
+                v-model="azureForm.azure_ai_project_endpoint"
+                type="text"
+                autocomplete="off"
+                class="w-full bg-surface-container-lowest border border-outline-variant/10 rounded-md px-3 py-2 text-sm font-body"
+              />
+            </label>
+            <label class="block space-y-1">
+              <span class="text-xs text-on-surface-variant">AZURE_AI_PROJECT_CONNECTION_STRING</span>
+              <input
+                v-model="azureForm.azure_ai_project_connection_string"
+                type="password"
+                autocomplete="off"
+                class="w-full bg-surface-container-lowest border border-outline-variant/10 rounded-md px-3 py-2 text-sm font-body"
+              />
+            </label>
+            <label class="block space-y-1">
+              <span class="text-xs text-on-surface-variant">AZURE_AI_AGENT_ID</span>
+              <input
+                v-model="azureForm.azure_ai_agent_id"
+                type="text"
+                autocomplete="off"
+                class="w-full bg-surface-container-lowest border border-outline-variant/10 rounded-md px-3 py-2 text-sm font-body"
+              />
+            </label>
+            <label class="block space-y-1">
+              <span class="text-xs text-on-surface-variant">AZURE_TENANT_ID</span>
+              <input
+                v-model="azureForm.azure_tenant_id"
+                type="text"
+                autocomplete="off"
+                class="w-full bg-surface-container-lowest border border-outline-variant/10 rounded-md px-3 py-2 text-sm font-body"
+              />
+            </label>
+            <label class="block space-y-1">
+              <span class="text-xs text-on-surface-variant">AZURE_CLIENT_ID</span>
+              <input
+                v-model="azureForm.azure_client_id"
+                type="text"
+                autocomplete="off"
+                class="w-full bg-surface-container-lowest border border-outline-variant/10 rounded-md px-3 py-2 text-sm font-body"
+              />
+            </label>
+            <label class="block space-y-1">
+              <span class="text-xs text-on-surface-variant">AZURE_CLIENT_SECRET</span>
+              <input
+                v-model="azureForm.azure_client_secret"
+                type="password"
+                autocomplete="new-password"
+                class="w-full bg-surface-container-lowest border border-outline-variant/10 rounded-md px-3 py-2 text-sm font-body"
+              />
+            </label>
+          </div>
+          <button
+            type="button"
+            class="rounded-md bg-primary py-2.5 px-4 text-sm font-semibold text-on-primary font-body hover:opacity-95 disabled:opacity-50"
+            :disabled="azureSaving"
+            @click="saveAzureRuntime"
+          >
+            {{ azureSaving ? "A gravar…" : "Gravar segredos Azure na base" }}
+          </button>
+        </div>
+        <p v-if="azureMsg" class="text-sm text-on-tertiary-container font-body mt-3">{{ azureMsg }}</p>
+        <pre
+          v-if="azureTestDetail"
+          class="mt-2 p-3 rounded-lg bg-surface-container-lowest border border-outline-variant/10 text-[11px] text-on-surface-variant font-mono whitespace-pre-wrap break-words max-h-48 overflow-y-auto"
+          >{{ azureTestDetail }}</pre
+        >
+        <pre
+          v-if="azureRequestDetail"
+          class="mt-2 p-3 rounded-lg bg-surface-container-high/50 border border-primary/15 text-[11px] text-on-surface font-mono whitespace-pre-wrap break-words max-h-64 overflow-y-auto"
+          >{{ azureRequestDetail }}</pre
+        >
+        <p v-if="azureErr && azureRuntime" class="text-sm text-error font-body mt-2">{{ azureErr }}</p>
       </div>
     </div>
 

@@ -1,0 +1,8 @@
+{
+  "name": "sysgen-stitch-runner",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@google/stitch-sdk": "^0.1.0"
+  }
+}

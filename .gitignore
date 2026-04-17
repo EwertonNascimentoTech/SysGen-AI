@@ -20,6 +20,7 @@ build/
 
 # Node / frontend
 frontend/node_modules/
+backend/stitch_runner/node_modules/
 frontend/dist/
 npm-debug.log*
 

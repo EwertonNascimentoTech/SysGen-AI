@@ -4,7 +4,23 @@ import { useRouter } from "vue-router";
 import { api } from "@/api/client";
 import { useAuthStore } from "@/stores/auth";
 
-type UserRow = { id: number; email: string; full_name: string; is_active: boolean; roles: string[] };
+type UserRow = {
+  id: number;
+  email: string;
+  full_name: string;
+  is_active: boolean;
+  roles: string[];
+  github_login?: string | null;
+};
+
+/** Perfis alinhados ao seed da API (`roles` na base). */
+const ROLE_OPTIONS = [
+  { code: "admin", label: "Administrador" },
+  { code: "coordenador", label: "Coordenador" },
+  { code: "po", label: "Product Owner" },
+  { code: "dev", label: "Desenvolvedor" },
+  { code: "visualizador", label: "Visualizador" },
+] as const;
 
 const auth = useAuthStore();
 const router = useRouter();
@@ -16,12 +32,19 @@ const showForm = ref(false);
 const page = ref(1);
 const pageSize = 8;
 
-const form = ref({ email: "", full_name: "", password: "", role_codes: "dev" });
+const form = ref({ email: "", full_name: "", password: "", github_login: "", role_codes: ["dev"] as string[] });
 
 const showEdit = ref(false);
 const savingEdit = ref(false);
 const editId = ref<number | null>(null);
-const editForm = ref({ email: "", full_name: "", password: "", role_codes: "", is_active: true });
+const editForm = ref({
+  email: "",
+  full_name: "",
+  password: "",
+  github_login: "",
+  role_codes: [] as string[],
+  is_active: true,
+});
 
 onMounted(async () => {
   if (!auth.hasRole("admin")) return;
@@ -65,6 +88,7 @@ function roleBadges(roles: string[]) {
   if (r.has("coordenador")) out.push({ icon: "account_tree", label: "Coord.", cls: "bg-tertiary-container text-on-tertiary-container" });
   if (r.has("po")) out.push({ icon: "account_tree", label: "PO", cls: "bg-secondary-container text-on-secondary-container" });
   if (r.has("dev")) out.push({ icon: "code", label: "Dev", cls: "bg-surface-container-highest text-on-surface-variant" });
+  if (r.has("visualizador")) out.push({ icon: "visibility", label: "Visualiz.", cls: "bg-surface-container-highest text-on-surface-variant" });
   if (!out.length) out.push({ icon: "person", label: "Perfil", cls: "bg-surface-container-highest text-on-surface-variant" });
   return out.slice(0, 4);
 }
@@ -78,7 +102,8 @@ function openEdit(u: UserRow) {
     email: u.email,
     full_name: u.full_name,
     password: "",
-    role_codes: u.roles.join(", "),
+    github_login: u.github_login ?? "",
+    role_codes: [...u.roles],
     is_active: u.is_active,
   };
   showEdit.value = true;
@@ -87,7 +112,7 @@ function openEdit(u: UserRow) {
 function cancelEdit() {
   showEdit.value = false;
   editId.value = null;
-  editForm.value = { email: "", full_name: "", password: "", role_codes: "", is_active: true };
+  editForm.value = { email: "", full_name: "", password: "", github_login: "", role_codes: [], is_active: true };
 }
 
 async function saveEdit() {
@@ -96,19 +121,18 @@ async function saveEdit() {
   msg.value = "";
   savingEdit.value = true;
   try {
-    const role_codes = editForm.value.role_codes
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const role_codes = [...new Set(editForm.value.role_codes.map((c) => c.trim()).filter(Boolean))];
     if (!role_codes.length) {
       err.value = "Indique pelo menos um perfil.";
       return;
     }
+    const gl = editForm.value.github_login.trim();
     const payload: Record<string, unknown> = {
       email: editForm.value.email.trim(),
       full_name: editForm.value.full_name.trim(),
       role_codes,
       is_active: editForm.value.is_active,
+      github_login: gl.length ? gl : null,
     };
     const pw = editForm.value.password.trim();
     if (pw.length) {
@@ -136,21 +160,25 @@ async function create() {
   err.value = "";
   msg.value = "";
   try {
-    const role_codes = form.value.role_codes
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const role_codes = [...new Set(form.value.role_codes.map((c) => c.trim()).filter(Boolean))];
+    if (!role_codes.length) {
+      err.value = "Selecione pelo menos um nível de acesso.";
+      return;
+    }
+    const body: Record<string, unknown> = {
+      email: form.value.email,
+      full_name: form.value.full_name,
+      password: form.value.password,
+      role_codes,
+    };
+    const ngl = form.value.github_login.trim();
+    if (ngl.length) body.github_login = ngl;
     await api("/users", {
       method: "POST",
-      body: JSON.stringify({
-        email: form.value.email,
-        full_name: form.value.full_name,
-        password: form.value.password,
-        role_codes,
-      }),
+      body: JSON.stringify(body),
     });
     rows.value = await api<UserRow[]>("/users");
-    form.value = { email: "", full_name: "", password: "", role_codes: "dev" };
+    form.value = { email: "", full_name: "", password: "", github_login: "", role_codes: ["dev"] };
     showForm.value = false;
     page.value = 1;
     msg.value = "Usuário criado.";
@@ -280,11 +308,33 @@ function leaveUsersToPrevious() {
             placeholder="Nova senha (deixe vazio para não alterar)"
             autocomplete="new-password"
           />
-          <input
-            v-model="editForm.role_codes"
-            class="rounded-lg bg-surface-container-lowest px-3 py-2 text-sm outline-none border border-outline-variant/10 font-body"
-            placeholder="Perfis: dev, po, admin, coordenador"
-          />
+          <div class="flex flex-col gap-1">
+            <label class="text-xs text-on-surface-variant font-body" for="edit-github-login">Login GitHub (opcional)</label>
+            <input
+              id="edit-github-login"
+              v-model="editForm.github_login"
+              type="text"
+              autocomplete="off"
+              class="rounded-lg bg-surface-container-lowest px-3 py-2 text-sm outline-none border border-outline-variant/10 font-body"
+              placeholder="ex.: octocat"
+            />
+            <span class="text-[11px] text-on-surface-variant leading-snug"
+              >Se o e-mail do GitHub não for o mesmo da plataforma, indique o nome de utilizador exactamente como no perfil (github.com/nome).</span
+            >
+          </div>
+          <label class="flex flex-col gap-1 min-h-0">
+            <span class="text-xs text-on-surface-variant font-body">Nível de acesso</span>
+            <select
+              v-model="editForm.role_codes"
+              multiple
+              required
+              :size="ROLE_OPTIONS.length"
+              class="w-full min-h-[8.5rem] rounded-lg bg-surface-container-lowest px-2 py-1.5 text-sm outline-none border border-outline-variant/10 font-body"
+            >
+              <option v-for="opt in ROLE_OPTIONS" :key="opt.code" :value="opt.code">{{ opt.label }}</option>
+            </select>
+            <span class="text-[11px] text-on-surface-variant leading-snug">Selecione um ou mais perfis (Ctrl ou ⌘ + clique).</span>
+          </label>
           <label class="md:col-span-2 flex items-center gap-2 text-sm text-on-surface font-body cursor-pointer">
             <input v-model="editForm.is_active" type="checkbox" class="rounded border-outline-variant" />
             Conta ativa
@@ -333,11 +383,30 @@ function leaveUsersToPrevious() {
             class="rounded-lg bg-surface-container-lowest px-3 py-2 text-sm outline-none border border-outline-variant/10 font-body"
             placeholder="Senha"
           />
-          <input
-            v-model="form.role_codes"
-            class="rounded-lg bg-surface-container-lowest px-3 py-2 text-sm outline-none border border-outline-variant/10 font-body"
-            placeholder="Perfis: dev, po, admin, coordenador"
-          />
+          <div class="flex flex-col gap-1">
+            <label class="text-xs text-on-surface-variant font-body" for="new-github-login">Login GitHub (opcional)</label>
+            <input
+              id="new-github-login"
+              v-model="form.github_login"
+              type="text"
+              autocomplete="off"
+              class="rounded-lg bg-surface-container-lowest px-3 py-2 text-sm outline-none border border-outline-variant/10 font-body"
+              placeholder="ex.: octocat"
+            />
+          </div>
+          <label class="flex flex-col gap-1 min-h-0">
+            <span class="text-xs text-on-surface-variant font-body">Nível de acesso</span>
+            <select
+              v-model="form.role_codes"
+              multiple
+              required
+              :size="ROLE_OPTIONS.length"
+              class="w-full min-h-[8.5rem] rounded-lg bg-surface-container-lowest px-2 py-1.5 text-sm outline-none border border-outline-variant/10 font-body"
+            >
+              <option v-for="opt in ROLE_OPTIONS" :key="opt.code" :value="opt.code">{{ opt.label }}</option>
+            </select>
+            <span class="text-[11px] text-on-surface-variant leading-snug">Selecione um ou mais perfis (Ctrl ou ⌘ + clique).</span>
+          </label>
           <div class="md:col-span-2 flex gap-2">
             <button type="submit" class="px-4 py-2 bg-primary text-on-primary rounded-md text-sm font-semibold font-body">Criar</button>
             <button type="button" class="px-4 py-2 text-sm text-on-surface-variant font-body hover:text-on-surface" @click="showForm = false">
@@ -386,6 +455,9 @@ function leaveUsersToPrevious() {
                     <div>
                       <p class="text-sm font-bold text-on-surface font-headline">{{ u.full_name || "—" }}</p>
                       <p class="text-xs text-on-surface-variant font-body">{{ u.email }}</p>
+                      <p v-if="u.github_login" class="text-[11px] text-on-surface-variant/80 font-body font-mono">
+                        GitHub: @{{ u.github_login }}
+                      </p>
                     </div>
                   </div>
                 </td>

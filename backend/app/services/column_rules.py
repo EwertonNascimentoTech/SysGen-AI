@@ -13,6 +13,7 @@ DETAIL_TAB_KEYS = (
     "kanban",
     "prd",
     "prototipo",
+    "planejamento",
     "desenvolvimento",
     "anexos",
     "auditoria",

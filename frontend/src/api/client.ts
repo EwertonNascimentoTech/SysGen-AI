@@ -74,3 +74,60 @@ export async function api<T>(
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
+
+/** Resposta binária (ex.: application/zip) com o mesmo auth que `api`. */
+export async function apiBlob(path: string, init: RequestInit = {}): Promise<Blob> {
+  const headers = new Headers(init.headers);
+  if (init.body && !(init.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
+  const tok = getToken();
+  if (tok) headers.set("Authorization", `Bearer ${tok}`);
+  const res = await fetch(`/api${path}`, { ...init, headers });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const raw = await res.text();
+      try {
+        const j = JSON.parse(raw) as { detail?: unknown };
+        if (typeof j.detail === "string") detail = j.detail;
+        else if (j.detail != null) detail = JSON.stringify(j.detail);
+      } catch {
+        detail = raw.slice(0, 800) || detail;
+      }
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail);
+  }
+  return res.blob();
+}
+
+/** Texto (ex.: HTML) com o mesmo auth que `api`. */
+export async function apiText(path: string, init: RequestInit = {}): Promise<string> {
+  const headers = new Headers(init.headers);
+  headers.set("Accept", "*/*");
+  if (init.body && !(init.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
+  const tok = getToken();
+  if (tok) headers.set("Authorization", `Bearer ${tok}`);
+  const res = await fetch(`/api${path}`, { ...init, headers });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const raw = await res.text();
+      try {
+        const j = JSON.parse(raw) as { detail?: unknown };
+        if (typeof j.detail === "string") detail = j.detail;
+        else if (j.detail != null) detail = JSON.stringify(j.detail);
+      } catch {
+        detail = raw.slice(0, 800) || detail;
+      }
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail);
+  }
+  return res.text();
+}

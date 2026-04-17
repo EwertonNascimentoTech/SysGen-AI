@@ -86,6 +86,7 @@ const DETAIL_TAB_OPTIONS: { value: string; label: string }[] = [
   { value: "kanban", label: "Kanban" },
   { value: "prd", label: "PRD" },
   { value: "prototipo", label: "Protótipo" },
+  { value: "planejamento", label: "Planejamento" },
   { value: "desenvolvimento", label: "Desenvolvimento" },
   { value: "anexos", label: "Anexos" },
   { value: "auditoria", label: "Auditoria" },
@@ -93,6 +94,8 @@ const DETAIL_TAB_OPTIONS: { value: string; label: string }[] = [
   { value: "wiki", label: "Wiki" },
   { value: "cursor", label: "Cursor Hub" },
 ];
+const DETAIL_TAB_DEFAULT_ORDER = DETAIL_TAB_OPTIONS.map((o) => o.value);
+const DETAIL_TAB_LABELS = Object.fromEntries(DETAIL_TAB_OPTIONS.map((o) => [o.value, o.label])) as Record<string, string>;
 
 const isFluxoRoute = computed(() => route.name === "templates-fluxo");
 
@@ -487,17 +490,79 @@ function visibleDetailTabsForColumn(col: Col) {
   return DETAIL_TAB_OPTIONS.map((o) => o.value).filter((v) => cur.has(v));
 }
 
+function orderedDetailTabsForColumn(col: Col) {
+  const valid = new Set(DETAIL_TAB_DEFAULT_ORDER);
+  const raw = (col.visible_detail_tabs ?? [])
+    .map((x) => String(x).toLowerCase())
+    .filter((x) => valid.has(x))
+    .filter((x, i, arr) => arr.indexOf(x) === i);
+  if (!raw.length) return [...DETAIL_TAB_DEFAULT_ORDER];
+  return raw;
+}
+
 function isDetailTabVisible(col: Col, tab: string) {
-  return visibleDetailTabsForColumn(col).includes(tab);
+  return orderedDetailTabsForColumn(col).includes(tab);
 }
 
 function toggleDetailTabVisibility(col: Col, tab: string, checked: boolean) {
-  const cur = new Set(visibleDetailTabsForColumn(col));
-  if (checked) cur.add(tab);
-  else cur.delete(tab);
-  const ordered = DETAIL_TAB_OPTIONS.map((o) => o.value).filter((v) => cur.has(v));
+  const ordered = orderedDetailTabsForColumn(col);
+  if (checked) {
+    if (!ordered.includes(tab)) ordered.push(tab);
+  } else {
+    const idx = ordered.indexOf(tab);
+    if (idx >= 0) ordered.splice(idx, 1);
+  }
   if (!ordered.length) return;
   void patchVisibleDetailTabs(col, ordered);
+}
+
+function detailTabsUnifiedRowsForColumn(col: Col) {
+  const orderedVisible = orderedDetailTabsForColumn(col);
+  const visibleSet = new Set(orderedVisible);
+  const hidden = DETAIL_TAB_DEFAULT_ORDER.filter((tab) => !visibleSet.has(tab));
+  return [...orderedVisible, ...hidden];
+}
+
+function detailTabLabel(tab: string) {
+  return DETAIL_TAB_LABELS[tab] ?? tab;
+}
+
+function onDetailTabDragStart(ev: DragEvent, tab: string, col: Col) {
+  if (!isDetailTabVisible(col, tab)) return;
+  ev.dataTransfer?.setData("text/plain", tab);
+  if (ev.dataTransfer) ev.dataTransfer.effectAllowed = "move";
+}
+
+function onDetailTabDragOver(ev: DragEvent) {
+  ev.preventDefault();
+  if (ev.dataTransfer) ev.dataTransfer.dropEffect = "move";
+}
+
+function onDetailTabDrop(col: Col, toIndex: number, ev: DragEvent) {
+  ev.preventDefault();
+  if (!canEdit.value || saving.value) return;
+  const fromTab = (ev.dataTransfer?.getData("text/plain") ?? "").toLowerCase();
+  if (!fromTab) return;
+  moveDetailTabByTab(col, fromTab, toIndex);
+}
+
+function moveDetailTab(col: Col, fromIndex: number, toIndex: number) {
+  const ordered = orderedDetailTabsForColumn(col);
+  if (fromIndex < 0 || fromIndex >= ordered.length || toIndex < 0 || toIndex >= ordered.length || fromIndex === toIndex) return;
+  const [moved] = ordered.splice(fromIndex, 1);
+  ordered.splice(toIndex, 0, moved);
+  void patchVisibleDetailTabs(col, ordered);
+}
+
+function moveDetailTabByTab(col: Col, fromTab: string, toIndex: number) {
+  const ordered = orderedDetailTabsForColumn(col);
+  const fromIndex = ordered.indexOf(fromTab);
+  if (fromIndex < 0) return;
+  moveDetailTab(col, fromIndex, toIndex);
+}
+
+function visibleDetailTabIndex(col: Col, tab: string) {
+  return orderedDetailTabsForColumn(col).indexOf(tab);
 }
 
 function catalogRulesForPhase() {
@@ -777,21 +842,63 @@ function activeRulesCount(col: Col) {
                   <p class="text-xs text-on-surface-variant font-body mb-3 leading-relaxed">
                     Defina quais menus o utilizador pode ver quando o projeto estiver nesta fase.
                   </p>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <label
-                      v-for="opt in DETAIL_TAB_OPTIONS"
-                      :key="`${c.id}-${opt.value}`"
-                      class="flex items-start gap-2 p-2.5 bg-surface-container-low rounded-lg border border-transparent hover:border-outline-variant/30 transition-all cursor-pointer"
+                  <div class="space-y-1.5">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                      <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-label">Menus e ordem</span>
+                      <span class="text-[10px] text-on-surface-variant font-body">Marque e reordene os ativos</span>
+                    </div>
+                    <div
+                      v-for="tab in detailTabsUnifiedRowsForColumn(c)"
+                      :key="`${c.id}-menu-${tab}`"
+                      class="flex items-center justify-between gap-2 rounded-md bg-surface-container-low px-2.5 py-2 border border-outline-variant/20"
+                      :class="isDetailTabVisible(c, tab) && canEdit && !saving ? 'cursor-grab active:cursor-grabbing' : ''"
+                      :draggable="isDetailTabVisible(c, tab) && canEdit && !saving"
+                      @dragstart="onDetailTabDragStart($event, tab, c)"
+                      @dragover="onDetailTabDragOver($event)"
+                      @drop="onDetailTabDrop(c, visibleDetailTabIndex(c, tab), $event)"
                     >
-                      <input
-                        type="checkbox"
-                        class="rounded border-outline text-primary focus:ring-primary mt-0.5 shrink-0"
-                        :checked="isDetailTabVisible(c, opt.value)"
-                        :disabled="!canEdit || saving"
-                        @change="toggleDetailTabVisibility(c, opt.value, ($event.target as HTMLInputElement).checked)"
-                      />
-                      <span class="text-xs text-on-surface font-medium">{{ opt.label }}</span>
-                    </label>
+                      <label class="flex items-center gap-2 min-w-0 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          class="rounded border-outline text-primary focus:ring-primary shrink-0"
+                          :checked="isDetailTabVisible(c, tab)"
+                          :disabled="!canEdit || saving"
+                          @change="toggleDetailTabVisibility(c, tab, ($event.target as HTMLInputElement).checked)"
+                        />
+                        <span class="material-symbols-outlined text-sm text-on-surface-variant">drag_indicator</span>
+                        <span class="text-xs text-on-surface font-medium truncate">{{ detailTabLabel(tab) }}</span>
+                      </label>
+                      <div class="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          class="p-0.5 text-on-surface-variant hover:text-primary disabled:opacity-30"
+                          :disabled="
+                            !canEdit ||
+                            saving ||
+                            !isDetailTabVisible(c, tab) ||
+                            visibleDetailTabIndex(c, tab) <= 0
+                          "
+                          title="Mover para cima"
+                          @click.stop="moveDetailTab(c, visibleDetailTabIndex(c, tab), visibleDetailTabIndex(c, tab) - 1)"
+                        >
+                          <span class="material-symbols-outlined text-sm">keyboard_arrow_up</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="p-0.5 text-on-surface-variant hover:text-primary disabled:opacity-30"
+                          :disabled="
+                            !canEdit ||
+                            saving ||
+                            !isDetailTabVisible(c, tab) ||
+                            visibleDetailTabIndex(c, tab) >= orderedDetailTabsForColumn(c).length - 1
+                          "
+                          title="Mover para baixo"
+                          @click.stop="moveDetailTab(c, visibleDetailTabIndex(c, tab), visibleDetailTabIndex(c, tab) + 1)"
+                        >
+                          <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

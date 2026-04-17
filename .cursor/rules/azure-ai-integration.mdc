@@ -1,0 +1,36 @@
+---
+description: Padrões MindOps para Azure AI (Agents) — credenciais, runtime, fallback e testes obrigatórios
+globs: backend/**/*.py
+alwaysApply: false
+---
+
+# Integração Azure AI (Azure AI Agents)
+
+Ao adicionar ou alterar integração com Azure AI neste repositório, siga o que já existe no MindOps.
+
+## Stack e SDK
+
+- Pacotes: `azure-ai-agents`, `azure-identity` (versões em `backend/requirements.txt`).
+- Cliente: `AgentsClient` de `azure.ai.agents`.
+- Credencial: `ClientSecretCredential` quando `AZURE_TENANT_ID`, `AZURE_CLIENT_ID` e `AZURE_CLIENT_SECRET` estão definidos; senão `DefaultAzureCredential`.
+
+## Configuração (runtime + env)
+
+- Leitura unificada: `get_runtime_azure_settings()` em `backend/app/services/epa_service.py` com fallback para `os.getenv` (mesmas chaves em maiúsculas).
+- Obrigatórios para uso real: `AZURE_AI_PROJECT_ENDPOINT` e `AZURE_AI_AGENT_ID`.
+- Endpoint do cliente: `AZURE_AI_PROJECT_CONNECTION_STRING` **ou** `AZURE_AI_PROJECT_ENDPOINT` (variável `agents_endpoint = connection_string or endpoint`).
+- Modelos Pydantic e API: `AzureRuntimeConfigPayload` / `AzureRuntimeConfigResponse` em `backend/app/models.py`; rotas em `backend/app/main.py` (`/api/settings/azure-runtime`, `PUT`, `GET`, `POST .../test`).
+- UI: `frontend/src/pages/Settings.jsx` (campos `azure_*`, teste via `.../azure-runtime/test`).
+- Documentar novas variáveis em `backend/.env.example` e `backend/README.md` quando aplicável.
+
+## Comportamento esperado
+
+- Se endpoint ou agent ID faltarem, não quebrar o fluxo de negócio: retorno controlado ou texto de fallback (como em `_generate_text_with_azure_agent`).
+- Erros de runtime da API Azure: tratar `run.status == "failed"` e respostas vazias; em falhas inesperadas, log e fallback só onde o projeto já faz isso (evitar mudar sem necessidade).
+
+## Testes (obrigatório ao concluir a implementação)
+
+1. **Automatizado (pytest)**: criar ou atualizar teste que cubra a mudança — preferir `backend/tests/` (criar a pasta se o projeto ainda não tiver) com mocks de `AgentsClient` / credencial para não depender da nuvem.
+2. **Integração/diagnóstico**: manter ou estender `backend/scripts/test_azure_agent.py` quando o fluxo depender de chamadas reais; validar com `docker compose --profile test run --rm test-azure-agent` (definido em `docker-compose.yml`).
+
+Não considerar a implementação concluída sem **pelo menos um teste pytest** novo ou alterado que prove o comportamento adicionado (além de qualquer ajuste no script de diagnóstico, se aplicável).

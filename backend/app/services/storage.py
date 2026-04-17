@@ -58,6 +58,59 @@ def delete_object_key(key: str) -> None:
         pass
 
 
+def list_object_keys_under_prefix(prefix: str) -> list[str]:
+    """Lista chaves de objectos (ficheiros) com o prefixo dado."""
+    if not settings.s3_endpoint_url:
+        raise RuntimeError("S3 não configurado (S3_ENDPOINT_URL)")
+    c = _client()
+    b = settings.s3_bucket
+    p = prefix.rstrip("/") + "/"
+    out: list[str] = []
+    paginator = c.get_paginator("list_objects_v2")
+    for page in paginator.paginate(Bucket=b, Prefix=p):
+        for obj in page.get("Contents", []):
+            k = obj.get("Key")
+            if k and not str(k).endswith("/"):
+                out.append(str(k))
+    return out
+
+
+def relative_paths_under_prefix(prefix: str, keys: list[str]) -> list[str]:
+    base = prefix.rstrip("/") + "/"
+    rel = []
+    for k in keys:
+        if k.startswith(base):
+            rel.append(k[len(base) :])
+    return sorted(rel)
+
+
+def read_object_bytes(key: str) -> bytes:
+    if not settings.s3_endpoint_url:
+        raise RuntimeError("S3 não configurado (S3_ENDPOINT_URL)")
+    c = _client()
+    r = c.get_object(Bucket=settings.s3_bucket, Key=key)
+    return r["Body"].read()
+
+
+def content_type_for_storage_key(key: str) -> str:
+    ext = key.rsplit(".", 1)[-1].lower() if "." in key else ""
+    if ext == "json":
+        return "application/json"
+    if ext in ("html", "htm"):
+        return "text/html; charset=utf-8"
+    if ext == "svg":
+        return "image/svg+xml"
+    if ext == "png":
+        return "image/png"
+    if ext in ("jpg", "jpeg"):
+        return "image/jpeg"
+    if ext == "webp":
+        return "image/webp"
+    if ext == "txt":
+        return "text/plain; charset=utf-8"
+    return "application/octet-stream"
+
+
 def presigned_get_url(key: str) -> str:
     url = _client().generate_presigned_url(
         "get_object",

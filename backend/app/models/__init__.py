@@ -8,6 +8,9 @@ from app.models.kanban import KanbanTemplate, KanbanTemplateColumn
 from app.models.project import (
     Project,
     ProjectAttachment,
+    ProjectPrdVersion,
+    ProjectPrototipoPromptVersion,
+    ProjectStitchGeneration,
     ProjectWiki,
     WikiDocument,
 )
@@ -30,6 +33,9 @@ __all__ = [
     "GovernanceAdvanceRule",
     "Project",
     "ProjectAttachment",
+    "ProjectPrdVersion",
+    "ProjectPrototipoPromptVersion",
+    "ProjectStitchGeneration",
     "ProjectTask",
     "ProjectTaskColumn",
     "ProjectWiki",

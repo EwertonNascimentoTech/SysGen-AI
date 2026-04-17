@@ -41,8 +41,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    # compose.env (partilhado) + backend/.env (Azure e segredos locais; opcional se não existir).
     env_file:
       - compose.env
+      - path: backend/.env
+        required: false
     environment:
       DATABASE_URL: postgresql+asyncpg://governanca:governanca@postgres:5432/governanca
       REDIS_URL: redis://redis:6379/0
@@ -71,6 +74,8 @@ services:
     command: ["python", "-m", "app.worker"]
     env_file:
       - compose.env
+      - path: backend/.env
+        required: false
     environment:
       DATABASE_URL: postgresql+asyncpg://governanca:governanca@postgres:5432/governanca
       REDIS_URL: redis://redis:6379/0
@@ -98,6 +103,19 @@ services:
     ports:
       - "8080:80"
     restart: unless-stopped
+
+  # Diagnóstico Azure AI Agents (AZURE_* em compose.env ou backend/.env):
+  # docker compose --profile test run --rm test-azure-agent
+  test-azure-agent:
+    profiles: ["test"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - compose.env
+      - path: backend/.env
+        required: false
+    command: ["python", "scripts/test_azure_agent.py"]
 
 volumes:
   pgdata:

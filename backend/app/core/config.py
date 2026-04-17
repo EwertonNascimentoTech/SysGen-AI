@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from pathlib import Path
 
@@ -61,6 +63,33 @@ class Settings(BaseSettings):
     s3_region: str = "us-east-1"
     s3_use_ssl: bool = False
     s3_presigned_ttl_seconds: int = 3600
+
+    # Azure OpenAI (chat PRD / entrevista)
+    azure_openai_endpoint: str = ""
+    azure_openai_api_key: str = ""
+    azure_openai_deployment: str = ""
+    azure_openai_api_version: str = "2024-08-01-preview"
+
+    # Azure AI Agents / Foundry (prioridade sobre OpenAI REST quando endpoint + agent_id definidos)
+    azure_ai_project_endpoint: str = ""
+    azure_ai_project_connection_string: str = ""
+    azure_ai_agent_id: str = ""
+    # Agente dedicado à geração de prompt de protótipo (UX/UI) a partir do PRD.
+    azure_ai_agent_prototipo_id: str = ""
+    azure_tenant_id: str = ""
+    azure_client_id: str = ""
+    azure_client_secret: str = ""
+
+    # Google Stitch API (@google/stitch-sdk / MCP stitch.googleapis.com) — opcional; ver backend/stitch_runner/
+    stitch_api_key: str = ""
+    stitch_project_id: str = ""
+
+    @field_validator("azure_openai_endpoint", "azure_ai_project_endpoint", mode="before")
+    @classmethod
+    def strip_azure_endpoint(cls, v):
+        if v is None:
+            return ""
+        return str(v).strip().rstrip("/")
 
     @field_validator("github_client_id", "github_client_secret", mode="before")
     @classmethod

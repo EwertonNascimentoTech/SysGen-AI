@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Axiom Governance - Detalhe do Projeto</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary": "#000000",
+                      "primary-fixed-dim": "#bec6e0",
+                      "outline": "#76777d",
+                      "error": "#ba1a1a",
+                      "surface-tint": "#565e74",
+                      "surface-container": "#eceef0",
+                      "secondary": "#515f74",
+                      "on-secondary": "#ffffff",
+                      "inverse-primary": "#bec6e0",
+                      "on-primary-fixed": "#131b2e",
+                      "on-tertiary-fixed-variant": "#005321",
+                      "surface-container-low": "#f2f4f6",
+                      "primary-fixed": "#dae2fd",
+                      "inverse-on-surface": "#eff1f3",
+                      "surface-variant": "#e0e3e5",
+                      "secondary-fixed-dim": "#b9c7df",
+                      "on-surface-variant": "#45464d",
+                      "on-surface": "#191c1e",
+                      "on-primary-container": "#7c839b",
+                      "on-error-container": "#93000a",
+                      "surface-container-highest": "#e0e3e5",
+                      "on-tertiary-container": "#009844",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "on-secondary-container": "#57657a",
+                      "error-container": "#ffdad6",
+                      "tertiary-fixed-dim": "#4ae176",
+                      "tertiary-container": "#002109",
+                      "primary-container": "#131b2e",
+                      "on-tertiary-fixed": "#002109",
+                      "secondary-fixed": "#d5e3fc",
+                      "primary": "#000000",
+                      "outline-variant": "#c6c6cd",
+                      "on-background": "#191c1e",
+                      "tertiary-fixed": "#6bff8f",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed": "#0d1c2e",
+                      "on-tertiary": "#ffffff",
+                      "surface": "#f7f9fb",
+                      "on-primary": "#ffffff",
+                      "on-secondary-fixed-variant": "#3a485b",
+                      "background": "#f7f9fb",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-high": "#e6e8ea",
+                      "secondary-container": "#d5e3fc",
+                      "surface-dim": "#d8dadc",
+                      "surface-bright": "#f7f9fb",
+                      "inverse-surface": "#2d3133"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "fontFamily": {
+                      "headline": ["Manrope"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .display-lg { font-family: 'Manrope', sans-serif; letter-spacing: -0.02em; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .sidebar-active { background-color: rgba(218, 226, 253, 0.1); color: #DAE2FD; border-right: 4px solid #DAE2FD; }
+        .nav-link-active { color: #191c1e; border-bottom: 2px solid #191c1e; padding-bottom: 4px; }
+        .markdown-body { font-size: 0.9375rem; line-height: 1.6; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex">
+<!-- SideNavBar (Shared Component Anchor) -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-primary-container flex flex-col py-6 z-50">
+<div class="px-6 mb-10 flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">deployed_code</span>
+</div>
+<div>
+<div class="font-bold text-white font-headline tracking-tight">Project Alpha</div>
+<div class="text-[10px] text-[#C6C6CD] uppercase tracking-[0.05em] font-medium">Governance Active</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-4 px-6 py-3 text-[#C6C6CD] hover:bg-white/5 transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined text-lg">analytics</span>
+<span class="text-sm font-medium tracking-wide uppercase text-[11px]">Overview</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-[#C6C6CD] hover:bg-white/5 transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined text-lg">description</span>
+<span class="text-sm font-medium tracking-wide uppercase text-[11px]">Requirements</span>
+</a>
+<a class="sidebar-active flex items-center gap-4 px-6 py-3 transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined text-lg">history</span>
+<span class="text-sm font-medium tracking-wide uppercase text-[11px]">PRD Ledger</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-[#C6C6CD] hover:bg-white/5 transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined text-lg">gavel</span>
+<span class="text-sm font-medium tracking-wide uppercase text-[11px]">Compliance</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-[#C6C6CD] hover:bg-white/5 transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined text-lg">inventory_2</span>
+<span class="text-sm font-medium tracking-wide uppercase text-[11px]">Archive</span>
+</a>
+</nav>
+<div class="mt-auto px-6 space-y-4">
+<button class="w-full py-2 bg-[#DAE2FD]/10 text-[#DAE2FD] text-[11px] font-bold uppercase tracking-wider rounded-sm hover:bg-[#DAE2FD]/20 transition-colors">
+                Export Report
+            </button>
+<div class="pt-6 border-t border-white/10 space-y-2">
+<a class="flex items-center gap-3 text-[#C6C6CD] text-[11px] uppercase font-medium hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-base">help_outline</span> Support
+                </a>
+<a class="flex items-center gap-3 text-[#C6C6CD] text-[11px] uppercase font-medium hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-base">info</span> Help
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 flex flex-col min-h-screen">
+<!-- TopAppBar (Shared Component Anchor) -->
+<header class="sticky top-0 z-40 bg-slate-50/70 backdrop-blur-xl border-b border-slate-200/15 flex justify-between items-center w-full px-8 py-4">
+<div class="flex items-center gap-8">
+<h1 class="text-xl font-bold tracking-tight text-slate-900">Axiom Governance</h1>
+<nav class="flex gap-6">
+<a class="text-slate-500 font-medium text-sm hover:text-slate-900 transition-colors" href="#">Dashboard</a>
+<a class="text-slate-500 font-medium text-sm hover:text-slate-900 transition-colors" href="#">Projects</a>
+<a class="nav-link-active text-slate-900 font-medium text-sm" href="#">Governance</a>
+<a class="text-slate-500 font-medium text-sm hover:text-slate-900 transition-colors" href="#">Insights</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:text-slate-900 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-slate-900 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-slate-200">
+<img alt="Avatar" data-alt="close-up portrait of a professional man in a business setting with soft natural lighting and blurred background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWvqz-rj6UEHg3G2wXaxFND0ey7A3-uak2BfRwhDwd8eV3k-cBzETQE9j0N87cY1lYIy3IFGdo6srJNa5hoquwcL6fxsLaljF-CLjOSmzoDd9Fi54FK62B7G7ABWebF8BkT3WKETP0L5gN2U6WPl17LnbZJv1jXlAdlOqSMNLZPThf9AMW3wWK8IJ9KoJW1LdFX0957zd8xhGBEhBv7vjFNBPQ1VUNZsHjshAbK-kQc4uih4XTR5a-e1Pmu66f3fTpGlwTCR6bfUA"/>
+</div>
+</div>
+</header>
+<!-- Page Canvas -->
+<div class="p-8 flex gap-8 items-start">
+<!-- Column 1: Entrevista PRD -->
+<section class="flex-1 flex flex-col gap-6">
+<div class="flex flex-col gap-1">
+<h2 class="text-3xl font-extrabold text-on-surface">Entrevista PRD</h2>
+<p class="text-on-surface-variant text-sm font-medium">Módulo de engenharia de PRD em tempo real</p>
+</div>
+<!-- Chat Card -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_-4px_rgba(25,28,30,0.06)] flex flex-col h-[700px]">
+<!-- Chat History -->
+<div class="flex-1 overflow-y-auto p-6 space-y-8">
+<!-- AI Message -->
+<div class="flex gap-4 max-w-[85%]">
+<div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white text-lg" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<div class="flex flex-col gap-3">
+<div class="bg-surface-container-low p-5 rounded-2xl rounded-tl-none text-on-surface text-sm leading-relaxed markdown-body">
+<p class="mb-3">Olá! Sou o assistente SysGen AI. Vamos detalhar as funcionalidades do módulo de pagamentos para o <strong>Project Alpha</strong>.</p>
+<p class="mb-3">Com base nas notas anteriores, identifiquei a necessidade de suporte a múltiplos gateways. Podemos focar agora nas regras de conciliação bancária?</p>
+<div class="mt-4 pt-4 border-t border-outline-variant/30 flex justify-end">
+<button class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-primary hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined text-sm">save_as</span> Guardar PRD (MD)
+                                        </button>
+</div>
+</div>
+<span class="text-[10px] text-on-surface-variant uppercase font-semibold tracking-wider ml-1">10:42 AM · AI Governance</span>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex flex-row-reverse gap-4 max-w-[85%] ml-auto">
+<div class="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+<img alt="User" data-alt="professional user profile portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfk8rHxycxVr9jcJcfB3eTgL_l5HckoZctLJsXEgKLQIouS6P6QDkIHmhUy-2DtmSVlVgwWfTRp8J0nW9ZY0nlKsskaSu05wDRPQJp15bTd_Biza0p-vOQG1sNhBZAzy0BXtVxfZ1h1DsuEdoAxezFTeJniIwlIQrtqXZ87Ye26uRApa-Mxdy9PwddH6etnv3gLIrZ_rg_bCsATfxwPcjt_Vcui1dTAm8HThgPjpgCvmqoA4b3670cFdes91vOnyYuxw3GP_i7nXs"/>
+</div>
+<div class="flex flex-col items-end gap-2">
+<div class="bg-primary text-on-primary p-4 rounded-2xl rounded-tr-none text-sm shadow-sm">
+                                    Sim, a conciliação precisa ser automática para transações PIX e Cartão de Crédito, com um dashboard de divergências.
+                                </div>
+<span class="text-[10px] text-on-surface-variant uppercase font-semibold tracking-wider mr-1">10:45 AM</span>
+</div>
+</div>
+<!-- AI Message with PRD Snippet -->
+<div class="flex gap-4 max-w-[85%]">
+<div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white text-lg" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<div class="flex flex-col gap-3">
+<div class="bg-surface-container-low p-5 rounded-2xl rounded-tl-none text-on-surface text-sm leading-relaxed markdown-body">
+<p class="mb-2 font-bold text-primary">Esboço de Requisito Gerado:</p>
+<ul class="list-disc pl-4 space-y-1 text-on-surface-variant">
+<li><strong>ID:</strong> REQ-042</li>
+<li><strong>Funcionalidade:</strong> Conciliação Automática</li>
+<li><strong>Regra:</strong> Comparação entre webhook do gateway e extrato bancário via API (OFX/JSON).</li>
+</ul>
+<div class="mt-4 pt-4 border-t border-outline-variant/30 flex justify-end">
+<button class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-primary hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined text-sm">save_as</span> Guardar PRD (MD)
+                                        </button>
+</div>
+</div>
+<span class="text-[10px] text-on-surface-variant uppercase font-semibold tracking-wider ml-1">10:46 AM · AI Governance</span>
+</div>
+</div>
+</div>
+<!-- Chat Composer -->
+<div class="p-6 bg-surface-container-lowest border-t border-surface-container">
+<div class="relative bg-surface-container-low rounded-xl p-3 border border-transparent focus-within:border-outline-variant transition-all">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-sm min-h-[80px] resize-none text-on-surface placeholder:text-on-surface-variant/50" placeholder="Descreva novos requisitos ou responda à IA..."></textarea>
+<div class="flex items-center justify-between mt-2 pt-2 border-t border-outline-variant/20">
+<div class="flex items-center gap-1">
+<button class="p-2 hover:bg-surface-container-high rounded transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined text-xl">attach_file</span>
+</button>
+<button class="p-2 hover:bg-surface-container-high rounded transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined text-xl">mic</span>
+</button>
+<div class="h-6 w-[1px] bg-outline-variant/30 mx-2"></div>
+<label class="flex items-center gap-2 cursor-pointer group">
+<div class="w-8 h-4 bg-surface-container-highest rounded-full relative">
+<div class="absolute left-1 top-1 w-2 h-2 bg-on-surface-variant rounded-full transition-all group-hover:bg-primary"></div>
+</div>
+<span class="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Ligação de voz contínua</span>
+</label>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-[9px] text-on-surface-variant/60 font-medium">Markdown suportado • Máx 8MB</span>
+<button class="bg-primary text-on-primary px-5 py-2 rounded-md flex items-center gap-2 hover:opacity-90 transition-opacity">
+<span class="text-xs font-bold uppercase tracking-widest">Enviar</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Column 2: Versões PRD -->
+<section class="w-[400px] sticky top-28 flex flex-col gap-6">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="text-xl font-bold text-on-surface">Versões PRD</h3>
+<p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Histórico e Edição</p>
+</div>
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+</div>
+<!-- Version List -->
+<div class="flex flex-col gap-3">
+<!-- Active Version -->
+<div class="bg-surface-container-lowest border-l-4 border-primary p-4 rounded-r-lg shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<span class="text-xs font-bold font-headline text-on-surface">Versão 2.4</span>
+<span class="bg-tertiary-container text-on-tertiary-container text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">v2 · actual</span>
+</div>
+<p class="text-[11px] text-on-surface-variant font-medium">Atualizado em 24 Out 2023 · 14:30</p>
+</div>
+<!-- Previous Version -->
+<div class="bg-surface-container-low p-4 rounded-lg border border-transparent hover:border-outline-variant/30 transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-xs font-bold font-headline text-on-surface-variant group-hover:text-on-surface">Versão 2.3</span>
+<span class="text-[10px] text-on-surface-variant/40 font-mono italic">archived</span>
+</div>
+<p class="text-[11px] text-on-surface-variant/60">Atualizado em 22 Out 2023 · 09:15</p>
+</div>
+<!-- Previous Version -->
+<div class="bg-surface-container-low p-4 rounded-lg border border-transparent hover:border-outline-variant/30 transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-xs font-bold font-headline text-on-surface-variant group-hover:text-on-surface">Versão 1.0</span>
+<span class="text-[10px] text-on-surface-variant/40 font-mono italic">baseline</span>
+</div>
+<p class="text-[11px] text-on-surface-variant/60">Atualizado em 15 Out 2023 · 18:00</p>
+</div>
+</div>
+<!-- Version Content Area -->
+<div class="flex-1">
+<div class="mb-3 flex items-center justify-between">
+<span class="text-[11px] uppercase font-bold text-on-surface tracking-widest">Conteúdo da Versão</span>
+<span class="flex items-center gap-1 text-[10px] text-tertiary-fixed-dim font-bold uppercase">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span>
+                            Editando agora
+                        </span>
+</div>
+<!-- Styled Markdown Editor (for Current) -->
+<div class="bg-white rounded-xl shadow-inner border border-outline-variant/10 flex flex-col overflow-hidden">
+<div class="bg-surface-container-low px-4 py-2 flex gap-4 border-b border-outline-variant/10">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">format_bold</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant">format_italic</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant">link</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant">list</span>
+</div>
+<textarea class="w-full h-[320px] p-5 text-sm font-mono text-on-surface border-none focus:ring-0 leading-relaxed bg-white"># PRD: Módulo de Pagamentos
+## 1. Visão Geral
+Sistema de conciliação automática para gateways de pagamento.
+
+## 2. Requisitos Funcionais
+- [x] Suporte a PIX
+- [ ] Conciliação retroativa
+- [ ] Exportação OFX
+
+## 3. Segurança
+Auth level 4 obrigatório para estornos.</textarea>
+<div class="p-4 bg-surface-container-low">
+<button class="w-full py-2.5 bg-primary text-on-primary rounded-md text-xs font-bold uppercase tracking-widest shadow-lg shadow-primary/10 hover:translate-y-[-1px] transition-all">
+                                Guardar alterações
+                            </button>
+</div>
+</div>
+<!-- "Versão Antiga" Warning (Logic placeholder) -->
+<div class="hidden mt-4 p-3 rounded bg-error-container/20 border border-error/10 flex items-center gap-3">
+<span class="material-symbols-outlined text-error text-lg">warning</span>
+<p class="text-[10px] font-bold text-error uppercase tracking-tight">Você está visualizando uma versão antiga. Edição desabilitada.</p>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>

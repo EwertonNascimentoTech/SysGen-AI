@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sovereign Ledger | Protótipo</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed": "#6bff8f",
+                      "surface-dim": "#d8dadc",
+                      "secondary-fixed": "#d5e3fc",
+                      "on-error-container": "#93000a",
+                      "surface": "#f7f9fb",
+                      "surface-container": "#eceef0",
+                      "primary": "#000000",
+                      "surface-container-highest": "#e0e3e5",
+                      "secondary": "#515f74",
+                      "primary-fixed-dim": "#bec6e0",
+                      "secondary-container": "#d5e3fc",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-surface": "#2d3133",
+                      "surface-variant": "#e0e3e5",
+                      "surface-bright": "#f7f9fb",
+                      "on-secondary-fixed-variant": "#3a485b",
+                      "on-primary": "#ffffff",
+                      "on-primary-fixed": "#131b2e",
+                      "tertiary-container": "#002109",
+                      "surface-container-low": "#f2f4f6",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "tertiary-fixed-dim": "#4ae176",
+                      "on-surface-variant": "#45464d",
+                      "on-secondary-container": "#57657a",
+                      "error-container": "#ffdad6",
+                      "surface-tint": "#565e74",
+                      "on-secondary-fixed": "#0d1c2e",
+                      "background": "#f7f9fb",
+                      "primary-container": "#131b2e",
+                      "on-primary-container": "#7c839b",
+                      "secondary-fixed-dim": "#b9c7df",
+                      "outline-variant": "#c6c6cd",
+                      "tertiary": "#000000",
+                      "outline": "#76777d",
+                      "on-background": "#191c1e",
+                      "error": "#ba1a1a",
+                      "on-tertiary-fixed": "#002109",
+                      "on-tertiary": "#ffffff",
+                      "inverse-primary": "#bec6e0",
+                      "on-tertiary-container": "#009844",
+                      "on-error": "#ffffff",
+                      "primary-fixed": "#dae2fd",
+                      "on-tertiary-fixed-variant": "#005321",
+                      "surface-container-high": "#e6e8ea",
+                      "on-surface": "#191c1e",
+                      "on-secondary": "#ffffff",
+                      "inverse-on-surface": "#eff1f3"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "fontFamily": {
+                      "headline": ["Manrope"],
+                      "body": ["Inter"],
+                      "label": ["Inter"],
+                      "mono": ["JetBrains Mono"]
+              }
+            },
+          }
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
+        .mono-font { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c6c6cd; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex">
+<!-- SideNavBar (Predicted Anchor) -->
+<aside class="hidden md:flex flex-col h-screen p-4 space-y-6 bg-slate-900 dark:bg-black w-64 flex-shrink-0 sticky top-0">
+<div class="flex items-center space-x-3 px-2">
+<div class="w-10 h-10 rounded-lg bg-blue-900/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-blue-200">dashboard</span>
+</div>
+<div>
+<div class="text-lg font-bold text-white tracking-tight leading-tight">Project Alpha</div>
+<div class="text-[10px] uppercase tracking-widest text-slate-400 font-label">Editorial Governance</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-4 py-2.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">overview</span>
+<span class="font-body text-sm">Overview</span>
+</a>
+<a class="flex items-center px-4 py-2.5 text-blue-200 bg-blue-900/40 rounded-lg transition-all scale 0.98 group" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">terminal</span>
+<span class="font-body text-sm">Prototype</span>
+</a>
+<a class="flex items-center px-4 py-2.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">account_tree</span>
+<span class="font-body text-sm">Stitch</span>
+</a>
+<a class="flex items-center px-4 py-2.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">folder_open</span>
+<span class="font-body text-sm">Storage</span>
+</a>
+<a class="flex items-center px-4 py-2.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]">history</span>
+<span class="font-body text-sm">History</span>
+</a>
+</nav>
+<div class="pt-6 border-t border-slate-800 space-y-1">
+<a class="flex items-center px-4 py-2 text-slate-400 hover:text-slate-200 text-sm transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-[18px]">description</span>
+                Documentation
+            </a>
+<a class="flex items-center px-4 py-2 text-slate-400 hover:text-slate-200 text-sm transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-[18px]">help_outline</span>
+                Support
+            </a>
+</div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0">
+<!-- TopAppBar (Predicted Anchor) -->
+<header class="flex justify-between items-center px-8 h-16 w-full max-w-full sticky top-0 z-30 backdrop-blur-md bg-white/70">
+<div class="flex items-center space-x-12">
+<span class="text-xl font-bold tracking-tight text-slate-900">Sovereign Ledger</span>
+<nav class="hidden lg:flex space-x-8">
+<a class="text-slate-500 hover:text-slate-900 transition-colors font-label text-[11px] uppercase tracking-wider" href="#">Governance</a>
+<a class="text-slate-500 hover:text-slate-900 transition-colors font-label text-[11px] uppercase tracking-wider" href="#">Projects</a>
+<a class="text-slate-900 border-b-2 border-slate-900 pb-1 font-label text-[11px] uppercase tracking-wider" href="#">Intellect</a>
+<a class="text-slate-500 hover:text-slate-900 transition-colors font-label text-[11px] uppercase tracking-wider" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center space-x-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high ml-2 ring-1 ring-outline-variant/20">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="close-up portrait of a professional corporate woman in a bright modern office with natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPVsugYc720LViWznM9GVGae8RP-vFYXbN0kdF5cCcIuFLOiR-J68vp3rjoEYp7RUBtRwty1KHp_zHNnaEecqqurVqhQ00eZKj9DcebeJAYmVIUFK39l6chlJ15xiMjO2gozYDT08z-fU3hlrsNkpPOI7C22qnKkg1raAVUyZ654PPo9bLFvD3OL6_1bepz2l7exrpzcS5JhwkwFfkXDP7v4oaVDhoPBxtNVh2lWueXIRHdDR83oWq49xI8gMlApnbpE6Y3xDjCAI"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="flex-1 w-full max-w-5xl mx-auto px-8 py-10 space-y-12 pb-24">
+<!-- Header Section -->
+<section class="space-y-2">
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface">Protótipo</h1>
+<p class="text-on-surface-variant max-w-2xl text-lg leading-relaxed">Transforme requerimentos estratégicos em interfaces funcionais. Gerencie o ciclo de vida do design assistido por IA e integre diretamente com o ecossistema de renderização.</p>
+</section>
+<!-- Do PRD ao Prompt Section -->
+<section class="space-y-6">
+<div class="flex items-end justify-between">
+<div>
+<label class="text-[10px] font-bold tracking-[0.1em] text-on-surface-variant uppercase font-label">PROMPT DE PROTÓTIPO</label>
+</div>
+</div>
+<div class="bg-surface-container-low p-1 rounded-xl shadow-sm">
+<textarea class="w-full min-h-[320px] bg-surface-container-lowest border-0 rounded-lg p-6 focus:ring-1 focus:ring-primary text-on-surface text-base leading-relaxed placeholder:text-outline font-body resize-y" placeholder="Descreva a interface, fluxos e interações baseados no PRD selecionado...">Crie uma interface de dashboard para governança de IA focado em 'Risk Management'. 
+A tela deve conter:
+- Header com status de saúde do modelo (Healthy/Unhealthy)
+- Bento grid com métricas de Drift, Bias e Performance
+- Tabela detalhada de logs de auditoria
+- Estética: Minimalista, tons de Slate e Azul Safira, sem bordas visíveis, usando tonal depth para separação.
+- Fonte: Manrope para títulos e Inter para dados técnicos.</textarea>
+</div>
+<div class="flex flex-wrap gap-3 pt-2">
+<button class="inline-flex items-center px-5 py-2.5 bg-primary text-on-primary rounded-md text-sm font-semibold hover:opacity-90 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined mr-2 text-[18px]">psychology</span>
+                        Gerar prompt (último PRD)
+                    </button>
+<button class="inline-flex items-center px-5 py-2.5 bg-surface-container-high text-on-surface rounded-md text-sm font-semibold hover:bg-surface-container-highest transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined mr-2 text-[18px]">save</span>
+                        Salvar nova versão
+                    </button>
+</div>
+</section>
+<!-- Integração Stitch -->
+<section class="space-y-6">
+<div class="border-t border-outline-variant/10 pt-10">
+<h3 class="text-xl font-bold text-on-surface mb-6">Integração Stitch</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+<button class="flex flex-col items-start p-6 bg-surface-container-low rounded-xl hover:bg-surface-container-high transition-all border border-transparent hover:border-outline-variant group">
+<span class="material-symbols-outlined text-primary mb-3 text-3xl">open_in_new</span>
+<span class="font-bold text-on-surface">Abrir no Google Stitch</span>
+<span class="text-xs text-on-surface-variant mt-1">Edição manual no ambiente de editoria visual.</span>
+</button>
+<!-- Disabled state represented here -->
+<button class="flex flex-col items-start p-6 bg-surface-container-low rounded-xl opacity-60 cursor-not-allowed group">
+<span class="material-symbols-outlined text-on-surface-variant mb-3 text-3xl">auto_awesome</span>
+<span class="font-bold text-on-surface-variant">Gerar tela via API</span>
+<span class="text-xs text-on-surface-variant mt-1 italic">Aguardando definição de prompt final.</span>
+</button>
+</div>
+<!-- Result Card (API Stitch) -->
+<div class="bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/10 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4">
+<span class="inline-flex items-center px-3 py-1 bg-tertiary-container text-on-tertiary-container text-[11px] font-bold uppercase tracking-wider rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container mr-2"></span>
+                                Aprovado
+                            </span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="space-y-4">
+<div class="space-y-1">
+<label class="text-[10px] font-bold text-on-surface-variant uppercase font-label tracking-wider">Project ID</label>
+<p class="font-bold text-on-surface">PROJ-ALPHA-2024</p>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] font-bold text-on-surface-variant uppercase font-label tracking-wider">Screen ID</label>
+<p class="font-bold text-on-surface">SCR-882-DASH</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="space-y-1">
+<label class="text-[10px] font-bold text-on-surface-variant uppercase font-label tracking-wider">Ações de Entrega</label>
+<div class="flex gap-4">
+<a class="text-sm font-semibold text-primary underline underline-offset-4 hover:opacity-70 transition-opacity" href="#">Ver HTML</a>
+<a class="text-sm font-semibold text-primary underline underline-offset-4 hover:opacity-70 transition-opacity" href="#">Ver Imagem</a>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] font-bold text-on-surface-variant uppercase font-label tracking-wider">Metadados</label>
+<p class="text-xs text-on-surface-variant">Aprovado em 24 Out 2024 por <span class="font-medium text-on-surface">governance.lead@sysgen.ai</span></p>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-4 self-center">
+<label class="text-[10px] font-bold text-on-surface-variant uppercase font-label tracking-wider block mb-2">Caminho MinIO</label>
+<code class="mono-font text-xs text-secondary leading-relaxed break-all">prototipo/projeto-alpha/s-101/home-dashboard/</code>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Armazenamento MinIO -->
+<section class="space-y-6">
+<div class="border-t border-outline-variant/10 pt-10">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h3 class="text-xl font-bold text-on-surface">Projeto no MinIO</h3>
+<p class="text-sm text-on-surface-variant">Sincronização em tempo real com o bucket de governança.</p>
+</div>
+<button class="inline-flex items-center px-4 py-2 bg-surface-container-high text-on-surface rounded-md text-xs font-bold uppercase tracking-wider hover:bg-surface-container-highest transition-all">
+<span class="material-symbols-outlined mr-2 text-[16px]">refresh</span>
+                            Atualizar lista
+                        </button>
+</div>
+<div class="bg-surface-container-low rounded-xl overflow-hidden">
+<div class="px-6 py-4 bg-surface-container border-b border-outline-variant/10 flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">folder</span>
+<span class="text-sm font-medium text-on-surface">projeto-alpha / s-101</span>
+</div>
+<span class="text-[10px] text-on-surface-variant font-mono">3 ITEMS</span>
+</div>
+<div class="divide-y divide-outline-variant/5">
+<!-- File Tree Item -->
+<div class="px-8 py-4 flex items-center hover:bg-surface-container-highest/50 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-amber-500 mr-3 text-[20px]">folder</span>
+<span class="flex-1 text-sm text-on-surface">assets</span>
+<span class="text-xs text-on-surface-variant group-hover:text-on-surface transition-colors">--</span>
+</div>
+<!-- File Tree Item -->
+<div class="px-10 py-4 flex items-center hover:bg-surface-container-highest/50 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-slate-400 mr-3 text-[20px]">description</span>
+<span class="flex-1 text-sm font-mono text-on-surface">meta.json</span>
+<span class="text-xs text-on-surface-variant">2.4 KB</span>
+</div>
+<!-- File Tree Item -->
+<div class="px-10 py-4 flex items-center hover:bg-surface-container-highest/50 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-blue-500 mr-3 text-[20px]">html</span>
+<span class="flex-1 text-sm font-mono text-on-surface">index.html</span>
+<span class="text-xs text-on-surface-variant">48.1 KB</span>
+</div>
+<!-- File Tree Item -->
+<div class="px-10 py-4 flex items-center hover:bg-surface-container-highest/50 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-rose-400 mr-3 text-[20px]">image</span>
+<span class="flex-1 text-sm font-mono text-on-surface">preview.png</span>
+<span class="text-xs text-on-surface-variant">1.2 MB</span>
+</div>
+</div>
+<div class="p-6 bg-surface-container-low flex justify-end">
+<button class="inline-flex items-center px-5 py-2.5 bg-primary text-on-primary rounded-md text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined mr-2 text-[18px]">download</span>
+                                Salvar pasta no PC
+                            </button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- FAB Suppression Rule Applied (Not relevant on detailed prototype screen) -->
+</body></html>

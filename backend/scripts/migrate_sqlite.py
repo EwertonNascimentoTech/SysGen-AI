@@ -83,6 +83,121 @@ def migrate(conn: sqlite3.Connection) -> list[str]:
     else:
         log.append("Aviso: project_wikis não existe.")
 
+    # projects — PRD guardado pelo chat
+    if _table_exists(conn, "projects"):
+        cols = _columns(conn, "projects")
+        if "prd_markdown" not in cols:
+            conn.execute("ALTER TABLE projects ADD COLUMN prd_markdown TEXT")
+            log.append("Coluna projects.prd_markdown adicionada.")
+        if "prd_markdown_saved_at" not in cols:
+            conn.execute("ALTER TABLE projects ADD COLUMN prd_markdown_saved_at DATETIME")
+            log.append("Coluna projects.prd_markdown_saved_at adicionada.")
+        if "prd_current_version" not in cols:
+            conn.execute("ALTER TABLE projects ADD COLUMN prd_current_version INTEGER")
+            log.append("Coluna projects.prd_current_version adicionada.")
+    else:
+        log.append("Aviso: projects não existe.")
+
+    # project_prd_versions (histórico de PRD guardados pelo chat)
+    if not _table_exists(conn, "project_prd_versions"):
+        conn.execute(
+            """
+            CREATE TABLE project_prd_versions (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                project_id INTEGER NOT NULL,
+                version INTEGER NOT NULL,
+                markdown TEXT NOT NULL,
+                created_at DATETIME DEFAULT (datetime('now')),
+                created_by_email VARCHAR(255),
+                CONSTRAINT fk_project_prd_versions_project FOREIGN KEY(project_id)
+                    REFERENCES projects (id) ON DELETE CASCADE,
+                CONSTRAINT uq_project_prd_versions_project_version UNIQUE (project_id, version)
+            )
+            """
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS ix_project_prd_versions_project_id ON project_prd_versions (project_id)"
+        )
+        log.append("Criada tabela project_prd_versions.")
+    else:
+        log.append("Tabela project_prd_versions já existe.")
+
+    # projects — prompt de protótipo (versões em project_prototipo_prompt_versions)
+    if _table_exists(conn, "projects"):
+        cols = _columns(conn, "projects")
+        if "prototipo_prompt" not in cols:
+            conn.execute("ALTER TABLE projects ADD COLUMN prototipo_prompt TEXT")
+            log.append("Coluna projects.prototipo_prompt adicionada.")
+        if "prototipo_prompt_saved_at" not in cols:
+            conn.execute("ALTER TABLE projects ADD COLUMN prototipo_prompt_saved_at DATETIME")
+            log.append("Coluna projects.prototipo_prompt_saved_at adicionada.")
+        if "prototipo_current_version" not in cols:
+            conn.execute("ALTER TABLE projects ADD COLUMN prototipo_current_version INTEGER")
+            log.append("Coluna projects.prototipo_current_version adicionada.")
+
+    if not _table_exists(conn, "project_prototipo_prompt_versions"):
+        conn.execute(
+            """
+            CREATE TABLE project_prototipo_prompt_versions (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                project_id INTEGER NOT NULL,
+                version INTEGER NOT NULL,
+                prompt TEXT NOT NULL,
+                prd_version_used INTEGER,
+                created_at DATETIME DEFAULT (datetime('now')),
+                created_by_email VARCHAR(255),
+                CONSTRAINT fk_project_prototipo_prompt_versions_project FOREIGN KEY(project_id)
+                    REFERENCES projects (id) ON DELETE CASCADE,
+                CONSTRAINT uq_project_prototipo_prompt_versions_project_version UNIQUE (project_id, version)
+            )
+            """
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS ix_project_prototipo_prompt_versions_project_id "
+            "ON project_prototipo_prompt_versions (project_id)"
+        )
+        log.append("Criada tabela project_prototipo_prompt_versions.")
+    else:
+        log.append("Tabela project_prototipo_prompt_versions já existe.")
+
+    if not _table_exists(conn, "project_stitch_generations"):
+        conn.execute(
+            """
+            CREATE TABLE project_stitch_generations (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                project_id INTEGER NOT NULL,
+                stitch_project_id VARCHAR(64) NOT NULL,
+                screen_id VARCHAR(128) NOT NULL,
+                html_url TEXT NOT NULL,
+                image_url TEXT NOT NULL,
+                created_at DATETIME DEFAULT (datetime('now')),
+                created_by_email VARCHAR(255),
+                approved_at DATETIME,
+                approved_by_email VARCHAR(255),
+                export_storage_prefix VARCHAR(512),
+                CONSTRAINT fk_project_stitch_generations_project FOREIGN KEY(project_id)
+                    REFERENCES projects (id) ON DELETE CASCADE
+            )
+            """
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS ix_project_stitch_generations_project_id "
+            "ON project_stitch_generations (project_id)"
+        )
+        log.append("Criada tabela project_stitch_generations.")
+    else:
+        log.append("Tabela project_stitch_generations já existe.")
+        cols = _columns(conn, "project_stitch_generations")
+        if "approved_at" not in cols:
+            conn.execute("ALTER TABLE project_stitch_generations ADD COLUMN approved_at DATETIME")
+            log.append("Coluna project_stitch_generations.approved_at adicionada.")
+        if "approved_by_email" not in cols:
+            conn.execute("ALTER TABLE project_stitch_generations ADD COLUMN approved_by_email VARCHAR(255)")
+            log.append("Coluna project_stitch_generations.approved_by_email adicionada.")
+        if "export_storage_prefix" not in cols:
+            conn.execute("ALTER TABLE project_stitch_generations ADD COLUMN export_storage_prefix VARCHAR(512)")
+            log.append("Coluna project_stitch_generations.export_storage_prefix adicionada.")
+
     # project_task_columns (sub-Kanban por projeto)
     if not _table_exists(conn, "project_task_columns"):
         conn.execute(

@@ -6,6 +6,7 @@ class UserCreate(BaseModel):
     full_name: str
     password: str = Field(min_length=6)
     role_codes: list[str]
+    github_login: str | None = Field(None, max_length=128)
 
 
 class UserUpdate(BaseModel):
@@ -16,6 +17,7 @@ class UserUpdate(BaseModel):
     password: str | None = Field(None, min_length=6)
     role_codes: list[str] | None = None
     is_active: bool | None = None
+    github_login: str | None = Field(None, max_length=128)
 
 
 class UserOut(BaseModel):
@@ -24,6 +26,7 @@ class UserOut(BaseModel):
     full_name: str
     is_active: bool
     roles: list[str]
+    github_login: str | None = None
 
     class Config:
         from_attributes = True

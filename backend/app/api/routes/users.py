@@ -20,6 +20,7 @@ def _user_out(u: User) -> UserOut:
         full_name=u.full_name,
         is_active=u.is_active,
         roles=[r.code for r in u.roles],
+        github_login=u.github_login,
     )
 
 
@@ -38,8 +39,9 @@ async def create_user(
     admin: User = Depends(require_roles("admin")),
     session: AsyncSession = Depends(get_session),
 ):
+    email_norm = str(body.email).strip().lower()
     exists = (
-        await session.execute(select(User).where(User.email == body.email))
+        await session.execute(select(User).where(func.lower(func.trim(User.email)) == email_norm))
     ).scalar_one_or_none()
     if exists:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="E-mail já cadastrado")
@@ -47,11 +49,22 @@ async def create_user(
     roles = list(roles_result.scalars().all())
     if len(roles) != len(set(body.role_codes)):
         raise HTTPException(status_code=400, detail="Perfil inválido")
+    gh = (body.github_login or "").strip() or None
+    if gh:
+        taken = (
+            await session.execute(
+                select(User).where(func.lower(User.github_login) == gh.lower(), User.github_login.isnot(None))
+            )
+        ).scalar_one_or_none()
+        if taken:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Login GitHub já associado a outro usuário")
+
     u = User(
-        email=body.email,
+        email=email_norm,
         full_name=body.full_name,
         hashed_password=hash_password(body.password),
         roles=roles,
+        github_login=gh,
     )
     session.add(u)
     await session.flush()
@@ -61,7 +74,7 @@ async def create_user(
         action="user.create",
         entity_type="user",
         entity_id=u.id,
-        detail=body.email,
+        detail=email_norm,
     )
     await session.commit()
     await session.refresh(u, ["roles"])
@@ -91,7 +104,10 @@ async def update_user(
         if new_email != (u.email or "").strip().lower():
             other = (
                 await session.execute(
-                    select(User).where(func.lower(User.email) == new_email, User.id != u.id)
+                    select(User).where(
+                        func.lower(func.trim(User.email)) == new_email,
+                        User.id != u.id,
+                    )
                 )
             ).scalar_one_or_none()
             if other:
@@ -116,6 +132,23 @@ async def update_user(
         if len(roles) != len(set(codes)):
             raise HTTPException(status_code=400, detail="Perfil inválido")
         u.roles = roles
+
+    if "github_login" in data:
+        raw = data["github_login"]
+        gh = (str(raw).strip() if raw is not None else "") or None
+        if gh:
+            other = (
+                await session.execute(
+                    select(User).where(
+                        func.lower(User.github_login) == gh.lower(),
+                        User.id != u.id,
+                        User.github_login.isnot(None),
+                    )
+                )
+            ).scalar_one_or_none()
+            if other:
+                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Login GitHub já associado a outro usuário")
+        u.github_login = gh
 
     await log_action(
         session,

@@ -14,7 +14,7 @@ from app.jobs.wiki_job import run_generate_wiki
 from app.models.cursor_artifact import ProjectCursorArtifact
 from app.models.kanban import KanbanTemplate, KanbanTemplateColumn
 from app.models.directory import Directory
-from app.models.project import Project, ProjectAttachment, ProjectWiki, WikiDocument
+from app.models.project import Project, ProjectAttachment, ProjectPrdVersion, ProjectWiki, WikiDocument
 from app.models.project_task import ProjectTask
 from app.models.project_task_column import ProjectTaskColumn
 from app.models.user import User
@@ -74,6 +74,10 @@ def _to_out(p: Project) -> ProjectOut:
         current_column_title=p.current_column.title if p.current_column else None,
         github_repo_url=p.github_repo_url,
         github_tag=p.github_tag,
+        prd_markdown_saved_at=p.prd_markdown_saved_at,
+        prd_current_version=p.prd_current_version,
+        prototipo_prompt_saved_at=p.prototipo_prompt_saved_at,
+        prototipo_current_version=p.prototipo_current_version,
         created_at=p.created_at,
     )
 
@@ -596,6 +600,7 @@ async def delete_project(
     ).scalars().all()
     for pca in pcas:
         await session.delete(pca)
+    await session.execute(delete(ProjectPrdVersion).where(ProjectPrdVersion.project_id == project_id))
     await session.delete(p)
     await log_action(
         session,
