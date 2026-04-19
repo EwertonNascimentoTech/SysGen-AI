@@ -10,6 +10,7 @@ K_ENDPOINT = "AZURE_AI_PROJECT_ENDPOINT"
 K_CONN = "AZURE_AI_PROJECT_CONNECTION_STRING"
 K_AGENT = "AZURE_AI_AGENT_ID"
 K_AGENT_PROTOTIPO = "AZURE_AI_AGENT_PROTOTIPO_ID"
+K_AGENT_PLANEJADOR = "AZURE_AI_AGENT_PLANEJADOR_ID"
 K_TENANT = "AZURE_TENANT_ID"
 K_CLIENT = "AZURE_CLIENT_ID"
 K_SECRET = "AZURE_CLIENT_SECRET"
@@ -54,3 +55,11 @@ def get_prototipo_agent_id() -> str:
     if v:
         return v
     return (getattr(settings, "azure_ai_agent_prototipo_id", None) or "").strip()
+
+
+def get_planejador_agent_id() -> str:
+    """Prioridade: variável de ambiente, depois Settings (pydantic)."""
+    v = (os.getenv(K_AGENT_PLANEJADOR) or "").strip()
+    if v:
+        return v
+    return (getattr(settings, "azure_ai_agent_planejador_id", None) or "").strip()

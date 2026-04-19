@@ -5,7 +5,11 @@ import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.services.azure_runtime_env import agents_endpoint_for_client, get_prototipo_agent_id
+from app.services.azure_runtime_env import (
+    agents_endpoint_for_client,
+    get_planejador_agent_id,
+    get_prototipo_agent_id,
+)
 from app.services.epa_service import (
     azure_agent_runtime_ready,
     generate_text_with_azure_agent,
@@ -36,6 +40,12 @@ async def is_prototipo_ai_configured(session: AsyncSession | None) -> bool:
     """Projecto Azure + agente dedicado a protótipo (env AZURE_AI_AGENT_PROTOTIPO_ID)."""
     merged = await merge_runtime_azure_settings(session)
     return bool(agents_endpoint_for_client(merged) and get_prototipo_agent_id())
+
+
+async def is_planejador_ai_configured(session: AsyncSession | None) -> bool:
+    """Projecto Azure + agente dedicado ao planejamento técnico (env AZURE_AI_AGENT_PLANEJADOR_ID)."""
+    merged = await merge_runtime_azure_settings(session)
+    return bool(agents_endpoint_for_client(merged) and get_planejador_agent_id())
 
 
 async def run_chat(

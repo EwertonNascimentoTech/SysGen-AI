@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { api } from "@/api/client";
 
 export type ProjectTask = {
   id: number;
   project_id: number;
   title: string;
+  bloco_tag?: string | null;
   description: string | null;
+  entrega_resumo?: string | null;
   column_key: string;
   priority: string;
   assignee: string | null;
@@ -53,14 +55,15 @@ const loading = ref(true);
 const err = ref("");
 const taskSearch = ref("");
 const assigneeFilter = ref<string>("__all__");
-const priorityFilter = ref<"all" | "high" | "medium" | "low">("all");
 
 const showTaskModal = ref(false);
 const editingTaskId = ref<number | null>(null);
 const saving = ref(false);
 const taskForm = ref({
   title: "",
+  bloco_tag: "",
   description: "",
+  entrega_resumo: "",
   column_key: "todo",
   priority: "medium" as "high" | "medium" | "low",
   assignee: "",
@@ -70,6 +73,129 @@ const taskForm = ref({
 
 const dragTaskId = ref<number | null>(null);
 const dragOverTaskId = ref<number | null>(null);
+
+const cursorDevLoading = ref(false);
+const cursorDevMsg = ref("");
+const cursorDevErr = ref("");
+/** Erro do último POST cursor-dev/start em modo Auto (evita falhas silenciosas no polling). */
+const cursorAutoErr = ref("");
+/** Epoch ms: até quando o polling Auto não volta a chamar start (reduz rajadas de 400). */
+const cursorAutoBackoffUntil = ref(0);
+
+function cursorAutoStorageKey(): string {
+  return `pgia_cursor_auto_${props.projectId}`;
+}
+
+const cursorAuto = ref(false);
+
+function loadCursorAutoFromStorage() {
+  try {
+    cursorAuto.value = localStorage.getItem(cursorAutoStorageKey()) === "1";
+  } catch {
+    cursorAuto.value = false;
+  }
+}
+
+let cursorAutoPollTimer: ReturnType<typeof setInterval> | null = null;
+
+function clearCursorAutoPoll() {
+  if (cursorAutoPollTimer != null) {
+    clearInterval(cursorAutoPollTimer);
+    cursorAutoPollTimer = null;
+  }
+}
+
+function setupCursorAutoPoll() {
+  clearCursorAutoPoll();
+  if (!props.canMutate || !cursorAuto.value) return;
+  cursorAutoPollTimer = setInterval(cursorAutoPollTick, 5000);
+}
+
+async function cursorAutoPollTick() {
+  if (!props.canMutate || !cursorAuto.value) return;
+  if (Date.now() < cursorAutoBackoffUntil.value) return;
+  if (cursorDevLoading.value || loading.value) return;
+  try {
+    const poll = await api<{
+      can_start: boolean;
+      has_active_agent: boolean;
+      backlog_tasks: number;
+      reason?: string | null;
+    }>(`/projects/${props.projectId}/cursor-dev/poll`);
+    if (poll.can_start) {
+      await runCursorDevStart(true);
+    }
+  } catch {
+    /* polling silencioso */
+  }
+}
+
+async function runCursorDevStart(fromAuto: boolean) {
+  if (!props.canMutate || cursorDevLoading.value) return;
+  if (!fromAuto) {
+    cursorDevErr.value = "";
+    cursorDevMsg.value = "";
+  }
+  cursorDevLoading.value = true;
+  try {
+    const autoQs = fromAuto || cursorAuto.value ? "?auto=1" : "";
+    const res = await api<{
+      task_id: number;
+      cursor_agent_id: string;
+      agent_status: string;
+      repo_initialized?: boolean;
+      integration_branch?: string | null;
+    }>(`/projects/${props.projectId}/cursor-dev/start${autoQs}`, { method: "POST" });
+    const prefix =
+      res.repo_initialized === true
+        ? "O repositório GitHub estava vazio: foi criado um README.md automaticamente. "
+        : "";
+    const branchNote =
+      res.integration_branch != null && res.integration_branch !== ""
+        ? ` Branch único Auto: «${res.integration_branch}».`
+        : "";
+    const baseMsg =
+      prefix +
+      "Agente Cursor iniciado. A tarefa foi para «Em execução»; ao terminar, o webhook move para «Revisão técnica»." +
+      branchNote;
+    cursorDevMsg.value = fromAuto ? `Modo Auto: ${baseMsg}` : baseMsg;
+    if (fromAuto) {
+      cursorAutoErr.value = "";
+      cursorAutoBackoffUntil.value = 0;
+    }
+    await loadBoard();
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (fromAuto) {
+      cursorAutoErr.value = msg;
+      cursorAutoBackoffUntil.value = Date.now() + 30_000;
+    } else {
+      cursorDevErr.value = msg;
+    }
+  } finally {
+    cursorDevLoading.value = false;
+  }
+}
+
+function startCursorDev() {
+  void runCursorDevStart(false);
+}
+
+watch(cursorAuto, () => {
+  try {
+    localStorage.setItem(cursorAutoStorageKey(), cursorAuto.value ? "1" : "0");
+  } catch {
+    /* ignore */
+  }
+  if (!cursorAuto.value) {
+    cursorAutoErr.value = "";
+    cursorAutoBackoffUntil.value = 0;
+  }
+  setupCursorAutoPoll();
+  if (cursorAuto.value && props.canMutate) {
+    void nextTick(() => void cursorAutoPollTick());
+  }
+});
 
 const sortedColumns = computed(() =>
   [...boardColumns.value].sort((a, b) => a.position - b.position || a.id - b.id),
@@ -86,10 +212,6 @@ function resolveColumnKey(k: string): string {
 
 function taskEffectiveKey(t: ProjectTask): string {
   return resolveColumnKey(t.column_key);
-}
-
-function columnByKey(key: string): ProjectTaskColumn | undefined {
-  return sortedColumns.value.find((c) => c.key === key);
 }
 
 const openColMenuId = ref<number | null>(null);
@@ -233,11 +355,25 @@ async function deleteColumn(col: ProjectTaskColumn) {
   }
 }
 
-onMounted(loadBoard);
+onMounted(async () => {
+  await loadBoard();
+  loadCursorAutoFromStorage();
+  setupCursorAutoPoll();
+});
+
 watch(
   () => props.projectId,
-  () => loadBoard(),
+  async () => {
+    clearCursorAutoPoll();
+    await loadBoard();
+    loadCursorAutoFromStorage();
+    setupCursorAutoPoll();
+  },
 );
+
+onUnmounted(() => {
+  clearCursorAutoPoll();
+});
 
 const assigneeOptions = computed(() => {
   const s = new Set<string>();
@@ -271,9 +407,6 @@ const filteredTasks = computed(() => {
     const af = assigneeFilter.value;
     list = list.filter((t) => (t.assignee || "").trim() === af);
   }
-  if (priorityFilter.value !== "all") {
-    list = list.filter((t) => t.priority === priorityFilter.value);
-  }
   return list;
 });
 
@@ -299,7 +432,6 @@ function countInColumn(key: string) {
 function clearFilters() {
   taskSearch.value = "";
   assigneeFilter.value = "__all__";
-  priorityFilter.value = "all";
 }
 
 function setAssigneeFilter(name: string | "__all__") {
@@ -322,68 +454,40 @@ function priorityBadgeClass(p: string, col: ProjectTaskColumn) {
   return "bg-surface-container-highest text-on-surface-variant";
 }
 
-function dueLabelShort(due: string | null) {
-  if (!due) return "—";
-  const d = new Date(due + "T12:00:00");
-  return d.toLocaleDateString("pt-BR", { day: "numeric", month: "short" });
+/** Cores distintas por fase/bloco (mesmo texto = mesma cor em todos os cartões). */
+const BLOCO_TAG_PALETTE: { bg: string; border: string; color: string }[] = [
+  { bg: "rgba(14, 165, 233, 0.2)", border: "rgb(2, 132, 199)", color: "rgb(12, 74, 110)" },
+  { bg: "rgba(139, 92, 246, 0.2)", border: "rgb(124, 58, 237)", color: "rgb(76, 29, 149)" },
+  { bg: "rgba(245, 158, 11, 0.22)", border: "rgb(217, 119, 6)", color: "rgb(120, 53, 15)" },
+  { bg: "rgba(16, 185, 129, 0.2)", border: "rgb(5, 150, 105)", color: "rgb(6, 78, 59)" },
+  { bg: "rgba(236, 72, 153, 0.18)", border: "rgb(219, 39, 119)", color: "rgb(131, 24, 67)" },
+  { bg: "rgba(99, 102, 241, 0.2)", border: "rgb(79, 70, 229)", color: "rgb(49, 46, 129)" },
+  { bg: "rgba(20, 184, 166, 0.2)", border: "rgb(13, 148, 136)", color: "rgb(17, 94, 89)" },
+  { bg: "rgba(249, 115, 22, 0.2)", border: "rgb(234, 88, 12)", color: "rgb(124, 45, 18)" },
+  { bg: "rgba(59, 130, 246, 0.2)", border: "rgb(37, 99, 235)", color: "rgb(30, 58, 138)" },
+  { bg: "rgba(168, 85, 247, 0.2)", border: "rgb(147, 51, 234)", color: "rgb(88, 28, 135)" },
+  { bg: "rgba(234, 179, 8, 0.22)", border: "rgb(202, 138, 4)", color: "rgb(66, 32, 6)" },
+  { bg: "rgba(14, 116, 144, 0.2)", border: "rgb(8, 145, 178)", color: "rgb(22, 78, 99)" },
+];
+
+function hashBlocoTagLabel(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
 }
 
-function isOverdue(t: ProjectTask) {
-  const col = columnByKey(t.column_key);
-  if (!t.due_date || col?.is_done) return false;
-  const d = new Date(t.due_date + "T12:00:00");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  d.setHours(0, 0, 0, 0);
-  return d < today;
-}
-
-function pseudoProgress(id: number) {
-  return 35 + (id % 46);
-}
-
-type StatusFoot = { icon: string; text: string; textClass: string };
-
-function cardStatusFoot(t: ProjectTask, col: ProjectTaskColumn): StatusFoot {
-  if (col.is_done) {
-    return {
-      icon: "check_circle",
-      text: "Validado",
-      textClass: "text-on-tertiary-container font-bold",
-    };
-  }
-  if (col.key === "in_progress") {
-    return {
-      icon: "schedule",
-      text: "Em progresso",
-      textClass: "text-on-surface-variant font-medium",
-    };
-  }
-  if (col.key === "review") {
-    if (t.id % 2 === 0) {
-      return {
-        icon: "rate_review",
-        text: "Aguardando aprovação",
-        textClass: "text-on-surface-variant font-medium",
-      };
-    }
-    return {
-      icon: "visibility",
-      text: "Em revisão",
-      textClass: "text-on-surface-variant font-medium",
-    };
-  }
-  if (isOverdue(t)) {
-    return {
-      icon: "event_busy",
-      text: "Atrasado",
-      textClass: "text-error font-medium",
-    };
-  }
+function blocoTagPillStyle(blocoTag: string): Record<string, string> {
+  const t = blocoTag.trim();
+  if (!t) return {};
+  const idx = hashBlocoTagLabel(t) % BLOCO_TAG_PALETTE.length;
+  const c = BLOCO_TAG_PALETTE[idx]!;
   return {
-    icon: "calendar_today",
-    text: dueLabelShort(t.due_date),
-    textClass: "text-on-surface-variant font-medium",
+    backgroundColor: c.bg,
+    borderColor: c.border,
+    color: c.color,
   };
 }
 
@@ -560,7 +664,9 @@ async function removeTask(taskId: number) {
 function resetTaskForm() {
   taskForm.value = {
     title: "",
+    bloco_tag: "",
     description: "",
+    entrega_resumo: "",
     column_key: firstColumnKey(),
     priority: "medium",
     assignee: "",
@@ -585,7 +691,9 @@ function openEditTask(t: ProjectTask) {
   editingTaskId.value = t.id;
   taskForm.value = {
     title: t.title,
+    bloco_tag: (t.bloco_tag ?? "").trim(),
     description: t.description ?? "",
+    entrega_resumo: (t.entrega_resumo ?? "").trim(),
     column_key: resolveColumnKey(t.column_key),
     priority: normalizePriority(t.priority),
     assignee: t.assignee ?? "",
@@ -603,7 +711,9 @@ async function submitTask() {
   const id = editingTaskId.value;
   const body = {
     title: f.title.trim(),
+    bloco_tag: f.bloco_tag.trim() || null,
     description: f.description.trim() || null,
+    entrega_resumo: f.entrega_resumo.trim() || null,
     column_key: f.column_key,
     priority: f.priority,
     assignee: f.assignee.trim() || null,
@@ -631,20 +741,36 @@ async function submitTask() {
   }
 }
 
-function cardShellClass(col: ProjectTaskColumn) {
-  if (col.is_done) {
-    return "bg-surface-container-lowest/60 shadow-none border border-surface-container-highest";
+const SYSGEN_PLAN_MARKER = "__SYSGEN_PLANEJAMENTO__";
+
+function taskCardSubtitle(t: ProjectTask): string {
+  const raw = (t.description || "").trim();
+  if (!raw) return "";
+  if (raw.startsWith(SYSGEN_PLAN_MARKER)) {
+    const descIdx = raw.indexOf("Descrição:");
+    if (descIdx !== -1) {
+      const after = raw.slice(descIdx + "Descrição:".length).trim();
+      const firstLine = after.split("\n").map((l) => l.trim()).find((l) => l.length > 0) ?? "";
+      if (firstLine) return firstLine.length > 360 ? `${firstLine.slice(0, 357)}…` : firstLine;
+    }
+    return "";
   }
-  if (col.key === "in_progress") {
-    return "border-y border-r border-transparent border-l-4 bg-surface-container-lowest shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] hover:border-outline-variant/30";
-  }
-  return "bg-surface-container-lowest shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] border border-transparent hover:border-outline-variant/30";
+  return raw.length > 360 ? `${raw.slice(0, 357)}…` : raw;
 }
 
-function cardLeftBorderStyle(col: ProjectTaskColumn) {
-  if (col.key !== "in_progress") return {};
-  return { borderLeftColor: normalizeHex(col.color_hex) };
+function cardShellClass(col: ProjectTaskColumn) {
+  if (col.is_done) {
+    return "border border-solid border-surface-container-highest border-l-4 bg-surface-container-lowest/70 shadow-sm";
+  }
+  return "border border-solid border-surface-container-highest/15 border-l-4 bg-surface-container-lowest shadow-[0_2px_14px_-3px_rgba(0,0,0,0.08)] hover:border-outline-variant/30";
 }
+
+function cardAccentBorderStyle(col: ProjectTaskColumn) {
+  const hex = col.is_done ? "#94a3b8" : normalizeHex(col.color_hex);
+  return { borderLeftColor: hex };
+}
+
+defineExpose({ reload: loadBoard });
 </script>
 
 <template>
@@ -739,43 +865,26 @@ function cardLeftBorderStyle(col: ProjectTaskColumn) {
           </div>
         </div>
       </div>
-      <div class="flex flex-wrap items-center gap-3">
-        <span class="text-xs font-label uppercase tracking-tighter text-on-surface-variant">Prioridade:</span>
-        <button
-          type="button"
-          class="rounded-full px-4 py-1.5 text-xs font-bold transition-opacity font-body"
-          :class="
-            priorityFilter === 'high'
-              ? 'bg-error-container text-on-error-container'
-              : 'bg-surface-container-highest text-on-surface-variant hover:opacity-80'
-          "
-          @click="priorityFilter = priorityFilter === 'high' ? 'all' : 'high'"
+      <div class="flex shrink-0 flex-wrap items-center gap-2">
+        <label
+          v-if="canMutate"
+          class="inline-flex cursor-pointer select-none items-center gap-2 rounded-xl border border-outline-variant/30 bg-surface-container-high px-3 py-2 text-sm font-medium text-on-surface shadow-sm font-body"
+          title="Quando activo: fila automática a cada 5 s; um único branch GitHub (sysgen-auto- + id do projecto), pedido explícito à Cursor para não criar PR extra por tarefa — só commits no mesmo branch (um PR para integrar)."
         >
-          Alta
-        </button>
+          <input v-model="cursorAuto" type="checkbox" class="h-4 w-4 rounded border-outline text-primary" />
+          Auto
+        </label>
         <button
+          v-if="canMutate"
           type="button"
-          class="rounded-full px-4 py-1.5 text-xs font-bold transition-opacity font-body"
-          :class="
-            priorityFilter === 'medium'
-              ? 'bg-secondary-container text-on-secondary-container'
-              : 'bg-surface-container-highest text-on-surface-variant hover:opacity-80'
-          "
-          @click="priorityFilter = priorityFilter === 'medium' ? 'all' : 'medium'"
+          class="inline-flex items-center gap-2 rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-2.5 text-sm font-semibold text-on-surface shadow-sm transition-all font-body hover:bg-surface-container-high active:scale-[0.98] disabled:opacity-50"
+          :disabled="cursorDevLoading"
+          @click="startCursorDev"
         >
-          Média
-        </button>
-        <button
-          type="button"
-          class="rounded-full px-4 py-1.5 text-xs font-bold transition-opacity font-body"
-          :class="
-            priorityFilter === 'low'
-              ? 'bg-surface-container-high text-on-surface font-semibold'
-              : 'bg-surface-container-highest text-on-surface-variant hover:opacity-80'
-          "
-          @click="priorityFilter = priorityFilter === 'low' ? 'all' : 'low'"
-        >
-          Baixa
+          <span class="material-symbols-outlined text-[22px]">{{
+            cursorDevLoading ? "hourglass_empty" : "play_arrow"
+          }}</span>
+          {{ cursorDevLoading ? "A iniciar…" : "Desenvolver" }}
         </button>
         <button
           type="button"
@@ -784,9 +893,22 @@ function cardLeftBorderStyle(col: ProjectTaskColumn) {
         >
           Limpar filtros
         </button>
+        <p
+          v-if="canMutate && cursorAuto && cursorAutoErr"
+          class="basis-full text-xs leading-snug text-error font-body"
+        >
+          Modo Auto: {{ cursorAutoErr }}
+        </p>
       </div>
     </div>
 
+    <p
+      v-if="cursorDevErr"
+      class="mb-2 max-h-64 overflow-y-auto whitespace-pre-wrap break-words text-sm text-error font-body"
+    >
+      {{ cursorDevErr }}
+    </p>
+    <p v-if="cursorDevMsg" class="mb-2 text-sm text-on-tertiary-container font-body">{{ cursorDevMsg }}</p>
     <p v-if="err" class="mb-4 text-sm text-error font-body">{{ err }}</p>
     <p v-if="loading" class="py-12 text-sm text-on-surface-variant font-body">Carregando quadro…</p>
 
@@ -870,113 +992,95 @@ function cardLeftBorderStyle(col: ProjectTaskColumn) {
               v-for="t in tasksInColumn(col.key)"
               :key="t.id"
               :draggable="canMutate"
-              class="group cursor-grab rounded-xl p-5 transition-shadow hover:shadow-md active:cursor-grabbing"
+              class="group cursor-grab overflow-hidden rounded-xl p-0 transition-shadow hover:shadow-md active:cursor-grabbing"
               :class="[
                 cardShellClass(col),
                 dragOverTaskId === t.id && dragTaskId != null && dragTaskId !== t.id
                   ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface-container-lowest'
                   : '',
               ]"
-              :style="cardLeftBorderStyle(col)"
+              :style="cardAccentBorderStyle(col)"
               @dragstart="onDragStart(t.id, $event)"
               @dragend="onDragEnd"
               @dragover="onDragOverCard($event, t.id)"
               @drop.prevent.stop="onDropOnCard(t, col.key)"
               @click="canMutate ? openEditTask(t) : undefined"
             >
-            <div class="mb-3 flex items-start justify-between gap-2">
-              <span
-                class="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider font-label"
-                :class="priorityBadgeClass(t.priority, col)"
-              >
-                {{ col.is_done ? "Concluído" : priorityLabel(t.priority) }}
-              </span>
-              <div class="flex items-center gap-0.5" @click.stop>
-                <button
-                  v-if="canMutate"
-                  type="button"
-                  class="material-symbols-outlined text-[18px] text-outline opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary"
-                  title="Editar"
-                  @click="openEditTask(t)"
-                >
-                  edit_note
-                </button>
-                <button
-                  v-if="canMutate"
-                  type="button"
-                  class="material-symbols-outlined text-[18px] text-outline opacity-0 transition-opacity group-hover:opacity-100 hover:text-error"
-                  title="Excluir"
-                  @click="removeTask(t.id)"
-                >
-                  delete
-                </button>
-              </div>
-            </div>
-            <h4
-              class="mb-4 text-sm font-bold leading-tight text-on-surface font-body"
-              :class="col.is_done ? 'text-on-surface/50 line-through' : ''"
-            >
-              {{ t.title }}
-            </h4>
-
-            <div v-if="col.key === 'in_progress'" class="mb-4">
-              <div class="mb-1 flex justify-between text-[10px] font-bold text-on-surface-variant font-label">
-                <span>Progresso</span>
-                <span>{{ pseudoProgress(t.id) }}%</span>
-              </div>
-              <div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-container">
+              <div class="flex">
                 <div
-                  class="h-full rounded-full"
-                  :style="{
-                    width: `${pseudoProgress(t.id)}%`,
-                    backgroundColor: normalizeHex(col.color_hex),
-                  }"
-                />
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2 text-[11px] font-medium font-body" :class="cardStatusFoot(t, col).textClass">
-                <span class="material-symbols-outlined text-[16px]">{{ cardStatusFoot(t, col).icon }}</span>
-                {{ cardStatusFoot(t, col).text }}
-              </div>
-              <div class="flex items-center gap-2" @click.stop>
-                <span
-                  v-if="t.governance_aligned"
-                  class="material-symbols-outlined text-[16px] text-tertiary-fixed-dim"
-                  title="Alinhado à governança"
-                  >verified_user</span
+                  class="flex w-7 shrink-0 select-none flex-col items-center justify-start border-r border-outline-variant/10 bg-surface-container-low/30 py-3 text-outline/50"
+                  aria-hidden="true"
                 >
-                <span
-                  v-else-if="t.description && t.description.length > 20"
-                  class="material-symbols-outlined text-[16px] text-outline"
-                  title="Com descrição"
-                  >attach_file</span
-                >
-                <span
-                  v-else-if="col.key === 'review' && t.id % 3 === 0"
-                  class="material-symbols-outlined text-[16px] text-outline"
-                  >link</span
-                >
-                <div
-                  v-if="(t.assignee || '').trim()"
-                  class="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold"
-                  :class="avatarClass(t.assignee)"
-                  :title="t.assignee || ''"
-                >
-                  {{ initials(t.assignee) }}
+                  <div class="grid grid-cols-2 gap-[3px]">
+                    <span v-for="n in 6" :key="n" class="block h-[3px] w-[3px] rounded-full bg-current opacity-60" />
+                  </div>
                 </div>
-                <select
-                  v-if="canMutate"
-                  class="max-w-[120px] rounded border border-outline-variant/20 bg-transparent py-0.5 pl-1 text-[10px] font-medium outline-none font-body"
-                  :value="resolveColumnKey(t.column_key)"
-                  @change="moveTask(t.id, ($event.target as HTMLSelectElement).value)"
-                >
-                  <option v-for="c in sortedColumns" :key="c.key" :value="c.key">{{ c.title }}</option>
-                </select>
+                <div class="min-w-0 flex-1 py-4 pl-3 pr-4">
+                  <div class="mb-3 flex items-start justify-between gap-2">
+                    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+                      <span
+                        v-if="(t.bloco_tag || '').trim()"
+                        class="max-w-full rounded-full border border-solid px-2.5 py-1 text-[10px] font-semibold leading-snug font-body"
+                        :style="blocoTagPillStyle((t.bloco_tag || '').trim())"
+                        :title="(t.bloco_tag || '').trim()"
+                      >
+                        {{ (t.bloco_tag || "").trim() }}
+                      </span>
+                      <span
+                        v-else
+                        class="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider font-label"
+                        :class="priorityBadgeClass(t.priority, col)"
+                      >
+                        {{ col.is_done ? "Concluído" : priorityLabel(t.priority) }}
+                      </span>
+                    </div>
+                    <div class="flex shrink-0 items-center gap-1" @click.stop>
+                      <div
+                        class="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold ring-1 ring-outline-variant/20"
+                        :class="(t.assignee || '').trim() ? avatarClass(t.assignee) : 'bg-surface-container-high text-on-surface-variant'"
+                        :title="(t.assignee || '').trim() ? t.assignee || '' : 'Sem responsável'"
+                      >
+                        {{ (t.assignee || "").trim() ? initials(t.assignee) : "?" }}
+                      </div>
+                      <button
+                        v-if="canMutate"
+                        type="button"
+                        class="material-symbols-outlined text-[18px] text-outline opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary"
+                        title="Editar"
+                        @click="openEditTask(t)"
+                      >
+                        edit_note
+                      </button>
+                      <button
+                        v-if="canMutate"
+                        type="button"
+                        class="material-symbols-outlined text-[18px] text-outline opacity-0 transition-opacity group-hover:opacity-100 hover:text-error"
+                        title="Excluir"
+                        @click="removeTask(t.id)"
+                      >
+                        delete
+                      </button>
+                    </div>
+                  </div>
+
+                  <h4
+                    class="text-[15px] font-bold leading-snug tracking-tight text-on-surface font-body"
+                    :class="[
+                      col.is_done ? 'text-on-surface/50 line-through' : '',
+                      taskCardSubtitle(t) ? 'mb-1' : 'mb-3',
+                    ]"
+                  >
+                    {{ t.title }}
+                  </h4>
+                  <p
+                    v-if="taskCardSubtitle(t)"
+                    class="line-clamp-3 text-xs leading-relaxed text-on-surface-variant font-body"
+                  >
+                    {{ taskCardSubtitle(t) }}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
           </div>
         </div>
       </div>
@@ -1030,6 +1134,16 @@ function cardLeftBorderStyle(col: ProjectTaskColumn) {
               />
             </label>
             <label class="block text-sm font-body">
+              <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant"
+                >Tag do bloco (opcional)</span
+              >
+              <input
+                v-model="taskForm.bloco_tag"
+                class="mt-1 w-full rounded-lg border border-outline-variant/15 bg-surface-container-low px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-container"
+                placeholder="Ex.: Preparação: ambiente, arquitetura e Cursor"
+              />
+            </label>
+            <label class="block text-sm font-body">
               <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Descrição (opcional)</span>
               <textarea
                 v-model="taskForm.description"
@@ -1037,47 +1151,24 @@ function cardLeftBorderStyle(col: ProjectTaskColumn) {
                 class="mt-1 w-full rounded-lg border border-outline-variant/15 bg-surface-container-low px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-container font-body"
               />
             </label>
-            <div class="grid grid-cols-2 gap-3">
-              <label class="block text-sm font-body">
-                <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Coluna</span>
-                <select
-                  v-model="taskForm.column_key"
-                  class="mt-1 w-full rounded-lg border border-outline-variant/15 bg-surface-container-low px-3 py-2 text-sm outline-none"
-                >
-                  <option v-for="c in sortedColumns" :key="c.key" :value="c.key">{{ c.title }}</option>
-                </select>
-              </label>
-              <label class="block text-sm font-body">
-                <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Prioridade</span>
-                <select
-                  v-model="taskForm.priority"
-                  class="mt-1 w-full rounded-lg border border-outline-variant/15 bg-surface-container-low px-3 py-2 text-sm outline-none"
-                >
-                  <option value="high">Alta</option>
-                  <option value="medium">Média</option>
-                  <option value="low">Baixa</option>
-                </select>
-              </label>
-            </div>
+            <label class="block text-sm font-body">
+              <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant"
+                >O que foi entregue (opcional)</span
+              >
+              <textarea
+                v-model="taskForm.entrega_resumo"
+                rows="5"
+                placeholder="Relatório do agente: ficheiros, funcionalidades implementadas, etc."
+                class="mt-1 w-full rounded-lg border border-outline-variant/15 bg-surface-container-low px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-container font-body"
+              />
+            </label>
             <label class="block text-sm font-body">
               <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Responsável</span>
               <input
                 v-model="taskForm.assignee"
-                class="mt-1 w-full rounded-lg border border-outline-variant/15 bg-surface-container-low px-3 py-2 text-sm outline-none"
+                class="mt-1 w-full rounded-lg border border-outline-variant/15 bg-surface-container-low px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-container"
                 placeholder="Nome"
               />
-            </label>
-            <label class="block text-sm font-body">
-              <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Prazo</span>
-              <input
-                v-model="taskForm.due_date"
-                type="date"
-                class="mt-1 w-full rounded-lg border border-outline-variant/15 bg-surface-container-low px-3 py-2 text-sm outline-none"
-              />
-            </label>
-            <label class="flex cursor-pointer items-center gap-2 text-sm font-body">
-              <input v-model="taskForm.governance_aligned" type="checkbox" class="rounded border-outline-variant" />
-              <span>Indicador de alinhamento à governança (ícone no cartão)</span>
             </label>
             <div class="flex justify-end gap-2 pt-2">
               <button

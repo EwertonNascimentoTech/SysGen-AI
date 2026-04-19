@@ -14,7 +14,6 @@ DETAIL_TAB_KEYS = (
     "prd",
     "prototipo",
     "planejamento",
-    "desenvolvimento",
     "anexos",
     "auditoria",
     "github",

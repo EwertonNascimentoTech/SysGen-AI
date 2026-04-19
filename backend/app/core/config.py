@@ -76,6 +76,8 @@ class Settings(BaseSettings):
     azure_ai_agent_id: str = ""
     # Agente dedicado à geração de prompt de protótipo (UX/UI) a partir do PRD.
     azure_ai_agent_prototipo_id: str = ""
+    # Agente dedicado ao planejamento técnico (PRD + export MinIO) — aba Planejamento.
+    azure_ai_agent_planejador_id: str = ""
     azure_tenant_id: str = ""
     azure_client_id: str = ""
     azure_client_secret: str = ""
@@ -83,6 +85,13 @@ class Settings(BaseSettings):
     # Google Stitch API (@google/stitch-sdk / MCP stitch.googleapis.com) — opcional; ver backend/stitch_runner/
     stitch_api_key: str = ""
     stitch_project_id: str = ""
+
+    # Cursor Cloud Agents — botão «Desenvolver» no quadro de tarefas (POST /v0/agents + webhook)
+    cursor_cloud_api_key: str = ""
+    # Segredo partilhado com a Cursor (mín. 32 caracteres, ver docs do webhook)
+    cursor_webhook_secret: str = ""
+    # URL pública deste API (sem barra final), ex.: https://api.empresa.com — usada em webhook.url
+    public_api_base_url: str = ""
 
     @field_validator("azure_openai_endpoint", "azure_ai_project_endpoint", mode="before")
     @classmethod

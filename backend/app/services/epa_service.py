@@ -25,9 +25,11 @@ from app.services.azure_runtime_env import (
     azure_agent_runtime_ready,
     get_runtime_azure_settings,
 )
+from app.services.azure_agent_limits import truncate_string_for_azure_agent_user_message
 from app.services.prd_ai_common import (
     SYSTEM_CHAT,
     SYSTEM_INTERVIEW,
+    SYSTEM_PLANEJADOR,
     SYSTEM_PROTOTIPO,
     flatten_user_content_for_agent,
 )
@@ -154,6 +156,7 @@ async def generate_text_with_azure_agent(
     messages: list[dict[str, str]],
     attachment_dicts: list[dict[str, str]],
     agent_id_override: str | None = None,
+    max_completion_tokens: int = 4096,
 ) -> tuple[str, str | None]:
     """
     Executa um turno via Azure AI Agents. Em falha de configuração ou run failed, levanta RuntimeError
@@ -183,6 +186,8 @@ async def generate_text_with_azure_agent(
         system = SYSTEM_INTERVIEW
     elif mode == "prototipo":
         system = SYSTEM_PROTOTIPO
+    elif mode == "planejamento":
+        system = SYSTEM_PLANEJADOR
     else:
         system = SYSTEM_CHAT
 
@@ -194,6 +199,8 @@ async def generate_text_with_azure_agent(
             continue
         if role == "user" and i == len(messages) - 1 and attachment_dicts:
             content = flatten_user_content_for_agent(content, attachment_dicts)
+        if role == "user" and isinstance(content, str):
+            content = truncate_string_for_azure_agent_user_message(content)
         mr = MessageRole.USER if role == "user" else MessageRole.AGENT
         thread_msg_opts.append(ThreadMessageOptions(role=mr, content=content))
 
@@ -213,7 +220,7 @@ async def generate_text_with_azure_agent(
                 thread=AgentThreadCreationOptions(messages=thread_msg_opts),
                 instructions=system,
                 temperature=0.7,
-                max_completion_tokens=4096,
+                max_completion_tokens=max_completion_tokens,
             )
         except Exception as e:  # noqa: BLE001
             logger.exception("azure_agents_request_failed")

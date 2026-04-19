@@ -94,6 +94,101 @@ async def github_verify_ref(owner: str, repo: str, ref: str, token: str | None) 
         return r.status_code == 200
 
 
+async def github_repo_has_zero_commits(owner: str, repo: str, token: str | None) -> bool:
+    """
+    True quando não há commits na lista ou, em fallback, o metadado do repo indica nunca ter havido
+    push (size 0 e pushed_at nulo).
+    """
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.get(
+            f"{GITHUB_API}/repos/{owner}/{repo}/commits",
+            params={"per_page": 1},
+            headers=_headers(token),
+        )
+    if r.status_code == 200:
+        data = r.json()
+        return isinstance(data, list) and len(data) == 0
+
+    async with httpx.AsyncClient(timeout=30) as client:
+        mr = await client.get(
+            f"{GITHUB_API}/repos/{owner}/{repo}",
+            headers=_headers(token),
+        )
+    if mr.status_code != 200:
+        return False
+    meta = mr.json()
+    if meta.get("archived"):
+        return False
+    if meta.get("size") != 0:
+        return False
+    if meta.get("pushed_at") is not None:
+        return False
+    return True
+
+
+async def github_bootstrap_empty_repository(
+    owner: str,
+    repo: str,
+    token: str | None,
+    *,
+    readme_title: str | None = None,
+) -> tuple[bool, str | None]:
+    """
+    Cria o primeiro commit no repositório vazio (API «Create or update file contents» com README.md).
+
+    Devolve (True, None) em sucesso ou (False, mensagem) se não for possível (sem token, 403, 422, etc.).
+    """
+    if not token:
+        return False, (
+            "É necessário iniciar sessão com GitHub na plataforma (OAuth) para criar o primeiro commit "
+            "automaticamente."
+        )
+    title = (readme_title or repo).strip() or repo
+    body_md = (
+        f"# {title}\n\n"
+        "Este ficheiro foi criado automaticamente pela plataforma para inicializar o repositório no GitHub "
+        "e permitir o uso do agente Cursor. Pode editar, renomear ou apagar.\n"
+    )
+    payload_base = {
+        "message": "chore: inicializar repositório (plataforma Governança IA)",
+        "content": base64.b64encode(body_md.encode("utf-8")).decode("ascii"),
+    }
+    paths = [
+        "README.md",
+        ".sysgen-ai/plataforma-inicial.md",
+    ]
+    last_extra = ""
+    async with httpx.AsyncClient(timeout=60) as client:
+        for path in paths:
+            r = await client.put(
+                f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}",
+                headers=_headers(token),
+                json=payload_base,
+            )
+            if r.status_code in (200, 201):
+                return True, None
+            last_extra = _github_json_message(r)
+            if r.status_code == 422 and path == "README.md":
+                continue
+            extra = last_extra
+            if r.status_code == 401:
+                return False, (f"GitHub recusou o token (401). Volte a ligar a conta GitHub. {extra}").strip()
+            if r.status_code == 403:
+                return False, (
+                    f"Sem permissão para escrever no repositório (403). O token precisa de acesso de escrita (scope «repo» em repositórios privados). {extra}"
+                ).strip()
+            if r.status_code == 404:
+                return False, (f"Repositório não encontrado (404). {extra}").strip()
+            if r.status_code == 422:
+                return False, (
+                    f"O GitHub não aceitou criar o ficheiro inicial (422). {extra}".strip()
+                )
+            return False, (f"GitHub HTTP {r.status_code}. {extra}".strip() or r.text[:400])
+    return False, (
+        f"Não foi possível criar README nem ficheiro alternativo (422). {last_extra}".strip()
+    )
+
+
 def _sync_headers(token: str | None) -> dict[str, str]:
     return _headers(token)
 

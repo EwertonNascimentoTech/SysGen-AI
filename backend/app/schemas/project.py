@@ -44,6 +44,8 @@ class ProjectOut(BaseModel):
     prd_current_version: int | None = None
     prototipo_prompt_saved_at: datetime | None = None
     prototipo_current_version: int | None = None
+    planejamento_json_saved_at: datetime | None = None
+    planejamento_json_approved_at: datetime | None = None
     created_at: datetime | None = None
 
     class Config:

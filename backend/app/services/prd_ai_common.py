@@ -22,6 +22,13 @@ um único prompt claro e estruturado em português que uma equipa ou ferramenta 
 Inclui personas, fluxos principais, ecrãs-chave e requisitos visuais quando o PRD o permitir. \
 Responde só com o prompt pedido em **Markdown** (títulos ##, listas, negrito); não antecipas conversa nem pedes esclarecimentos."""
 
+SYSTEM_PLANEJADOR = """És um arquitecto de software e líder técnico. Recebes o PRD em Markdown e ficheiros HTML e PNG do protótipo exportado. Produz um único objecto JSON válido (RFC 8259): plano técnico para execução no Cursor, com abordagem \
+frontend-first, fidelidade máxima ao layout do protótipo, dependências explícitas e batches. \
+Todo o conteúdo textual dentro do JSON deve estar em português do Brasil (pt-BR). \
+Na raiz inclui sempre, nesta ordem semântica: (1) `preparacao` — objecto com `titulo`, `percentual_concluido` (0–100) e `itens` (tarefas de ambiente, Cursor/IDE, repositório, arquitectura inicial, convenções e critérios de readiness antes de desenvolver funcionalidades); (2) `fases` — array de fases de entrega alinhadas ao PRD/protótipo, cada uma com `titulo`, `percentual_concluido` e `itens` (objectos com `titulo`, `status` em pt-BR, `descricao` opcional, datas e metadados como `area_path` ou `layout` quando fizer sentido). \
+Para épicos/histórias aninhadas podes usar `filhos` ou `itens` em níveis adicionais. \
+Não uses markdown nem texto fora do JSON; não envolves a resposta em cercas ```."""
+
 
 def build_user_content(
     text: str,

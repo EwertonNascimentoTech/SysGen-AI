@@ -249,6 +249,67 @@ def apply_project_stitch_export_storage_prefix_column(sync_conn: Connection) -> 
     )
 
 
+def apply_project_planejamento_json_columns(sync_conn: Connection) -> None:
+    """Colunas JSON de planejamento técnico (agente Azure) em `projects`."""
+    dialect = sync_conn.engine.dialect.name
+    if dialect == "sqlite":
+        try:
+            r = sync_conn.execute(text('PRAGMA table_info("projects")'))
+            existing = {row[1] for row in r}
+        except Exception:
+            return
+        if not existing:
+            return
+        if "planejamento_json" not in existing:
+            sync_conn.execute(text("ALTER TABLE projects ADD COLUMN planejamento_json TEXT"))
+        if "planejamento_json_saved_at" not in existing:
+            sync_conn.execute(text("ALTER TABLE projects ADD COLUMN planejamento_json_saved_at DATETIME"))
+        if "planejamento_json_approved_at" not in existing:
+            sync_conn.execute(text("ALTER TABLE projects ADD COLUMN planejamento_json_approved_at DATETIME"))
+        return
+    sync_conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS planejamento_json TEXT"))
+    sync_conn.execute(
+        text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS planejamento_json_saved_at TIMESTAMPTZ")
+    )
+    sync_conn.execute(
+        text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS planejamento_json_approved_at TIMESTAMPTZ")
+    )
+
+
+def apply_project_task_bloco_tag_column(sync_conn: Connection) -> None:
+    """Tag de bloco/fase do planejamento nos cartões do Kanban (`project_tasks`)."""
+    dialect = sync_conn.engine.dialect.name
+    if dialect == "sqlite":
+        try:
+            r = sync_conn.execute(text('PRAGMA table_info("project_tasks")'))
+            existing = {row[1] for row in r}
+        except Exception:
+            return
+        if not existing:
+            return
+        if "bloco_tag" not in existing:
+            sync_conn.execute(text("ALTER TABLE project_tasks ADD COLUMN bloco_tag VARCHAR(512)"))
+        return
+    sync_conn.execute(text("ALTER TABLE project_tasks ADD COLUMN IF NOT EXISTS bloco_tag VARCHAR(512)"))
+
+
+def apply_project_task_entrega_resumo_column(sync_conn: Connection) -> None:
+    """Resumo «o que foi entregue» (relatório do agente) nos cartões sincronizados a partir do planejamento."""
+    dialect = sync_conn.engine.dialect.name
+    if dialect == "sqlite":
+        try:
+            r = sync_conn.execute(text('PRAGMA table_info("project_tasks")'))
+            existing = {row[1] for row in r}
+        except Exception:
+            return
+        if not existing:
+            return
+        if "entrega_resumo" not in existing:
+            sync_conn.execute(text("ALTER TABLE project_tasks ADD COLUMN entrega_resumo TEXT"))
+        return
+    sync_conn.execute(text("ALTER TABLE project_tasks ADD COLUMN IF NOT EXISTS entrega_resumo TEXT"))
+
+
 def apply_kanban_template_metadata_columns(sync_conn: Connection) -> None:
     dialect = sync_conn.engine.dialect.name
     if dialect == "sqlite":

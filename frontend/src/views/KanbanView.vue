@@ -507,7 +507,7 @@ function cardAccentBorderStyle(p: Project, colTitle: string, c: Col) {
                 <span class="material-symbols-outlined text-on-surface-variant text-lg self-center">drag_indicator</span>
               </div>
               <RouterLink
-                :to="`/projetos/${p.id}?tab=kanban`"
+                :to="`/projetos/${p.id}?tab=desenvolvimento`"
                 class="block flex-1 min-w-0 p-4 cursor-pointer"
               >
               <div v-if="!(p.ended_at || isDoneColumn(c.title))" class="flex justify-between items-start mb-3">

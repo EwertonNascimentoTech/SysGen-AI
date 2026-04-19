@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
-import { api, apiBlob, apiText, ApiError, type GovernanceNoticePayload } from "@/api/client";
+import { api, apiBlob, apiText } from "@/api/client";
 import { prepareStitchExportHtmlForViewer } from "@/utils/stitchExportHtml";
 import PrdChatPanel from "@/components/PrdChatPanel.vue";
 import PrdVersionsPanel from "@/components/PrdVersionsPanel.vue";
 import PrototipoVersionsPanel from "@/components/PrototipoVersionsPanel.vue";
 import ProjectTaskBoard from "@/components/ProjectTaskBoard.vue";
+import PlanejamentoRoadmapView from "@/components/PlanejamentoRoadmapView.vue";
 import { useAuthStore } from "@/stores/auth";
 
 /** Google Stitch — o URL pode ser substituído em build (VITE_STITCH_URL). */
@@ -31,6 +32,9 @@ type Project = {
   prd_current_version?: number | null;
   prototipo_prompt_saved_at?: string | null;
   prototipo_current_version?: number | null;
+  /** Última gravação do JSON de planejamento técnico (agente Azure). */
+  planejamento_json_saved_at?: string | null;
+  planejamento_json_approved_at?: string | null;
   planned_start: string;
   planned_end: string;
   ended_at: string | null;
@@ -46,8 +50,7 @@ type DetailTab =
   | "auditoria"
   | "prd"
   | "prototipo"
-  | "planejamento"
-  | "desenvolvimento";
+  | "planejamento";
 
 type MainTab =
   | "resumo"
@@ -57,7 +60,6 @@ type MainTab =
   | "prd"
   | "prototipo"
   | "planejamento"
-  | "desenvolvimento"
   | "configuracoes";
 type ConfigTab = "github" | "wiki" | "cursor";
 
@@ -94,10 +96,6 @@ const repoUrl = ref("");
 const customRef = ref("");
 const msg = ref("");
 const err = ref("");
-const govFixLinks = ref<GovernanceNoticePayload[]>([]);
-const govWarnLinks = ref<GovernanceNoticePayload[]>([]);
-/** Movimentações macro Kanban (auditoria), ordenadas do mais antigo ao mais recente */
-const kanbanMoveAudits = ref<AuditItem[]>([]);
 const attachType = ref("evidencia");
 const fileEl = ref<HTMLInputElement | null>(null);
 const activeTab = ref<DetailTab>("resumo");
@@ -106,12 +104,37 @@ const ghOAuthConfigured = ref(false);
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 const prdVersionsPanelRef = ref<{ reload: () => void | Promise<void> } | null>(null);
 const prototipoVersionsPanelRef = ref<{ reload: () => void | Promise<void> } | null>(null);
+const projectTaskBoardRef = ref<{ reload: () => void | Promise<void> } | null>(null);
 const prototipoGenerating = ref(false);
 const prototipoPrompt = ref("");
 const prototipoPromptErr = ref("");
 const prototipoPromptMsg = ref("");
 const prototipoPromptVersion = ref<number | null>(null);
 const prototipoPrdVersion = ref<number | null>(null);
+const planejamentoAgentLoading = ref(false);
+const planejamentoAgentErr = ref("");
+const planejamentoAgentWarnings = ref<string[]>([]);
+const planejamentoAgentOutput = ref("");
+/** Raiz JSON parseada (array ou object); null se a resposta não for JSON estruturado. */
+const planejamentoAgentParsed = ref<unknown>(null);
+/** Caminho JSON (`JSON.stringify` de `(string|number)[]`) do nó seleccionado na árvore. */
+const planejamentoSelectedPathKey = ref<string | null>(null);
+/** Nós com filhos expandidos na árvore de planejamento (chave = `planejamentoPathKey`). */
+const planejamentoExpanded = ref<Record<string, boolean>>({});
+const planejamentoApprovalLoading = ref(false);
+const planejamentoApprovalMsg = ref("");
+/** Stack + ambiente devolvidos por GET /planejamento (campo `context`). */
+type PlanejamentoContext = {
+  stack_documentada: string;
+  methodology: string;
+  github_repo_url: string | null;
+  github_tag: string | null;
+  s3_configured: boolean;
+  github_oauth_configured: boolean;
+  stitch_api_configured: boolean;
+  azure_planejador_ready: boolean;
+};
+const planejamentoContext = ref<PlanejamentoContext | null>(null);
 /** API MCP Google Stitch (backend + STITCH_API_KEY) — alternativa ao site web. */
 const stitchApiReady = ref(false);
 const stitchApiDetail = ref("");
@@ -132,8 +155,6 @@ const stitchApiResult = ref<{
 } | null>(null);
 const showDeleteModal = ref(false);
 const deleting = ref(false);
-/** Evita cliques repetidos enquanto o macro Kanban valida regras e grava o movimento. */
-const movingKanbanToColumnId = ref<number | null>(null);
 const directories = ref<Dir[]>([]);
 const editingProcess = ref(false);
 const savingProcess = ref(false);
@@ -150,6 +171,185 @@ const editDraft = ref({
 const canMove = computed(() => auth.hasRole("admin", "coordenador"));
 const canSeeAudit = computed(() => auth.hasRole("admin", "coordenador"));
 const canEditPrototipoPrompt = computed(() => auth.hasRole("admin", "coordenador", "po"));
+
+type PlanejPath = (string | number)[];
+
+type PlanejTreeRow = {
+  pathKey: string;
+  path: PlanejPath;
+  label: string;
+  preview: string;
+  depth: number;
+  hasChildren: boolean;
+};
+
+function summarizePlanejamentoValue(v: unknown): string {
+  if (v === null || v === undefined) return "—";
+  if (typeof v === "string") return v.length > 100 ? `${v.slice(0, 100)}…` : v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  if (Array.isArray(v)) return `Array (${v.length} itens)`;
+  if (typeof v === "object") {
+    const keys = Object.keys(v as Record<string, unknown>);
+    if (keys.length === 0) return "Object (vazio)";
+    const head = keys.slice(0, 4).join(", ");
+    return keys.length > 4 ? `{ ${head}, … }` : `{ ${head} }`;
+  }
+  return String(v);
+}
+
+function planejamentoPathKey(path: PlanejPath): string {
+  return JSON.stringify(path);
+}
+
+function getValueAtPlanejPath(root: unknown, path: PlanejPath): unknown {
+  let cur: unknown = root;
+  for (const seg of path) {
+    if (cur === null || cur === undefined) return undefined;
+    if (typeof seg === "number" && Array.isArray(cur)) {
+      cur = cur[seg];
+    } else if (typeof seg === "string" && typeof cur === "object" && !Array.isArray(cur)) {
+      cur = (cur as Record<string, unknown>)[seg];
+    } else {
+      return undefined;
+    }
+  }
+  return cur;
+}
+
+function initPlanejamentoExpanded(root: unknown): Record<string, boolean> {
+  const ex: Record<string, boolean> = {};
+  if (root === null || typeof root !== "object") return ex;
+  if (Array.isArray(root)) {
+    root.forEach((item, i) => {
+      if (item !== null && typeof item === "object") {
+        ex[planejamentoPathKey([i])] = true;
+      }
+    });
+  } else {
+    for (const k of Object.keys(root as Record<string, unknown>)) {
+      const child = (root as Record<string, unknown>)[k];
+      if (child !== null && typeof child === "object") {
+        ex[planejamentoPathKey([k])] = true;
+      }
+    }
+  }
+  return ex;
+}
+
+function appendPlanejChildren(
+  value: unknown,
+  basePath: PlanejPath,
+  depth: number,
+  expanded: Record<string, boolean>,
+  out: PlanejTreeRow[],
+) {
+  if (value === null || typeof value !== "object") return;
+  if (Array.isArray(value)) {
+    value.forEach((item, i) => {
+      const path = [...basePath, i];
+      const pathKey = planejamentoPathKey(path);
+      const hasChildren =
+        item !== null &&
+        typeof item === "object" &&
+        (Array.isArray(item) ? item.length > 0 : Object.keys(item as object).length > 0);
+      out.push({
+        pathKey,
+        path,
+        label: `[${i}]`,
+        preview: summarizePlanejamentoValue(item),
+        depth,
+        hasChildren,
+      });
+      if (hasChildren && expanded[pathKey]) {
+        appendPlanejChildren(item, path, depth + 1, expanded, out);
+      }
+    });
+  } else {
+    const keys = Object.keys(value as Record<string, unknown>).sort((a, b) => a.localeCompare(b, "pt"));
+    for (const k of keys) {
+      const path = [...basePath, k];
+      const pathKey = planejamentoPathKey(path);
+      const child = (value as Record<string, unknown>)[k];
+      const hasChildren =
+        child !== null &&
+        typeof child === "object" &&
+        (Array.isArray(child) ? child.length > 0 : Object.keys(child as object).length > 0);
+      out.push({
+        pathKey,
+        path,
+        label: k,
+        preview: summarizePlanejamentoValue(child),
+        depth,
+        hasChildren,
+      });
+      if (hasChildren && expanded[pathKey]) {
+        appendPlanejChildren(child, path, depth + 1, expanded, out);
+      }
+    }
+  }
+}
+
+const planejamentoTreeRows = computed((): PlanejTreeRow[] => {
+  const p = planejamentoAgentParsed.value;
+  if (p === null || p === undefined) return [];
+  if (typeof p !== "object" || p === null) {
+    return [
+      {
+        pathKey: planejamentoPathKey([]),
+        path: [],
+        label: "Valor",
+        preview: summarizePlanejamentoValue(p),
+        depth: 0,
+        hasChildren: false,
+      },
+    ];
+  }
+  const rows: PlanejTreeRow[] = [];
+  appendPlanejChildren(p, [], 0, planejamentoExpanded.value, rows);
+  return rows;
+});
+
+const planejamentoSelectedDetailJson = computed(() => {
+  const p = planejamentoAgentParsed.value;
+  const key = planejamentoSelectedPathKey.value;
+  if (p === null || p === undefined || key === null) return "";
+  try {
+    const path = JSON.parse(key) as PlanejPath;
+    const v = getValueAtPlanejPath(p, path);
+    return JSON.stringify(v, null, 2);
+  } catch {
+    return "";
+  }
+});
+
+const planejamentoIsEmptyStructured = computed(() => {
+  const p = planejamentoAgentParsed.value;
+  if (p === null || p === undefined) return false;
+  if (Array.isArray(p)) return p.length === 0;
+  if (typeof p === "object") return Object.keys(p as Record<string, unknown>).length === 0;
+  return false;
+});
+
+function togglePlanejamentoExpand(pathKey: string, ev: MouseEvent) {
+  ev.stopPropagation();
+  planejamentoExpanded.value = { ...planejamentoExpanded.value, [pathKey]: !planejamentoExpanded.value[pathKey] };
+}
+
+function selectPlanejamentoPathKey(pathKey: string) {
+  planejamentoSelectedPathKey.value = pathKey;
+}
+
+function clearPlanejamentoSelection() {
+  planejamentoSelectedPathKey.value = null;
+}
+
+watch(planejamentoTreeRows, (rows) => {
+  const sel = planejamentoSelectedPathKey.value;
+  if (sel === null) return;
+  if (!rows.some((r) => r.pathKey === sel)) {
+    planejamentoSelectedPathKey.value = null;
+  }
+});
 
 function stitchMinioFileSortRank(name: string): number {
   const low = name.toLowerCase();
@@ -508,7 +708,6 @@ const DEFAULT_DETAIL_TAB_ORDER: DetailTab[] = [
   "prototipo",
   "planejamento",
   "kanban",
-  "desenvolvimento",
   "anexos",
   "auditoria",
   "github",
@@ -522,7 +721,6 @@ const MAIN_TAB_LABELS: Record<MainTab, string> = {
   prototipo: "Protótipo",
   planejamento: "Planejamento",
   kanban: "Desenvolvimento",
-  desenvolvimento: "Planejamento",
   anexos: "Anexos",
   auditoria: "Auditoria",
   configuracoes: "Configurações",
@@ -533,6 +731,21 @@ const CONFIG_TAB_LABELS: Record<ConfigTab, string> = {
   wiki: "Wiki",
   cursor: "Cursor Hub",
 };
+
+/** Na URL usa-se «desenvolvimento» (igual ao título da aba); internamente continua `kanban`. */
+const KANBAN_TAB_QUERY_PARAM = "desenvolvimento";
+
+function detailTabToQueryParam(tab: DetailTab): string {
+  return tab === "kanban" ? KANBAN_TAB_QUERY_PARAM : tab;
+}
+
+function queryParamToDetailTab(raw: string): DetailTab | undefined {
+  const low = raw.trim().toLowerCase();
+  if (low === KANBAN_TAB_QUERY_PARAM || low === "kanban") return "kanban";
+  const valid = new Set<DetailTab>(DEFAULT_DETAIL_TAB_ORDER);
+  if (valid.has(low as DetailTab)) return low as DetailTab;
+  return undefined;
+}
 
 function orderDetailTabsByFlowConfig(rawTabs?: string[]): DetailTab[] {
   if (!rawTabs?.length) return [...DEFAULT_DETAIL_TAB_ORDER];
@@ -548,8 +761,10 @@ function applyTabFromRoute() {
   const raw = route.query.tab;
   const t = typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : undefined;
   if (!t) return;
+  const parsed = queryParamToDetailTab(t);
+  if (!parsed) return;
   const allowed = visibleDetailTabs.value;
-  if ((allowed as string[]).includes(t)) activeTab.value = t as DetailTab;
+  if ((allowed as string[]).includes(parsed)) activeTab.value = parsed;
 }
 
 const visibleDetailTabs = computed<DetailTab[]>(() => {
@@ -640,11 +855,12 @@ watch(
         : Array.isArray(route.query.tab)
           ? route.query.tab[0]
           : undefined;
-    if (cur === tab) return;
+    const desired = tab === "resumo" ? undefined : detailTabToQueryParam(tab);
     if (tab === "resumo" && (cur === undefined || cur === "")) return;
+    if (desired !== undefined && cur === desired) return;
     const q = { ...route.query } as Record<string, string | string[] | undefined>;
     if (tab === "resumo") delete q.tab;
-    else q.tab = tab;
+    else q.tab = desired;
     void router.replace({ path: route.path, query: q, hash: route.hash });
   },
   { flush: "post" },
@@ -770,104 +986,6 @@ function formatAuditDateTime(iso: string) {
   });
 }
 
-function parseKanbanAuditColumnTitle(detail: string | null): string | null {
-  if (!detail || !detail.startsWith("coluna=")) return null;
-  const t = detail.slice("coluna=".length).trim();
-  return t || null;
-}
-
-async function loadKanbanTimelineAudits() {
-  kanbanMoveAudits.value = [];
-  if (!project.value || !canSeeAudit.value) return;
-  try {
-    const all = await api<AuditItem[]>("/audit");
-    const pid = project.value.id;
-    kanbanMoveAudits.value = all
-      .filter((a) => a.entity_type === "project" && a.entity_id === pid && a.action === "project.kanban.move")
-      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-  } catch {
-    kanbanMoveAudits.value = [];
-  }
-}
-
-const lastVisitByColumnTitle = computed(() => {
-  const m = new Map<string, string>();
-  for (const a of kanbanMoveAudits.value) {
-    const title = parseKanbanAuditColumnTitle(a.detail);
-    if (title) m.set(title, a.created_at);
-  }
-  return m;
-});
-
-type TimelinePhase = {
-  col: Col;
-  index: number;
-  total: number;
-  status: "completed" | "current" | "upcoming";
-  visitedAt: string | null;
-  detailPrimary: string;
-  detailSecondary: string;
-};
-
-const timelinePhases = computed((): TimelinePhase[] => {
-  const p = project.value;
-  const cols = templateCols.value;
-  if (!p || !cols.length) return [];
-  const curId = p.current_column_id;
-  const currentIdx = Math.max(
-    0,
-    cols.findIndex((c) => c.id === curId),
-  );
-  const visits = lastVisitByColumnTitle.value;
-  const total = cols.length;
-
-  return cols.map((c, i) => {
-    let status: TimelinePhase["status"];
-    if (i < currentIdx) status = "completed";
-    else if (i === currentIdx) status = "current";
-    else status = "upcoming";
-
-    const visitedAt = visits.get(c.title) ?? null;
-    let detailPrimary = "";
-    let detailSecondary = "";
-    if (status === "current") {
-      detailPrimary = "Etapa atual do fluxo macro do projeto.";
-      detailSecondary = visitedAt
-        ? `Registo em auditoria: entrada nesta coluna em ${formatAuditDateTime(visitedAt)} (${relTime(visitedAt)}).`
-        : "Sem registo de movimentação em auditoria (conta sem permissão ou histórico indisponível).";
-      if (p.planned_end) {
-        detailSecondary += ` Previsão de entrega do projeto: ${formatHeroDate(p.planned_end)}.`;
-      }
-    } else if (status === "completed") {
-      detailPrimary = "Etapa já ultrapassada neste processo.";
-      detailSecondary = visitedAt
-        ? `Última movimentação registada para esta coluna: ${formatAuditDateTime(visitedAt)}.`
-        : "Sem detalhe de data na auditoria para esta coluna.";
-    } else {
-      detailPrimary = "Etapa prevista após o avanço do Kanban macro.";
-      detailSecondary = "Ainda não alcançada. Depende da conclusão das etapas anteriores e das regras de governança.";
-    }
-
-    return {
-      col: c,
-      index: i + 1,
-      total,
-      status,
-      visitedAt,
-      detailPrimary,
-      detailSecondary,
-    };
-  });
-});
-
-const timelineGridStyle = computed(() => {
-  const n = timelinePhases.value.length;
-  if (!n) return {};
-  return {
-    gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`,
-  };
-});
-
 function syncEditDraftFromProject() {
   const p = project.value;
   if (!p) return;
@@ -908,9 +1026,60 @@ async function load() {
   syncEditDraftFromProject();
   await refreshWiki();
   await loadAuditFeed();
-  await loadKanbanTimelineAudits();
+  await loadPlanejamentoStored();
   applyTabFromRoute();
   scrollToRouteHash();
+}
+
+function hydratePlanejamentoFromText(source: string) {
+  let raw = (source || "").trim();
+  raw = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    planejamentoExpanded.value = initPlanejamentoExpanded(parsed);
+    planejamentoAgentParsed.value = parsed;
+    planejamentoAgentOutput.value = JSON.stringify(parsed, null, 2);
+  } catch {
+    planejamentoExpanded.value = {};
+    planejamentoAgentParsed.value = null;
+    planejamentoAgentOutput.value = raw;
+  }
+  planejamentoSelectedPathKey.value = null;
+}
+
+function planejamentoMethodologyLabel(m: string): string {
+  const x = (m || "").toLowerCase();
+  if (x === "prd") return "PRD + protótipo (Stitch)";
+  if (x === "base44") return "Base44";
+  return m?.trim() || "—";
+}
+
+function planejamentoSimNao(v: boolean): string {
+  return v ? "Sim" : "Não";
+}
+
+async function loadPlanejamentoStored() {
+  if (!project.value) return;
+  try {
+    const sto = await api<{
+      text: string | null;
+      saved_at: string | null;
+      approved_at: string | null;
+      context: PlanejamentoContext;
+    }>(`/projects/${project.value.id}/planejamento`);
+    planejamentoContext.value = sto.context ?? null;
+    if (sto.text?.trim()) {
+      hydratePlanejamentoFromText(sto.text);
+    } else {
+      planejamentoAgentOutput.value = "";
+      planejamentoAgentParsed.value = null;
+      planejamentoExpanded.value = {};
+      planejamentoSelectedPathKey.value = null;
+    }
+  } catch {
+    planejamentoContext.value = null;
+    /* ignora */
+  }
 }
 
 async function onPrdMarkdownSaved() {
@@ -1158,6 +1327,70 @@ async function generatePrototipoPrompt() {
   }
 }
 
+async function runPlanejamentoAzureAgent() {
+  if (!project.value || !canEditPrototipoPrompt.value) return;
+  planejamentoAgentLoading.value = true;
+  planejamentoAgentErr.value = "";
+  planejamentoAgentWarnings.value = [];
+  planejamentoAgentOutput.value = "";
+  planejamentoAgentParsed.value = null;
+  planejamentoExpanded.value = {};
+  planejamentoSelectedPathKey.value = null;
+  try {
+    const out = await api<{
+      text: string;
+      finish_reason?: string | null;
+      warnings?: string[];
+    }>(`/projects/${project.value.id}/planejamento/azure-agent`, { method: "POST", body: "{}" });
+    planejamentoAgentWarnings.value = out.warnings ?? [];
+    hydratePlanejamentoFromText(out.text || "");
+    try {
+      project.value = await api<Project>(`/projects/${project.value.id}`);
+    } catch {
+      /* ignora */
+    }
+    await loadPlanejamentoStored();
+  } catch (e) {
+    planejamentoAgentErr.value = e instanceof Error ? e.message : "Falha ao contactar o agente.";
+  } finally {
+    planejamentoAgentLoading.value = false;
+  }
+}
+
+async function setPlanejamentoApproval(approved: boolean) {
+  if (!project.value || !canEditPrototipoPrompt.value) return;
+  planejamentoApprovalLoading.value = true;
+  planejamentoAgentErr.value = "";
+  planejamentoApprovalMsg.value = "";
+  try {
+    const out = await api<{
+      approved_at: string | null;
+      tasks_removed: number;
+      tasks_created: number;
+    }>(`/projects/${project.value.id}/planejamento/approval`, {
+      method: "POST",
+      body: JSON.stringify({ approved }),
+    });
+    project.value = await api<Project>(`/projects/${project.value.id}`);
+    if (approved) {
+      planejamentoApprovalMsg.value =
+        out.tasks_created > 0
+          ? `${out.tasks_created} tarefa(s) criada(s) na aba Desenvolvimento (primeira raia), na ordem do planejamento.`
+          : "Planejamento aprovado. Não foram encontrados itens no JSON para criar tarefas no quadro.";
+    } else {
+      planejamentoApprovalMsg.value =
+        out.tasks_removed > 0
+          ? `${out.tasks_removed} tarefa(s) gerada(s) pelo planejamento removida(s) do quadro.`
+          : "Aprovação do planejamento anulada.";
+    }
+    await projectTaskBoardRef.value?.reload?.();
+  } catch (e) {
+    planejamentoAgentErr.value = e instanceof Error ? e.message : "Falha ao gravar aprovação.";
+  } finally {
+    planejamentoApprovalLoading.value = false;
+  }
+}
+
 function cancelEditProcess() {
   editingProcess.value = false;
   syncEditDraftFromProject();
@@ -1244,39 +1477,6 @@ async function confirmDeleteProject() {
     err.value = e instanceof Error ? e.message : "Não foi possível excluir o projeto.";
   } finally {
     deleting.value = false;
-  }
-}
-
-async function moveTo(colId: number) {
-  if (!canMove.value || !project.value) return;
-  if (movingKanbanToColumnId.value != null) return;
-  const id = project.value.id;
-  err.value = "";
-  msg.value = "";
-  govFixLinks.value = [];
-  govWarnLinks.value = [];
-  movingKanbanToColumnId.value = colId;
-  try {
-    const res = await api<{ project: Project; governance_warnings?: GovernanceNoticePayload[] }>(`/projects/${id}/kanban/move`, {
-      method: "POST",
-      body: JSON.stringify({ target_column_id: colId }),
-    });
-    project.value = res.project;
-    const w = (res.governance_warnings ?? []).filter((x) => x?.message);
-    govWarnLinks.value = w;
-    msg.value = w.length ? "Coluna atualizada. Ver avisos de governança." : "Coluna atualizada.";
-    await loadAuditFeed();
-    await loadKanbanTimelineAudits();
-  } catch (e) {
-    if (e instanceof ApiError && e.governance?.length) {
-      govFixLinks.value = e.governance;
-      err.value = "";
-    } else {
-      err.value = e instanceof Error ? e.message : "Não foi possível mover.";
-      govFixLinks.value = [];
-    }
-  } finally {
-    movingKanbanToColumnId.value = null;
   }
 }
 
@@ -1768,209 +1968,18 @@ function methodologyLabel(m: string) {
         </div>
       </div>
 
-      <!-- Desenvolvimento (quadro macro + tarefas; id interno: kanban) -->
+      <!-- Desenvolvimento (quadro de tarefas; id interno: kanban) -->
       <div v-show="activeTab === 'kanban'" class="w-full min-w-0 max-w-none space-y-6">
-        <!-- Feedback imediato (regras de avanço / API); evita parecer que «Mover para aqui» não faz nada -->
-        <div v-if="govFixLinks.length || govWarnLinks.length || err || msg" class="space-y-2">
-          <div
-            v-if="govFixLinks.length"
-            class="rounded-lg border border-error/25 bg-error-container/15 p-3 text-sm font-body text-error space-y-2"
-          >
-            <p class="text-xs font-bold uppercase tracking-wide font-label">Não foi possível avançar — regras de governança</p>
-            <p class="text-xs text-on-surface-variant font-body">
-              A coluna de destino tem regras de avanço configuradas. Corrija as pendências abaixo e tente de novo.
-            </p>
-            <div v-for="(g, i) in govFixLinks" :key="i" class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-              <span>{{ g.message }}</span>
-              <RouterLink
-                v-if="g.href"
-                :to="g.href"
-                class="text-xs font-bold uppercase tracking-wide text-primary underline hover:opacity-90 shrink-0"
-              >
-                Corrigir
-              </RouterLink>
-            </div>
-          </div>
-          <div
-            v-if="govWarnLinks.length"
-            class="rounded-lg border border-outline-variant/20 bg-surface-container-low/80 p-3 text-sm font-body text-on-surface space-y-2"
-          >
-            <p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant font-label">Avisos de governança</p>
-            <div v-for="(g, i) in govWarnLinks" :key="i" class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-              <span>{{ g.message }}</span>
-              <RouterLink
-                v-if="g.href"
-                :to="g.href"
-                class="text-xs font-bold uppercase tracking-wide text-primary underline hover:opacity-90 shrink-0"
-              >
-                Corrigir
-              </RouterLink>
-            </div>
-          </div>
+        <div v-if="err || msg" class="space-y-2">
           <p v-if="msg" class="text-on-tertiary-container text-sm font-body">{{ msg }}</p>
           <p v-else-if="err" class="text-error text-sm font-body">{{ err }}</p>
         </div>
-        <div class="rounded-xl bg-surface-container-low p-5 md:p-8">
-          <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h3 class="text-lg font-bold font-headline text-on-surface">Linha do tempo do processo</h3>
-              <p class="mt-1 text-xs text-on-surface-variant font-body">
-                Fases do template Kanban macro. Administradores e coordenadores podem mover o processo para outra coluna.
-              </p>
-            </div>
-            <p v-if="project.planned_end" class="text-xs font-medium text-on-surface-variant font-body">
-              Prazo planejado:
-              <span class="text-on-surface">{{ formatHeroDate(project.planned_end) }}</span>
-            </p>
-          </div>
-
-          <!-- Mobile: lista vertical -->
-          <div class="flex flex-col gap-4 md:hidden">
-            <div
-              v-for="phase in timelinePhases"
-              :key="phase.col.id"
-              class="relative rounded-xl border border-outline-variant/15 bg-surface-container-lowest p-4 pl-5"
-              :class="
-                phase.status === 'current'
-                  ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface-container-low'
-                  : ''
-              "
-            >
-              <div
-                class="absolute left-0 top-4 bottom-4 w-1 rounded-full"
-                :class="
-                  phase.status === 'completed'
-                    ? 'bg-tertiary-fixed-dim'
-                    : phase.status === 'current'
-                      ? 'bg-primary'
-                      : 'bg-outline-variant/40'
-                "
-              />
-              <div class="flex flex-wrap items-center gap-2">
-                <span
-                  class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold font-headline"
-                  :class="
-                    phase.status === 'completed'
-                      ? 'bg-tertiary-container text-on-tertiary-container'
-                      : phase.status === 'current'
-                        ? 'bg-primary text-on-primary'
-                        : 'bg-surface-container-high text-on-surface-variant'
-                  "
-                >
-                  <span v-if="phase.status === 'completed'" class="material-symbols-outlined text-[18px]">check</span>
-                  <span v-else>{{ phase.index }}</span>
-                </span>
-                <span
-                  class="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide font-label"
-                  :class="
-                    phase.status === 'completed'
-                      ? 'bg-tertiary-container/15 text-on-tertiary-container'
-                      : phase.status === 'current'
-                        ? 'bg-primary/10 text-on-surface'
-                        : 'bg-surface-container-high text-on-surface-variant'
-                  "
-                >
-                  {{ phase.status === "completed" ? "Concluída" : phase.status === "current" ? "Atual" : "Pendente" }}
-                </span>
-              </div>
-              <h4 class="mt-3 font-headline text-base font-bold text-on-surface">{{ phase.col.title }}</h4>
-              <p class="mt-2 text-sm font-medium text-on-surface font-body">{{ phase.detailPrimary }}</p>
-              <p class="mt-1 text-xs leading-relaxed text-on-surface-variant font-body">{{ phase.detailSecondary }}</p>
-              <p class="mt-2 text-[10px] font-label uppercase tracking-wider text-on-surface-variant">
-                Fase {{ phase.index }} de {{ phase.total }} · ordem {{ phase.col.position }}
-              </p>
-              <button
-                v-if="canMove && phase.status !== 'current'"
-                type="button"
-                class="mt-3 w-full rounded-lg border border-outline-variant/30 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container-high font-body disabled:opacity-50 disabled:pointer-events-none"
-                :disabled="movingKanbanToColumnId != null"
-                @click="moveTo(phase.col.id)"
-              >
-                {{
-                  movingKanbanToColumnId === phase.col.id
-                    ? "A validar regras e a gravar…"
-                    : "Mover processo para esta coluna"
-                }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Desktop: grelha com linha de tempo -->
-          <div class="relative hidden md:block px-1">
-            <div
-              class="pointer-events-none absolute left-6 right-6 top-5 z-0 h-0.5 bg-outline-variant/25"
-              aria-hidden="true"
-            />
-            <div class="relative z-10 grid w-full min-w-0 gap-3 lg:gap-4" :style="timelineGridStyle">
-              <div
-                v-for="phase in timelinePhases"
-                :key="'d-' + phase.col.id"
-                class="flex min-w-0 flex-col items-center"
-              >
-                <div
-                  class="mb-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-4 border-surface-container-low text-sm font-bold font-headline shadow-sm"
-                  :class="
-                    phase.status === 'completed'
-                      ? 'border-tertiary-fixed-dim bg-tertiary-container text-on-tertiary-container'
-                      : phase.status === 'current'
-                        ? 'border-primary bg-primary text-on-primary'
-                        : 'border-surface-container-high bg-surface-container-lowest text-on-surface-variant'
-                  "
-                >
-                  <span v-if="phase.status === 'completed'" class="material-symbols-outlined text-[22px]">check</span>
-                  <span v-else>{{ phase.index }}</span>
-                </div>
-                <div
-                  class="flex w-full min-h-[200px] flex-col rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-4 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]"
-                  :class="
-                    phase.status === 'current'
-                      ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface-container-low'
-                      : ''
-                  "
-                >
-                  <div class="text-center">
-                    <span
-                      class="inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide font-label"
-                      :class="
-                        phase.status === 'completed'
-                          ? 'bg-tertiary-container/15 text-on-tertiary-container'
-                          : phase.status === 'current'
-                            ? 'bg-primary/10 text-on-surface'
-                            : 'bg-surface-container-high text-on-surface-variant'
-                      "
-                    >
-                      {{ phase.status === "completed" ? "Concluída" : phase.status === "current" ? "Atual" : "Pendente" }}
-                    </span>
-                  </div>
-                  <h4 class="mt-2 text-center font-headline text-sm font-bold leading-snug text-on-surface">
-                    {{ phase.col.title }}
-                  </h4>
-                  <p class="mt-3 text-center text-xs font-medium leading-snug text-on-surface font-body">
-                    {{ phase.detailPrimary }}
-                  </p>
-                  <p class="mt-2 flex-1 text-center text-[11px] leading-relaxed text-on-surface-variant font-body">
-                    {{ phase.detailSecondary }}
-                  </p>
-                  <p class="mt-3 text-center text-[10px] font-label uppercase tracking-wider text-on-surface-variant">
-                    {{ phase.index }}/{{ phase.total }} · pos. {{ phase.col.position }}
-                  </p>
-                  <button
-                    v-if="canMove && phase.status !== 'current'"
-                    type="button"
-                    class="mt-3 rounded-lg bg-surface-container-high py-2 text-[11px] font-semibold text-on-surface hover:bg-surface-variant font-body disabled:opacity-50 disabled:pointer-events-none"
-                    :disabled="movingKanbanToColumnId != null"
-                    @click="moveTo(phase.col.id)"
-                  >
-                    {{
-                      movingKanbanToColumnId === phase.col.id ? "A validar…" : "Mover para aqui"
-                    }}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <ProjectTaskBoard :project-id="project.id" :project-name="project.name" :can-mutate="canMove" />
+        <ProjectTaskBoard
+          ref="projectTaskBoardRef"
+          :project-id="project.id"
+          :project-name="project.name"
+          :can-mutate="canMove"
+        />
       </div>
 
       <!-- PRD — chat ocupa o espaço útil até à coluna de versões (sem max-width que afaste o ledger) -->
@@ -2209,23 +2218,161 @@ function methodologyLabel(m: string) {
         </div>
       </div>
 
-      <!-- Planejamento -->
-      <div v-show="activeTab === 'planejamento'" class="bg-surface-container-low rounded-lg p-6 md:p-8 space-y-4 max-w-4xl">
+      <!-- Planejamento — largura útil como PRD/Protótipo (sem max-width) -->
+      <div
+        v-show="activeTab === 'planejamento'"
+        class="w-full min-w-0 max-w-none bg-surface-container-low rounded-lg p-6 md:p-8 space-y-4"
+      >
         <h3 class="text-lg font-bold font-headline">Planejamento</h3>
         <p class="text-sm text-on-surface-variant leading-relaxed font-body">
           Área para cronogramas, marcos, capacidade e dependências entre equipas. Use esta secção para alinhar entregas com o PRD e o protótipo.
         </p>
-      </div>
-
-      <!-- Desenvolvimento (rótulo: Planejamento) -->
-      <div
-        v-show="activeTab === 'desenvolvimento'"
-        class="bg-surface-container-low rounded-lg p-6 md:p-8 space-y-4 max-w-4xl"
-      >
-        <h3 class="text-lg font-bold font-headline">Planejamento</h3>
-        <p class="text-sm text-on-surface-variant leading-relaxed font-body">
-          Área para acompanhamento técnico da implementação, apontamentos de arquitetura e decisões de engenharia.
-        </p>
+        <div v-if="project?.planejamento_json_saved_at || project?.planejamento_json_approved_at" class="text-xs text-on-surface font-body pt-1 space-y-1">
+          <p v-if="project?.planejamento_json_saved_at">
+            Último planejamento guardado:
+            <time class="font-medium" :datetime="project.planejamento_json_saved_at">{{
+              formatAuditDateTime(project.planejamento_json_saved_at)
+            }}</time>
+          </p>
+          <p
+            v-if="project?.planejamento_json_approved_at"
+            class="text-emerald-800 dark:text-emerald-200 font-semibold"
+          >
+            Aprovado em
+            <time :datetime="project.planejamento_json_approved_at">{{
+              formatAuditDateTime(project.planejamento_json_approved_at)
+            }}</time>
+          </p>
+        </div>
+        <div
+          v-if="planejamentoContext"
+          class="rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-4 md:p-5 space-y-3"
+        >
+          <h4 class="text-sm font-bold font-headline text-on-surface">Stack e configuração do ambiente</h4>
+          <p class="text-sm leading-relaxed text-on-surface-variant font-body">
+            {{ planejamentoContext.stack_documentada }}
+          </p>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-xs font-body">
+            <div class="sm:col-span-2">
+              <dt class="font-label uppercase tracking-wider text-on-surface-variant">Metodologia do projecto</dt>
+              <dd class="mt-0.5 text-on-surface font-medium">
+                {{ planejamentoMethodologyLabel(planejamentoContext.methodology) }}
+              </dd>
+            </div>
+            <div v-if="planejamentoContext.github_repo_url" class="sm:col-span-2">
+              <dt class="font-label uppercase tracking-wider text-on-surface-variant">Repositório GitHub</dt>
+              <dd class="mt-0.5 break-all text-on-surface">
+                <a
+                  :href="planejamentoContext.github_repo_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary underline font-medium"
+                  >{{ planejamentoContext.github_repo_url }}</a
+                >
+                <span v-if="planejamentoContext.github_tag" class="text-on-surface-variant">
+                  · tag <code class="text-[11px] bg-surface-container-low px-1 rounded">{{ planejamentoContext.github_tag }}</code>
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt class="font-label uppercase tracking-wider text-on-surface-variant">MinIO / S3 (export)</dt>
+              <dd class="mt-0.5 text-on-surface">{{ planejamentoSimNao(planejamentoContext.s3_configured) }}</dd>
+            </div>
+            <div>
+              <dt class="font-label uppercase tracking-wider text-on-surface-variant">OAuth GitHub (servidor)</dt>
+              <dd class="mt-0.5 text-on-surface">{{ planejamentoSimNao(planejamentoContext.github_oauth_configured) }}</dd>
+            </div>
+            <div>
+              <dt class="font-label uppercase tracking-wider text-on-surface-variant">API Stitch (STITCH_API_KEY)</dt>
+              <dd class="mt-0.5 text-on-surface">{{ planejamentoSimNao(planejamentoContext.stitch_api_configured) }}</dd>
+            </div>
+            <div>
+              <dt class="font-label uppercase tracking-wider text-on-surface-variant">Agente Azure planejador</dt>
+              <dd class="mt-0.5 text-on-surface">{{ planejamentoSimNao(planejamentoContext.azure_planejador_ready) }}</dd>
+            </div>
+          </dl>
+        </div>
+        <div v-if="canEditPrototipoPrompt" class="space-y-3 pt-2">
+          <button
+            type="button"
+            class="px-4 py-2 bg-primary text-on-primary rounded-md text-sm font-semibold font-body disabled:opacity-50 disabled:pointer-events-none"
+            :disabled="planejamentoAgentLoading || !project"
+            @click="runPlanejamentoAzureAgent"
+          >
+            {{ planejamentoAgentLoading ? "A contactar o agente…" : "Gerar planejamento técnico (Azure)" }}
+          </button>
+          <p class="text-xs text-on-surface-variant font-body">
+            Envia o PRD guardado (Markdown) e do último export no MinIO apenas ficheiros HTML e PNG ao agente
+            configurado em <code class="text-[11px]">AZURE_AI_AGENT_PLANEJADOR_ID</code>. O resultado é
+            <span class="font-semibold text-on-surface">gravado na base</span> — ao reabrir o projeto o JSON
+            carrega automaticamente; use o botão só para regenerar. O JSON inclui
+            <span class="font-semibold text-on-surface">preparacao</span> (ambiente, arquitetura, Cursor) antes das
+            <span class="font-semibold text-on-surface">fases</span> de entrega.
+          </p>
+          <p v-if="planejamentoAgentErr" class="text-sm text-error font-body">{{ planejamentoAgentErr }}</p>
+          <ul
+            v-if="planejamentoAgentWarnings.length"
+            class="text-xs text-on-surface-variant font-body list-disc pl-5 space-y-1"
+          >
+            <li v-for="(w, i) in planejamentoAgentWarnings" :key="i">{{ w }}</li>
+          </ul>
+        </div>
+        <div v-if="planejamentoAgentOutput" class="space-y-3 pt-2">
+            <h4 class="text-sm font-bold font-headline">Resultado</h4>
+            <div v-if="planejamentoTreeRows.length" class="space-y-3">
+              <PlanejamentoRoadmapView
+                :parsed="planejamentoAgentParsed"
+                :tree-rows="planejamentoTreeRows"
+                :expanded="planejamentoExpanded"
+                :selected-path-key="planejamentoSelectedPathKey"
+                :detail-json="planejamentoSelectedDetailJson"
+                @select="selectPlanejamentoPathKey"
+                @toggle-expand="togglePlanejamentoExpand"
+                @close-detail="clearPlanejamentoSelection"
+              />
+              <div
+                v-if="canEditPrototipoPrompt && planejamentoAgentOutput"
+                class="flex flex-wrap gap-2 pt-1 border-t border-outline-variant/10"
+              >
+                <button
+                  type="button"
+                  class="px-3 py-2 rounded-md text-sm font-semibold font-body bg-emerald-700 text-white hover:opacity-90 disabled:opacity-50"
+                  :disabled="planejamentoApprovalLoading || !!project?.planejamento_json_approved_at"
+                  @click="setPlanejamentoApproval(true)"
+                >
+                  Aprovar planejamento
+                </button>
+                <button
+                  type="button"
+                  class="px-3 py-2 rounded-md text-sm font-semibold font-body border border-outline-variant/30 hover:bg-surface-container-high disabled:opacity-50"
+                  :disabled="planejamentoApprovalLoading || !project?.planejamento_json_approved_at"
+                  @click="setPlanejamentoApproval(false)"
+                >
+                  Anular aprovação
+                </button>
+              </div>
+              <p
+                v-if="planejamentoApprovalMsg"
+                class="text-sm text-emerald-800 dark:text-emerald-200 font-body pt-1"
+              >
+                {{ planejamentoApprovalMsg }}
+              </p>
+            </div>
+            <p
+              v-else-if="planejamentoIsEmptyStructured"
+              class="text-sm text-on-surface-variant font-body"
+            >
+              O JSON devolvido está vazio (objeto sem chaves ou array sem itens).
+            </p>
+            <div v-else class="space-y-2">
+              <p class="text-xs text-on-surface-variant font-body">
+                Resposta sem lista navegável (valor JSON primitivo ou texto); conteúdo:
+              </p>
+              <pre
+                class="text-xs font-mono bg-surface-container-lowest text-on-surface rounded-lg border border-outline-variant/15 p-4 max-h-[28rem] overflow-auto whitespace-pre-wrap break-words"
+              >{{ planejamentoAgentOutput }}</pre>
+            </div>
+        </div>
       </div>
 
       <!-- GitHub -->
@@ -2356,35 +2503,7 @@ function methodologyLabel(m: string) {
 
       <template v-if="activeTab !== 'kanban'">
         <p v-if="msg" class="text-on-tertiary-container text-sm font-body">{{ msg }}</p>
-        <div v-if="govFixLinks.length" class="text-error text-sm font-body space-y-2 rounded-lg border border-error/25 bg-error-container/15 p-3">
-          <div v-for="(g, i) in govFixLinks" :key="i" class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <span>{{ g.message }}</span>
-            <RouterLink
-              v-if="g.href"
-              :to="g.href"
-              class="text-xs font-bold uppercase tracking-wide text-primary underline hover:opacity-90 shrink-0"
-            >
-              Corrigir
-            </RouterLink>
-          </div>
-        </div>
         <p v-else-if="err" class="text-error text-sm font-body">{{ err }}</p>
-        <div
-          v-if="govWarnLinks.length"
-          class="text-on-tertiary-container text-sm font-body space-y-2 rounded-lg border border-outline-variant/20 bg-surface-container-low/60 p-3"
-        >
-          <p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant font-label">Avisos de governança</p>
-          <div v-for="(g, i) in govWarnLinks" :key="i" class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <span>{{ g.message }}</span>
-            <RouterLink
-              v-if="g.href"
-              :to="g.href"
-              class="text-xs font-bold uppercase tracking-wide text-primary underline hover:opacity-90 shrink-0"
-            >
-              Corrigir
-            </RouterLink>
-          </div>
-        </div>
       </template>
     </section>
 

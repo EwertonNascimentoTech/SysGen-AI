@@ -9,10 +9,12 @@ from app.api.routes import (
     audit,
     auth,
     azure_runtime_settings,
+    cursor_agent_webhook,
     cursor_hub,
     dashboard,
     directories,
     governance_rules,
+    planejamento,
     prd_chat,
     prototipo,
     projects,
@@ -24,12 +26,15 @@ from app.core.config import settings
 from app.db.base import Base
 from app.db.schema_patch import (
     apply_governance_advance_rule_on_violation,
+    apply_project_task_bloco_tag_column,
+    apply_project_task_entrega_resumo_column,
     apply_kanban_template_metadata_columns,
     apply_project_prd_schema,
     apply_project_prototipo_schema,
     apply_project_stitch_generation_schema,
     apply_project_stitch_generations_approval_columns,
     apply_project_stitch_export_storage_prefix_column,
+    apply_project_planejamento_json_columns,
 )
 from app.db.session import async_session_maker, engine
 from app.services.governance_seed import ensure_governance_advance_rules
@@ -44,6 +49,8 @@ from app.services.storage import ensure_bucket_exists
 async def lifespan(_: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(apply_project_task_bloco_tag_column)
+        await conn.run_sync(apply_project_task_entrega_resumo_column)
         await conn.run_sync(apply_kanban_template_metadata_columns)
         await conn.run_sync(apply_governance_advance_rule_on_violation)
         await conn.run_sync(apply_project_prd_schema)
@@ -51,6 +58,7 @@ async def lifespan(_: FastAPI):
         await conn.run_sync(apply_project_stitch_generation_schema)
         await conn.run_sync(apply_project_stitch_generations_approval_columns)
         await conn.run_sync(apply_project_stitch_export_storage_prefix_column)
+        await conn.run_sync(apply_project_planejamento_json_columns)
     await anyio.to_thread.run_sync(ensure_bucket_exists)
     async with async_session_maker() as session:
         await seed_if_empty(session)
@@ -73,6 +81,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api")
+app.include_router(cursor_agent_webhook.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(directories.router, prefix="/api")
 app.include_router(templates.router, prefix="/api")
@@ -80,6 +89,7 @@ app.include_router(governance_rules.router, prefix="/api")
 app.include_router(projects.router, prefix="/api")
 app.include_router(prd_chat.router, prefix="/api")
 app.include_router(prototipo.router, prefix="/api")
+app.include_router(planejamento.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(cursor_hub.router, prefix="/api")
 app.include_router(audit.router, prefix="/api")

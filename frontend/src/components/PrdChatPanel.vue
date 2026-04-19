@@ -47,6 +47,9 @@ const callPhase = ref<"idle" | "listening" | "thinking" | "speaking">("idle");
 const savingPrdIndex = ref<number | null>(null);
 const prdSaveFeedback = ref("");
 
+/** Modo ecrã inteiro: melhora leitura de mensagens longas (teleport para `body`). */
+const chatExpanded = ref(false);
+
 const storageKey = computed(() => `prd-chat-${props.projectId}`);
 
 /** Ordem do mais recente ao mais antigo — `flex-col-reverse` no scroll coloca o recente junto ao compositor. */
@@ -95,9 +98,29 @@ async function refreshAzureStatus() {
   }
 }
 
+function setBodyScrollLocked(locked: boolean) {
+  document.body.style.overflow = locked ? "hidden" : "";
+}
+
+function toggleChatExpanded() {
+  chatExpanded.value = !chatExpanded.value;
+}
+
+function onExpandKeydown(e: KeyboardEvent) {
+  if (e.key === "Escape" && chatExpanded.value) {
+    e.preventDefault();
+    chatExpanded.value = false;
+  }
+}
+
+watch(chatExpanded, (v) => {
+  setBodyScrollLocked(v);
+});
+
 onMounted(() => {
   loadLocal();
   void nextTick(() => scrollToBottom());
+  window.addEventListener("keydown", onExpandKeydown);
 });
 
 watch(
@@ -111,6 +134,8 @@ watch(
 
 onUnmounted(() => {
   stopCallSession();
+  window.removeEventListener("keydown", onExpandKeydown);
+  setBodyScrollLocked(false);
 });
 
 /** Com `flex-col-reverse`, o fundo da conversa corresponde a scrollTop === 0. */
@@ -483,21 +508,50 @@ function stopCallSession() {
 </script>
 
 <template>
-  <div class="flex w-full flex-col gap-6">
-    <!-- Cabeçalho editorial (Stitch: sem linha pesada) -->
-    <header class="flex flex-col gap-1">
-      <h2 class="font-headline text-2xl font-extrabold tracking-tight text-on-surface md:text-3xl">Entrevista PRD</h2>
-      <p class="font-body text-sm font-medium text-on-surface-variant">Módulo de engenharia de PRD em tempo real</p>
-      <p v-if="!azureOk" class="mt-2 max-w-xl font-body text-xs text-error">
-        Configure <code class="font-mono text-[11px]">AZURE_AI_*</code> (Agents) ou
-        <code class="font-mono text-[11px]">AZURE_OPENAI_*</code> no servidor para activar o chat.
-      </p>
-    </header>
-
-    <!-- Cartão único: altura fixa — conversa com scroll; compositor fixo em baixo -->
+  <Teleport to="body" :disabled="!chatExpanded">
     <div
-      class="flex h-[min(70vh,680px)] min-h-[20rem] flex-col overflow-hidden rounded-xl border border-outline-variant/15 bg-surface-container-lowest shadow-[0_4px_28px_-8px_rgba(25,28,30,0.09)]"
+      :class="[
+        'flex flex-col gap-6',
+        chatExpanded
+          ? 'fixed inset-0 z-[90] box-border flex min-h-0 cursor-default flex-col overflow-hidden bg-black/30 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-[1px] sm:p-4 sm:pb-5'
+          : 'w-full',
+      ]"
+      @click.self="chatExpanded = false"
     >
+      <div
+        :class="chatExpanded ? 'mx-auto flex min-h-0 w-full max-w-[min(100rem,calc(100vw-1rem))] flex-1 flex-col' : 'w-full'"
+      >
+    <!-- Cartão único: cabeçalho + conversa + compositor (título e ícone dentro da div branca) -->
+    <div
+      :class="[
+        'flex flex-col overflow-hidden rounded-xl border border-outline-variant/15 bg-surface-container-lowest shadow-[0_4px_28px_-8px_rgba(25,28,30,0.09)]',
+        chatExpanded ? 'min-h-0 flex-1 shadow-2xl' : 'h-[min(72vh,760px)] min-h-[22rem]',
+      ]"
+    >
+      <header
+        class="flex shrink-0 flex-col gap-1 border-b border-outline-variant/15 bg-surface-container-lowest px-5 pb-4 pt-5 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:px-6"
+      >
+        <div class="min-w-0 flex-1 pr-2">
+          <h2 class="font-headline text-2xl font-extrabold tracking-tight text-on-surface md:text-3xl">Entrevista PRD</h2>
+          <p class="font-body text-sm font-medium text-on-surface-variant">Módulo de engenharia de PRD em tempo real</p>
+          <p v-if="!azureOk" class="mt-2 max-w-xl font-body text-xs text-error">
+            Configure <code class="font-mono text-[11px]">AZURE_AI_*</code> (Agents) ou
+            <code class="font-mono text-[11px]">AZURE_OPENAI_*</code> no servidor para activar o chat.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="mt-2 inline-flex shrink-0 items-center justify-center self-start rounded-lg border border-outline-variant/25 bg-surface-container-low p-2 text-on-surface shadow-sm transition-colors hover:bg-surface-container-high sm:mt-0"
+          :aria-expanded="chatExpanded"
+          :aria-label="chatExpanded ? 'Sair do modo expandido' : 'Expandir conversa'"
+          :title="chatExpanded ? 'Sair do modo expandido (Esc)' : 'Expandir conversa'"
+          @click="toggleChatExpanded"
+        >
+          <span class="material-symbols-outlined text-2xl text-primary" aria-hidden="true">{{
+            chatExpanded ? "close_fullscreen" : "open_in_full"
+          }}</span>
+        </button>
+      </header>
       <section
         ref="scrollRef"
         class="prd-chat-scroll flex min-h-0 flex-1 flex-col-reverse gap-8 overflow-y-auto overscroll-contain p-6"
@@ -675,7 +729,9 @@ function stopCallSession() {
         </div>
       </footer>
     </div>
-  </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>

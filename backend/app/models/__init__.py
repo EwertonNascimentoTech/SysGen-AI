@@ -2,6 +2,7 @@ from app.models.app_setting import AppSetting, GITHUB_SERVICE_TOKEN_KEY
 from app.models.system_general_settings import SystemGeneralSettings
 from app.models.audit import AuditLog
 from app.models.cursor_artifact import CursorArtifact, ProjectCursorArtifact
+from app.models.project_cursor_agent_run import CursorWebhookDelivery, ProjectCursorAgentRun
 from app.models.directory import Directory
 from app.models.governance_advance_rule import GovernanceAdvanceRule
 from app.models.kanban import KanbanTemplate, KanbanTemplateColumn
@@ -42,5 +43,7 @@ __all__ = [
     "WikiDocument",
     "CursorArtifact",
     "ProjectCursorArtifact",
+    "ProjectCursorAgentRun",
+    "CursorWebhookDelivery",
     "AuditLog",
 ]

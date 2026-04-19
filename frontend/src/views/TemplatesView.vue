@@ -83,11 +83,10 @@ const METHODOLOGY_OPTIONS = Object.keys(METHODOLOGY_PRESETS);
 const COLOR_SWATCHES = ["#64748b", "#3b82f6", "#0d9488", "#ca8a04", "#9333ea", "#e11d48"];
 const DETAIL_TAB_OPTIONS: { value: string; label: string }[] = [
   { value: "resumo", label: "Resumo" },
-  { value: "kanban", label: "Kanban" },
+  { value: "kanban", label: "Desenvolvimento" },
   { value: "prd", label: "PRD" },
   { value: "prototipo", label: "Protótipo" },
   { value: "planejamento", label: "Planejamento" },
-  { value: "desenvolvimento", label: "Desenvolvimento" },
   { value: "anexos", label: "Anexos" },
   { value: "auditoria", label: "Auditoria" },
   { value: "github", label: "GitHub" },

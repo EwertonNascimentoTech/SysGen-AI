@@ -134,6 +134,15 @@ def migrate(conn: sqlite3.Connection) -> list[str]:
         if "prototipo_current_version" not in cols:
             conn.execute("ALTER TABLE projects ADD COLUMN prototipo_current_version INTEGER")
             log.append("Coluna projects.prototipo_current_version adicionada.")
+        if "planejamento_json" not in cols:
+            conn.execute("ALTER TABLE projects ADD COLUMN planejamento_json TEXT")
+            log.append("Coluna projects.planejamento_json adicionada.")
+        if "planejamento_json_saved_at" not in cols:
+            conn.execute("ALTER TABLE projects ADD COLUMN planejamento_json_saved_at DATETIME")
+            log.append("Coluna projects.planejamento_json_saved_at adicionada.")
+        if "planejamento_json_approved_at" not in cols:
+            conn.execute("ALTER TABLE projects ADD COLUMN planejamento_json_approved_at DATETIME")
+            log.append("Coluna projects.planejamento_json_approved_at adicionada.")
 
     if not _table_exists(conn, "project_prototipo_prompt_versions"):
         conn.execute(

@@ -27,6 +27,9 @@ class Project(Base):
     prototipo_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
     prototipo_prompt_saved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     prototipo_current_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    planejamento_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    planejamento_json_saved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    planejamento_json_approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     directory_ref: Mapped["Directory"] = relationship(back_populates="projects")

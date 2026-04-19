@@ -15,6 +15,7 @@ from app.models.cursor_artifact import ProjectCursorArtifact
 from app.models.kanban import KanbanTemplate, KanbanTemplateColumn
 from app.models.directory import Directory
 from app.models.project import Project, ProjectAttachment, ProjectPrdVersion, ProjectWiki, WikiDocument
+from app.models.project_cursor_agent_run import ProjectCursorAgentRun
 from app.models.project_task import ProjectTask
 from app.models.project_task_column import ProjectTaskColumn
 from app.models.user import User
@@ -27,6 +28,7 @@ from app.schemas.project import (
     ProjectPatch,
     TagSelectBody,
 )
+from app.schemas.cursor_dev import CursorDevPollOut, CursorDevStartOut
 from app.schemas.project_task import (
     ProjectTaskCreate,
     ProjectTaskOut,
@@ -40,9 +42,17 @@ from app.schemas.project_task_column import (
     ProjectTaskColumnPatch,
 )
 from app.services.attachments_storage import remove_attachment_storage, save_upload
+from app.services.cursor_agent_board import refresh_stale_cursor_runs_from_api
+from app.services.cursor_cloud_agents import launch_cloud_agent
 from app.services.audit import log_action
 from app.services.governance_transition import validate_transition
-from app.services.github_client import github_list_tags, github_verify_ref, parse_github_repo_url
+from app.services.github_client import (
+    github_bootstrap_empty_repository,
+    github_list_tags,
+    github_repo_has_zero_commits,
+    github_verify_ref,
+    parse_github_repo_url,
+)
 from app.services.github_tokens import resolve_github_token_for_project_api_async
 from app.services.queue_conn import enqueue_wiki_job
 from app.services.project_task_columns import (
@@ -78,6 +88,8 @@ def _to_out(p: Project) -> ProjectOut:
         prd_current_version=p.prd_current_version,
         prototipo_prompt_saved_at=p.prototipo_prompt_saved_at,
         prototipo_current_version=p.prototipo_current_version,
+        planejamento_json_saved_at=p.planejamento_json_saved_at,
+        planejamento_json_approved_at=p.planejamento_json_approved_at,
         created_at=p.created_at,
     )
 
@@ -449,11 +461,14 @@ async def create_project_task(
             detail="Coluna (raia) inválida ou inexistente neste projeto",
         )
     pos = await _next_task_position(session, project_id, body.column_key)
+    bt = (body.bloco_tag.strip() if body.bloco_tag else None) or None
     task = ProjectTask(
         project_id=project_id,
         position=pos,
         title=body.title.strip(),
+        bloco_tag=bt,
         description=(body.description.strip() if body.description else None) or None,
+        entrega_resumo=(body.entrega_resumo.strip() if body.entrega_resumo else None) or None,
         column_key=body.column_key,
         priority=body.priority,
         assignee=(body.assignee.strip() if body.assignee else None) or None,
@@ -548,13 +563,373 @@ async def patch_project_task(
         data["title"] = data["title"].strip()
     if "description" in data and data["description"] is not None:
         data["description"] = data["description"].strip() or None
+    if "entrega_resumo" in data and data["entrega_resumo"] is not None:
+        data["entrega_resumo"] = data["entrega_resumo"].strip() or None
     if "assignee" in data and data["assignee"] is not None:
         data["assignee"] = data["assignee"].strip() or None
+    if "bloco_tag" in data and data["bloco_tag"] is not None:
+        data["bloco_tag"] = data["bloco_tag"].strip() or None
     for key, val in data.items():
         setattr(task, key, val)
     await session.commit()
     await session.refresh(task)
     return ProjectTaskOut.model_validate(task)
+
+
+@router.get("/{project_id}/cursor-dev/poll", response_model=CursorDevPollOut)
+async def poll_cursor_dev_auto(
+    project_id: int,
+    user: User = Depends(require_roles("admin", "coordenador")),
+    session: AsyncSession = Depends(get_session),
+):
+    """Indica se o modo automático pode lançar o próximo agente (sincroniza runs com a API Cursor)."""
+    api_key = (settings.cursor_cloud_api_key or "").strip()
+    if not api_key:
+        return CursorDevPollOut(
+            can_start=False,
+            has_active_agent=False,
+            backlog_tasks=0,
+            reason="NO_CURSOR_API_KEY",
+        )
+    if len((settings.cursor_webhook_secret or "").strip()) < 32:
+        return CursorDevPollOut(
+            can_start=False,
+            has_active_agent=False,
+            backlog_tasks=0,
+            reason="NO_WEBHOOK_SECRET",
+        )
+    if not (settings.public_api_base_url or "").strip():
+        return CursorDevPollOut(
+            can_start=False,
+            has_active_agent=False,
+            backlog_tasks=0,
+            reason="NO_PUBLIC_URL",
+        )
+
+    p = (await session.execute(select(Project).where(Project.id == project_id))).scalar_one_or_none()
+    if not p:
+        raise HTTPException(status_code=404, detail="Projeto não encontrado")
+    repo_url = (p.github_repo_url or "").strip()
+    if not repo_url:
+        return CursorDevPollOut(
+            can_start=False,
+            has_active_agent=False,
+            backlog_tasks=0,
+            reason="NO_GITHUB_REPO",
+        )
+    try:
+        repo_ref = parse_github_repo_url(repo_url)
+    except ValueError:
+        return CursorDevPollOut(
+            can_start=False,
+            has_active_agent=False,
+            backlog_tasks=0,
+            reason="INVALID_GITHUB_URL",
+        )
+
+    gh_token = await resolve_github_token_for_project_api_async(session, user)
+    if await github_repo_has_zero_commits(repo_ref.owner, repo_ref.name, gh_token):
+        return CursorDevPollOut(
+            can_start=False,
+            has_active_agent=False,
+            backlog_tasks=0,
+            reason="EMPTY_REPO",
+        )
+
+    await ensure_default_project_task_columns(session, project_id)
+    cols = await list_columns_ordered(session, project_id)
+    if not cols:
+        return CursorDevPollOut(
+            can_start=False,
+            has_active_agent=False,
+            backlog_tasks=0,
+            reason="NO_COLUMNS",
+        )
+    first_key = cols[0].key
+    in_progress_key = next((c.key for c in cols if c.key == "in_progress"), None)
+    if not in_progress_key:
+        return CursorDevPollOut(
+            can_start=False,
+            has_active_agent=False,
+            backlog_tasks=0,
+            reason="NO_IN_PROGRESS_COL",
+        )
+
+    await refresh_stale_cursor_runs_from_api(session, project_id, api_key)
+    active = await session.scalar(
+        select(func.count())
+        .select_from(ProjectCursorAgentRun)
+        .where(
+            ProjectCursorAgentRun.project_id == project_id,
+            ProjectCursorAgentRun.status.in_(("CREATING", "RUNNING")),
+        )
+    )
+    busy = bool(active and int(active) > 0)
+    backlog = await session.scalar(
+        select(func.count()).where(
+            ProjectTask.project_id == project_id,
+            ProjectTask.column_key == first_key,
+        )
+    )
+    n_back = int(backlog or 0)
+    can_start = (not busy) and n_back > 0
+    reason = None
+    if not can_start:
+        reason = "BUSY" if busy else "NO_TASKS"
+    return CursorDevPollOut(
+        can_start=can_start,
+        has_active_agent=busy,
+        backlog_tasks=n_back,
+        reason=reason,
+    )
+
+
+def _cursor_auto_integration_branch(project_id: int) -> str:
+    """Nome de branch Git válido: toda a fila Auto do projecto integra aqui."""
+    return f"sysgen-auto-{project_id}"
+
+
+@router.post("/{project_id}/cursor-dev/start", response_model=CursorDevStartOut)
+async def start_cursor_dev_next_task(
+    project_id: int,
+    auto: bool = Query(
+        False,
+        description="Modo fila: branch fixo sysgen-auto-{id} na API Cursor com autoCreatePr=false em todas as execuções (evita vários PRs).",
+    ),
+    user: User = Depends(require_roles("admin", "coordenador")),
+    session: AsyncSession = Depends(get_session),
+):
+    """Pega a primeira tarefa da primeira coluna, move para «Em execução» e lança um Cursor Cloud Agent (fila: um ativo por projeto)."""
+    api_key = (settings.cursor_cloud_api_key or "").strip()
+    if not api_key:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Integração Cursor não configurada (CURSOR_CLOUD_API_KEY).",
+        )
+    webhook_secret = (settings.cursor_webhook_secret or "").strip()
+    if len(webhook_secret) < 32:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Defina CURSOR_WEBHOOK_SECRET com pelo menos 32 caracteres (requisito da Cursor API).",
+        )
+    base = (settings.public_api_base_url or "").strip().rstrip("/")
+    if not base:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Defina PUBLIC_API_BASE_URL com a URL pública deste backend (para o webhook da Cursor).",
+        )
+    webhook_url = f"{base}/api/webhooks/cursor-agent"
+
+    p = (await session.execute(select(Project).where(Project.id == project_id))).scalar_one_or_none()
+    if not p:
+        raise HTTPException(status_code=404, detail="Projeto não encontrado")
+    repo_url = (p.github_repo_url or "").strip()
+    if not repo_url:
+        raise HTTPException(
+            status_code=400,
+            detail="Associe um repositório GitHub ao projeto antes de lançar o agente.",
+        )
+    try:
+        repo_ref = parse_github_repo_url(repo_url)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+    gh_token = await resolve_github_token_for_project_api_async(session, user)
+    repo_initialized = False
+
+    def _empty_repo_manual_help() -> str:
+        clone_https = f"https://github.com/{repo_ref.owner}/{repo_ref.name}.git"
+        web = f"https://github.com/{repo_ref.owner}/{repo_ref.name}"
+        return (
+            "O repositório GitHub existe mas ainda não tem commits — costuma acontecer quando acabou de ser criado "
+            "no GitHub e ainda não houve nenhum push.\n\n"
+            "No terminal, na pasta do projeto (se o Git já estiver inicializado):\n"
+            f"  git remote add origin {clone_https}\n"
+            "  git branch -M main\n"
+            "  git push -u origin main\n\n"
+            "Se o branch por defeito não for «main», use o nome correto (ex.: master) ou crie um ficheiro "
+            "pela interface do GitHub e faça commit.\n\n"
+            f"Página de configuração rápida no GitHub: {web}"
+        )
+
+    if await github_repo_has_zero_commits(repo_ref.owner, repo_ref.name, gh_token):
+        boot_ok, boot_err = await github_bootstrap_empty_repository(
+            repo_ref.owner,
+            repo_ref.name,
+            gh_token,
+            readme_title=p.name,
+        )
+        if boot_ok:
+            for _ in range(25):
+                if not await github_repo_has_zero_commits(repo_ref.owner, repo_ref.name, gh_token):
+                    repo_initialized = True
+                    break
+                await anyio.sleep(0.35)
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail=_empty_repo_manual_help()
+                    + "\n\nO ficheiro inicial foi criado no GitHub mas a API ainda não lista commits. "
+                    "Aguarde cerca de um minuto ou confira o repositório no GitHub e volte a tentar «Desenvolver».",
+                )
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=_empty_repo_manual_help() + f"\n\nInicialização automática não foi possível: {boot_err}",
+            )
+
+    await ensure_default_project_task_columns(session, project_id)
+    cols = await list_columns_ordered(session, project_id)
+    if not cols:
+        raise HTTPException(status_code=400, detail="Quadro de tarefas sem colunas")
+    first_key = cols[0].key
+    in_progress_key = next((c.key for c in cols if c.key == "in_progress"), None)
+    if not in_progress_key:
+        raise HTTPException(
+            status_code=400,
+            detail='O quadro precisa de uma coluna com chave «in_progress» (Em execução).',
+        )
+
+    # Se o webhook não actualizou o estado, a BD pode ficar em RUNNING com o agente já terminado na Cursor.
+    await refresh_stale_cursor_runs_from_api(session, project_id, api_key)
+
+    active = await session.scalar(
+        select(func.count())
+        .select_from(ProjectCursorAgentRun)
+        .where(
+            ProjectCursorAgentRun.project_id == project_id,
+            ProjectCursorAgentRun.status.in_(("CREATING", "RUNNING")),
+        )
+    )
+    if active and int(active) > 0:
+        raise HTTPException(
+            status_code=409,
+            detail="Ainda há um agente Cursor em CREATING ou RUNNING neste projeto (confirmado na API da Cursor). "
+            "Aguarde a conclusão ou verifique o agente no dashboard da Cursor.",
+        )
+
+    task = (
+        await session.execute(
+            select(ProjectTask)
+            .where(ProjectTask.project_id == project_id, ProjectTask.column_key == first_key)
+            .order_by(ProjectTask.position, ProjectTask.id)
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if not task:
+        raise HTTPException(
+            status_code=400,
+            detail="Não há tarefas na primeira coluna do quadro para desenvolver.",
+        )
+
+    task.column_key = in_progress_key
+    task.position = await _next_task_position(session, project_id, in_progress_key)
+    await session.flush()
+
+    # Sem tag no projeto: não enviar ref — a Cursor usa o branch por defeito do repositório (evita 400 se não existir «main»).
+    ref_base = (p.github_tag or "").strip() or None
+    prompt_parts = [f"Tarefa: {task.title.strip()}"]
+    if task.description and str(task.description).strip():
+        prompt_parts.append(f"Descrição:\n{str(task.description).strip()}")
+    integration_branch = None
+    ref_for_launch = ref_base
+    integration_branch_name_for_api = None
+    cursor_target_disable_pr_only = False
+    if auto:
+        integration_branch = _cursor_auto_integration_branch(project_id)
+        branch_exists = await github_verify_ref(
+            repo_ref.owner, repo_ref.name, integration_branch, gh_token
+        )
+        if branch_exists:
+            ref_for_launch = integration_branch
+            # Branch já existe: não enviar `target.branchName` igual ao `ref` — a API da Cursor
+            # responde 400. Mantemos `autoCreatePr: false` só no `target`.
+            cursor_target_disable_pr_only = True
+        else:
+            integration_branch_name_for_api = integration_branch
+        if branch_exists:
+            prompt_parts.append(
+                f"[Modo Auto — um único branch e um único PR]\n"
+                f"O branch «{integration_branch}» já existe no GitHub. Faça checkout desse branch, "
+                "implemente a tarefa com commits nele e não crie outro branch de feature (evite o prefixo cursor/).\n"
+                "Não abra um novo pull request: limite-se a commits no mesmo branch. Se já existir um PR desse branch "
+                "para o branch principal do repositório, os novos commits devem actualizar esse PR."
+            )
+        else:
+            prompt_parts.append(
+                f"[Modo Auto — um único branch e um único PR]\n"
+                f"A API vai criar o branch «{integration_branch}» a partir do ref base do repositório. "
+                "Use sempre este branch nas execuções seguintes; não crie branches paralelos.\n"
+                "Não abra pull requests adicionais a partir deste branch — após existir um PR para o branch principal, "
+                "as tarefas seguintes devem ser apenas novos commits no mesmo branch."
+            )
+    prompt_text = "\n\n".join(prompt_parts)
+
+    if await github_repo_has_zero_commits(repo_ref.owner, repo_ref.name, gh_token):
+        await session.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="O repositório GitHub ainda não tem commits visíveis pela API (a Cursor não consegue usar um repo vazio). "
+            "Inicie sessão com GitHub na plataforma para permitir a criação automática do README, ou faça um primeiro "
+            "commit no GitHub e aguarde alguns segundos antes de tentar novamente.",
+        )
+
+    try:
+        resp = await launch_cloud_agent(
+            api_key,
+            prompt_text=prompt_text,
+            repository_url=repo_url,
+            ref=ref_for_launch,
+            webhook_url=webhook_url,
+            webhook_secret=webhook_secret,
+            integration_branch_name=integration_branch_name_for_api,
+            cursor_target_disable_pr_only=cursor_target_disable_pr_only,
+        )
+    except Exception as e:
+        await session.rollback()
+        err = str(e).lower()
+        if "empty" in err or "repository is empty" in err:
+            raise HTTPException(
+                status_code=400,
+                detail="A Cursor reportou repositório GitHub vazio ou sem o branch esperado. Confirme que há pelo menos "
+                "um commit no repositório (por exemplo README), que a conta GitHub na plataforma tem acesso ao repo e "
+                f"tente novamente. Detalhe: {e}",
+            ) from e
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Falha ao lançar agente na Cursor: {e}",
+        ) from e
+
+    agent_id = str(resp.get("id") or "").strip()
+    if not agent_id:
+        await session.rollback()
+        raise HTTPException(status_code=502, detail="Resposta da Cursor API sem id do agente")
+    agent_status = str(resp.get("status") or "CREATING")
+
+    session.add(
+        ProjectCursorAgentRun(
+            project_id=project_id,
+            task_id=task.id,
+            cursor_agent_id=agent_id,
+            status=agent_status,
+        )
+    )
+    await log_action(
+        session,
+        actor_email=user.email,
+        action="project.cursor_dev.start",
+        entity_type="project",
+        entity_id=project_id,
+        detail=f"task_id={task.id},cursor_agent_id={agent_id},repo_init={repo_initialized},auto={auto}"[:200],
+    )
+    await session.commit()
+    return CursorDevStartOut(
+        task_id=task.id,
+        cursor_agent_id=agent_id,
+        agent_status=agent_status,
+        repo_initialized=repo_initialized,
+        integration_branch=integration_branch,
+    )
 
 
 @router.delete("/{project_id}/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
